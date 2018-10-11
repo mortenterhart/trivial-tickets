@@ -6,18 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitConfig(t *testing.T) {
+// TestInitConfigDefault tests the parsing of command line arguments
+// and makes sure the default is applied if there are no flags provided.
+func TestInitConfigDefault(t *testing.T) {
 
-	arguments := []string{
-		"program.exe",
-		"-port",
-		"443",
-		"-ticketFolder",
-		"files/tickets"}
-
-	config := initConfig(arguments)
+	config := initConfig()
 
 	assert.NotNil(t, config, "Config struct is nil.")
 	assert.Equal(t, 443, config.port, "Config.port is not set to 443")
-	assert.Equal(t, "files/tickets", config.ticketFolder, "Config.ticketFolder is not set to \"files/tickets\"")
+	assert.Equal(t, "files/tickets", config.tickets, "Config.tickets is not set to \"files/tickets\"")
+	assert.Equal(t, "files/users", config.users, "Config.users is not set to \"files/users\"")
 }
