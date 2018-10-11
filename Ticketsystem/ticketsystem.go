@@ -1,50 +1,39 @@
 package main
 
 import (
+	"flag"
 	"log"
-	"os"
-	"strconv"
 )
 
 // Config is a struct to hold the config parameters provided on startup
 type Config struct {
-	port         int
-	ticketFolder string
+	port    int
+	tickets string
+	users   string
 }
 
 func main() {
 
-	config := initConfig(os.Args)
-	log.Println("Program initialized with port: ", config.port, " and ticket folder located at ", config.ticketFolder) // Log output to use config variable to make it compile
+	config := initConfig()
+	log.Println("\nProgram initialized with port: ", config.port, "\nThe ticket folder located at ", config.tickets, "\nThe user folder is located at ", config.users) // Log output to use config variable to make it compile
 }
 
-// initConfig takes the command line arguments parsed via
-// and populates a struct for the config parameters.
+// initConfig parses the command line arguments and
+// populates a struct for the config parameters.
 // It returns this struct
-func initConfig(arguments []string) Config {
+func initConfig() Config {
 
-	// Init the struct
-	config := Config{}
+	// Get the command line arguments
+	port := flag.Int("port", 443, "Port on which the web server will run")
+	tickets := flag.String("tickets", "files/tickets", "Folder in which the tickets will be stored")
+	users := flag.String("users", "files/users", "Folder in which the users will be stored")
 
-	// Loop through the command line arguments
-	for i := 1; i < len(arguments); i++ {
+	// Parse all arguments, e.g. populate the variables
+	flag.Parse()
 
-		// Check for the argument flags and set the struct fields
-		// to the corresponding value being passed
-		switch arguments[i] {
-
-		case "-port":
-			config.port, _ = strconv.Atoi(arguments[i+1])
-		case "-ticketFolder":
-			config.ticketFolder = arguments[i+1]
-		}
-	}
-
-	return config
+	// Populate and return the struct
+	return Config{
+		port:    *port,
+		tickets: *tickets,
+		users:   *users}
 }
-
-/* Refactoring for the above code, not implemented until a unit test for this is created
-return Config{
-	port:         *flag.Int("port", 443, "Port on which the web server will run"),
-	ticketFolder: *flag.String("ticketFolder", "files/tickets", "Folder in which the tickets will be stored")}
-*/
