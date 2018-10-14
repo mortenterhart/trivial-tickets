@@ -1,0 +1,18 @@
+{{define "login"}}
+<div class="login">
+    <form method="POST" action="/login">
+        <input type="text" name="username" placeholder="username" required />
+        <input type="password" name="password" placeholder="password" required />
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+<!--
+    If logged in
+    <form method="POST" action="/logout">
+        <label>Hello there, Kevin Mitnick</label>
+        <button type="submit">Logout</button>
+    </form>
+    
+-->
+{{end}}

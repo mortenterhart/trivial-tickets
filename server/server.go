@@ -8,6 +8,13 @@ import (
 	"net/http"
 )
 
+/*
+*
+* Matrikelnummern
+* 3040018
+*
+ */
+
 // Holds the parsed templates
 var tmpl *template.Template
 
@@ -38,12 +45,7 @@ func GetTemplates() *template.Template {
 // startHandlers maps all the various handles to the url patterns.
 func startHandlers() {
 	http.HandleFunc("/", handleIndex)
+	http.HandleFunc("/login", handleLogin)
+	http.HandleFunc("/logout", handleLogout)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../../www/static"))))
-}
-
-// handleIndex handles the traffic for the index.html
-func handleIndex(w http.ResponseWriter, r *http.Request) {
-
-	// Render index.html to the browser
-	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", nil)
 }

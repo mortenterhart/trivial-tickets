@@ -1,8 +1,13 @@
 {{define "index"}}
 {{template "header"}}
+<header>
+    <div class="headers">
+        <h1>Trivial Tickets</h1>
+    </div>
+    {{template "login"}}
+</header>
 
+{{template "create_ticket"}}
 
-
-
-{{template "footer"}}
+{{template "footer" .Time}}
 {{end}}

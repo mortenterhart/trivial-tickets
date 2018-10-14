@@ -9,6 +9,13 @@ import (
 	"math"
 )
 
+/*
+*
+* Matrikelnummern
+* 3040018
+*
+ */
+
 func main() {
 
 	config, errConfig := initConfig()
