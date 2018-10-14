@@ -6,6 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+*
+* Matrikelnummern
+* 3040018
+*
+ */
+
 // TestInitConfigDefault tests the parsing of command line arguments
 // and makes sure the default is applied if there are no flags provided.
 func TestInitConfigDefault(t *testing.T) {

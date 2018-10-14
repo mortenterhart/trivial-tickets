@@ -6,6 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+*
+* Matrikelnummern
+* 3040018
+*
+ */
+
 // Password for test and bcrypt hash generated from that password
 const password = "MyPassword123!!##"
 const hash = "$2a$12$rW6Ska0DaVjTX/8sQGCp/.y7kl2RvF.9936Hmm27HyI0cJ78q1UOG"
