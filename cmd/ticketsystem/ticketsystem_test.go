@@ -24,6 +24,7 @@ func TestInitConfigDefault(t *testing.T) {
 	assert.Equal(t, int16(443), config.Port, "Config.port is not set to 443")
 	assert.Equal(t, "files/tickets", config.Tickets, "Config.tickets is not set to \"files/tickets\"")
 	assert.Equal(t, "files/users", config.Users, "Config.users is not set to \"files/users\"")
+	assert.Equal(t, "../../www", config.Web, "Config.web is not set to \"../../www\"")
 }
 
 // TestIsPortInBoundaries checks if the provided port is within the boundaries of a 16 bit integer
