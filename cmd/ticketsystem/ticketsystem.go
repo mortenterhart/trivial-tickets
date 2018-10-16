@@ -3,52 +3,73 @@ package main
 import (
 	"errors"
 	"flag"
+	"go-tickets/server"
+	"go-tickets/structs"
 	"log"
 	"math"
 )
 
-// Config is a struct to hold the config parameters provided on startup
-type Config struct {
-	port    int16
-	tickets string
-	users   string
-}
+/*
+*
+* Matrikelnummern
+* 3040018
+*
+ */
 
 func main() {
 
-	config, err := initConfig()
+	config, errConfig := initConfig()
 
-	if err != nil {
-		log.Fatal(err)
+	if errConfig != nil {
+		log.Fatal(errConfig)
 	}
 
-	// Log output to use config variable to make it compile
-	log.Println("\nProgram initialized with port: ", config.port, "\nThe ticket folder located at ", config.tickets, "\nThe user folder is located at ", config.users)
+	// TODO:
+	//		- Create the folders and populate a users.json
+	// 			filehandler.CreateFolders(config.Tickets)
+	// 			filehandler.CreateFolders(config.Users)
+	//
+	//	    - Create a way so that the server can start up and use
+	//		  files that are already there without having to provide the config again.
+	//		  (Maybe some kind of config.ini stored on file system)
+	//        On a special flag or as default, use the config in that file
+
+	errServer := server.StartServer(&config)
+
+	if errServer != nil {
+		log.Fatal(errServer)
+	}
 }
 
 // initConfig parses the command line arguments and
 // populates a struct for the config parameters.
 // It returns this struct
-func initConfig() (Config, error) {
+func initConfig() (structs.Config, error) {
 
 	// Get the command line arguments
 	port := flag.Int("port", 443, "Port on which the web server will run")
 	tickets := flag.String("tickets", "files/tickets", "Folder in which the tickets will be stored")
 	users := flag.String("users", "files/users", "Folder in which the users will be stored")
+	cert := flag.String("cert", "ssl/server.cert", "Location of the ssl certificate")
+	key := flag.String("key", "ssl/server.key", "Location of the ssl key file")
+	web := flag.String("web", "../../www", "Location of the www folder")
 
 	// Parse all arguments, e.g. populate the variables
 	flag.Parse()
 
 	// If the port is not within boundaries, return an error
 	if !isPortInBoundaries(port) {
-		return Config{}, errors.New("Port is not a correct port number")
+		return structs.Config{}, errors.New("Port is not a correct port number")
 	}
 
 	// Populate and return the struct
-	return Config{
-		port:    int16(*port),
-		tickets: *tickets,
-		users:   *users}, nil
+	return structs.Config{
+		Port:    int16(*port),
+		Tickets: *tickets,
+		Users:   *users,
+		Cert:    *cert,
+		Key:     *key,
+		Web:     *web}, nil
 }
 
 // isPortInBoundaries returns true if the provided port

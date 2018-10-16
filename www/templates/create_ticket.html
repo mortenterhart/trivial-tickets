@@ -1,0 +1,11 @@
+{{define "create_ticket"}}
+<div class="create_ticket">
+    <h5>Create a new ticket</h5>
+    <form action="/create_ticket" method="POST">
+        <input class="ticket_input" type="text" name="mail" placeholder="E-Mail address" required/><br>
+        <input class="ticket_input" type="text" name="subject" placeholder="Subject" required/><br>
+        <textarea class="ticket_text" name="text" cols="61" rows="25" required placeholder="Describe your issue"></textarea><br>
+        <button type="submit">Create Ticket</button>
+    </form>
+</div>
+{{end}}
