@@ -15,25 +15,26 @@ import (
 *
  */
 
-// Holds the parsed templates
+// Holds the parsed templates. Is defined as a global variable to only parse
+// the templates once on startup, instead of on every GET - request to index.
 var tmpl *template.Template
 
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
 
-	tmpl = GetTemplates()
+	tmpl = GetTemplates(config.Web)
 
-	startHandlers()
+	startHandlers(config.Web)
 
 	return http.ListenAndServe(fmt.Sprintf("%s%d", ":", config.Port), nil)
 }
 
 // GetTemplates crawls through the templates folder and reads in all
 // present templates.
-func GetTemplates() *template.Template {
+func GetTemplates(path string) *template.Template {
 
 	// Crawl via relative path, since our current work dir is in cmd/ticketsystem
-	t, errTemplates := template.ParseGlob("../../www/templates/*.html")
+	t, errTemplates := template.ParseGlob(path + "/templates/*.html")
 
 	if errTemplates != nil {
 		log.Fatal("Unable to load the templates: ", errTemplates)
@@ -43,9 +44,10 @@ func GetTemplates() *template.Template {
 }
 
 // startHandlers maps all the various handles to the url patterns.
-func startHandlers() {
+func startHandlers(path string) {
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/logout", handleLogout)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../../www/static"))))
+	// Map the css, js and img folders to the location specified
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
 }

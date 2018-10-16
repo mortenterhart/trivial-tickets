@@ -18,6 +18,7 @@ type Config struct {
 	Users   string
 	Cert    string
 	Key     string
+	Web     string
 }
 
 // Session is a struct that holds session variables for a certain user

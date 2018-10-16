@@ -48,14 +48,6 @@ func TestReadUserFile(t *testing.T) {
 	assert.Equal(t, user, readUsers)
 }
 
-func TestReadTicketsFile(t *testing.T) {
-
-}
-
-func TestPersistTickets(t *testing.T) {
-
-}
-
 func TestCreateFile(t *testing.T) {
 
 	e1 := structs.Entry{
@@ -94,7 +86,7 @@ func TestCreateFile(t *testing.T) {
 
 	errCreateFile := CreateFile(usersFile, &ticket)
 
-	os.Remove("/testFiles/")
+	os.RemoveAll("testFiles/")
 
 	assert.Nil(t, errCreateFile, "Error creating the File")
 }
@@ -108,7 +100,7 @@ func TestCreateFolder(t *testing.T) {
 	errCreateFolder := CreateFolders(ticketsFolder)
 
 	// Remove them
-	os.Remove("/testFolder/")
+	os.RemoveAll("testFolder/")
 
 	// Check that there was no error
 	assert.Nil(t, errCreateFolder, "Error creating the folder(s)")

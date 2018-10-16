@@ -15,7 +15,7 @@ import (
 
 func TestGetTemplates(t *testing.T) {
 
-	tmpl := GetTemplates()
+	tmpl := GetTemplates("../www")
 
 	assert.NotNil(t, tmpl, "GetTemplates() returned no found templates")
 }
