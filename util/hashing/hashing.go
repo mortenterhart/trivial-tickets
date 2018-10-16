@@ -4,6 +4,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+/*
+*
+* Matrikelnummern
+* 3040018
+*
+ */
+
 // CheckPassword compares the given password against the stored hash.
 // It returns true, if the password is correct.
 func CheckPassword(hash string, password string) bool {
