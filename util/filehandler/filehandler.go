@@ -14,7 +14,8 @@ import (
 *
 * Matrikelnummern
 * 3040018
-*
+* 6694964
+* 3478222
  */
 
 // ReadUserFile takes a string as parameter for the location
