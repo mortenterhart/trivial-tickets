@@ -3,11 +3,12 @@ package server
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"go-tickets/structs"
 	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/mortenterhart/go-tickets/structs"
 )
 
 /*
