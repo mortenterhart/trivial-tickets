@@ -1,10 +1,11 @@
 package server
 
 import (
-	"go-tickets/structs"
 	"html/template"
 	"net/http"
 	"time"
+
+	"github.com/mortenterhart/go-tickets/structs"
 )
 
 /*

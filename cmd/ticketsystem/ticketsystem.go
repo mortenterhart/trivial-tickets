@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"flag"
-	"go-tickets/server"
-	"go-tickets/structs"
 	"log"
 	"math"
+
+	"github.com/mortenterhart/go-tickets/server"
+	"github.com/mortenterhart/go-tickets/structs"
 )
 
 /*
