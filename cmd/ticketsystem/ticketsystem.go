@@ -34,7 +34,7 @@ func main() {
 	//		  files that are already there without having to provide the config again.
 	//		  (Maybe some kind of config.ini stored on file system)
 	//        On a special flag or as default, use the config in that file
-	// 	    - Check for .git folder when using paths
+	//
 
 	errServer := server.StartServer(&config)
 

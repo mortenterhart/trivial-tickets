@@ -18,15 +18,30 @@ import (
 // handleIndex handles the traffic for the index.html
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 
-	session := structs.Session{Time: time.Now()}
+	var session structs.Session
 
-	// Render index.html to the browser
+	if _, err := r.Cookie("session"); err != nil {
+
+		cookie, sessionId := createSessionCookie()
+		http.SetCookie(w, cookie)
+		sessions[sessionId] = CreateSession(sessionId)
+
+		session = sessions[sessionId].Session
+
+	} else {
+		cookie, _ := r.Cookie("session")
+
+		session = sessions[cookie.Value].Session
+	}
+
 	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", session)
 }
 
 // handleLogin checks the login credentials against the stored users
 // and allows the user access, if their credentials are correct
 func handleLogin(w http.ResponseWriter, r *http.Request) {
+
+	userCookie, _ := r.Cookie("session")
 
 	// Only handle POST-Requests
 	if r.Method == "POST" {
@@ -41,6 +56,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 			// hash cmp
 			if password == "bb" {
 
+				session, _ := GetSession(userCookie.Value)
+				session.User = users[username]
+				session.IsLoggedIn = true
+				session.CreateTime = time.Now()
+
+				UpdateSession(userCookie.Value, session)
+
 				// set session
 				http.Redirect(w, r, "/", 302)
 			}
@@ -53,4 +75,15 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: clear session
 	http.Redirect(w, r, "/", 302)
+}
+
+func createSessionCookie() (*http.Cookie, string) {
+
+	sessionId := CreateSessionId()
+
+	return &http.Cookie{
+		Name:     "session",
+		Value:    sessionId,
+		HttpOnly: false,
+		Expires:  time.Now().Add(365 * 24 * time.Hour)}, sessionId
 }
