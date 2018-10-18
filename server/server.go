@@ -2,10 +2,11 @@ package server
 
 import (
 	"fmt"
-	"go-tickets/structs"
 	"html/template"
 	"log"
 	"net/http"
+
+	"github.com/mortenterhart/go-tickets/structs"
 )
 
 /*

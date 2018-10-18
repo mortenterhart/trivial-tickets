@@ -3,11 +3,12 @@ package filehandler
 import (
 	"encoding/json"
 	"errors"
-	"go-tickets/structs"
 	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/mortenterhart/go-tickets/structs"
 )
 
 /*
