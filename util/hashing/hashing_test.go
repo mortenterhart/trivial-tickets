@@ -10,7 +10,8 @@ import (
 *
 * Matrikelnummern
 * 3040018
-*
+* 6694964
+* 3478222
  */
 
 // Password for test and bcrypt hash generated from that password

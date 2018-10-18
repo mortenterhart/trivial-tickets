@@ -8,7 +8,8 @@ import (
 *
 * Matrikelnummern
 * 3040018
-*
+* 6694964
+* 3478222
  */
 
 // CheckPassword compares the given password against the stored hash.
