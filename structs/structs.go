@@ -8,7 +8,8 @@ import (
 *
 * Matrikelnummern
 * 3040018
-*
+* 6694964
+* 3478222
  */
 
 // Config is a struct to hold the config parameters provided on startup
@@ -23,9 +24,17 @@ type Config struct {
 
 // Session is a struct that holds session variables for a certain user
 type Session struct {
-	IsLoggedIn bool
 	User       User
-	Time       time.Time
+	CreateTime time.Time
+	IsLoggedIn bool
+	Id         string
+}
+
+// SessionManager holds a session and operates on it
+type SessionManager struct {
+	Name    string
+	Session Session
+	TTL     int64
 }
 
 // User is the model for a user that works on tickets

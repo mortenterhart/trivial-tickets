@@ -12,12 +12,19 @@ import (
 *
 * Matrikelnummern
 * 3040018
-*
+* 6694964
+* 3478222
  */
 
 // Holds the parsed templates. Is defined as a global variable to only parse
 // the templates once on startup, instead of on every GET - request to index.
 var tmpl *template.Template
+
+// Holds all the sessions for the users
+var sessions = make(map[string]structs.SessionManager)
+
+// Holds all the users
+var users = make(map[string]structs.User)
 
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
