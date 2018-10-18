@@ -1,0 +1,45 @@
+/*
+*
+* Matrikelnummern
+* 3040018
+*
+ */
+
+html {
+    font-family: 'Futura'
+}
+
+header > .headers{
+    float: left;
+    margin-left: 10%;
+}
+
+header > .login {
+    float: right;
+    margin-top: 1.5%;
+    margin-right: 10%;
+}
+
+.create_ticket {
+    width: 75%;
+    padding-top: 10%;
+    margin-left: 10%;
+}
+
+.ticket_text {
+    resize: none;
+    border-radius: 1%;
+    margin-bottom: 0.5%;
+}
+
+.ticket_input {
+    width: 50%;
+    margin-bottom: 0.5%;
+}
+
+footer {
+    margin-left: 10%;
+    margin-bottom: 1%;
+    position: fixed;
+    bottom: 0;
+}
