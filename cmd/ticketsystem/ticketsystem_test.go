@@ -15,7 +15,7 @@ import (
  */
 
 // TestInitConfigDefault tests the parsing of command line arguments
-// and makes sure the default is applied if there are no flags provided.
+// and makes sure the default is applied, if there are no flags provided.
 func TestInitConfigDefault(t *testing.T) {
 
 	config, err := initConfig()
