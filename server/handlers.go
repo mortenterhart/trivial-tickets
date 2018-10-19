@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mortenterhart/go-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -42,6 +42,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 // and allows the user access, if their credentials are correct
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 
+	// Get session id
 	userCookie, _ := r.Cookie("session")
 
 	// Only handle POST-Requests
@@ -51,33 +52,54 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		username := template.HTMLEscapeString(r.FormValue("username"))
 		password := template.HTMLEscapeString(r.FormValue("password"))
 
-		if username == "bla" {
+		if username == "admin" {
 
 			// TODO: get user data from json / memory
 			// hash cmp
-			if password == "bb" {
+			if password == "admin" {
 
+				// Update the session for the user
+				u := structs.User{
+					Name: "Max Mustermann",
+				}
+
+				// Create a session to update the current one
 				session, _ := GetSession(userCookie.Value)
-				session.User = users[username]
+				session.User = u
 				session.IsLoggedIn = true
 				session.CreateTime = time.Now()
 
+				// Update the session with the one just created
 				UpdateSession(userCookie.Value, session)
-
-				// set session
-				http.Redirect(w, r, "/", 302)
 			}
 		}
 	}
+
+	// Redirect the user to the index
+	http.Redirect(w, r, "/", 302)
 }
 
 // handleLogout logs the user out and clears their session
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 
-	// TODO: clear session
+	// Get the cookie with the session id
+	userCookie, _ := r.Cookie("session")
+
+	if r.Method == "POST" {
+
+		// Remove the session of the user
+		delete(sessions, userCookie.Value)
+
+		// Delete the session cookie
+		http.SetCookie(w, deleteSessionCookie())
+	}
+
+	// Redirect the user to the index
 	http.Redirect(w, r, "/", 302)
 }
 
+// createSessionCookie returns a http cookie to hold the session
+// id for the user
 func createSessionCookie() (*http.Cookie, string) {
 
 	sessionId := CreateSessionId()
@@ -87,4 +109,15 @@ func createSessionCookie() (*http.Cookie, string) {
 		Value:    sessionId,
 		HttpOnly: false,
 		Expires:  time.Now().Add(365 * 24 * time.Hour)}, sessionId
+}
+
+// deleteSessionCookie returns a http cookie which will overwrite the
+// existing session cookie in order to nulify it
+func deleteSessionCookie() *http.Cookie {
+
+	return &http.Cookie{
+		Name:     "session",
+		Value:    "",
+		HttpOnly: false,
+		Expires:  time.Now().Add(-100 * time.Hour)}
 }
