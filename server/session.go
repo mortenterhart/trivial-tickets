@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mortenterhart/go-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
