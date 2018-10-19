@@ -6,8 +6,8 @@ import (
 	"log"
 	"math"
 
-	"github.com/mortenterhart/go-tickets/server"
-	"github.com/mortenterhart/go-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/server"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*

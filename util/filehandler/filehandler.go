@@ -8,7 +8,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/mortenterhart/go-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
