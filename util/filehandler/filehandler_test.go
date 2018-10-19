@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mortenterhart/go-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
 )
 

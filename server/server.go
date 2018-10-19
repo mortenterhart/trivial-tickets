@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mortenterhart/go-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -26,6 +26,9 @@ var sessions = make(map[string]structs.SessionManager)
 
 // Holds all the users
 var users = make(map[string]structs.User)
+
+// Holds all the tickets
+var tickets = make(map[string]structs.Ticket)
 
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
@@ -53,9 +56,11 @@ func GetTemplates(path string) *template.Template {
 
 // startHandlers maps all the various handles to the url patterns.
 func startHandlers(path string) {
+
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/logout", handleLogout)
+
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
 }
