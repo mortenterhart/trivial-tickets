@@ -20,12 +20,9 @@ import (
  */
 
 // ReadUserFile takes a string as parameter for the location
-// of the users.json file, reads the content and returns a struct
-// of type Users
-func ReadUserFile(src string) structs.User {
-
-	// Struct to be populated
-	var users structs.User
+// of the users.json file, reads the content and stores it inside
+// of the hashmap for the users
+func ReadUserFile(src string, users *map[string]structs.User) {
 
 	// Read contents of users.json
 	fileContent, errReadFile := ioutil.ReadFile(src)
@@ -34,14 +31,12 @@ func ReadUserFile(src string) structs.User {
 		log.Fatal(errReadFile)
 	}
 
-	// Unmarshal into users struct
-	errUnmarshal := json.Unmarshal(fileContent, &users)
+	// Unmarshal into users hashmap
+	errUnmarshal := json.Unmarshal(fileContent, users)
 
 	if errUnmarshal != nil {
 		log.Fatal(errUnmarshal)
 	}
-
-	return users
 }
 
 // CreateFile writes a given ticket to a given path in the json format

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/hashing"
 )
 
 /*
@@ -52,26 +53,24 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		username := template.HTMLEscapeString(r.FormValue("username"))
 		password := template.HTMLEscapeString(r.FormValue("password"))
 
-		if username == "admin" {
-
-			// TODO: get user data from json / memory
-			// hash cmp
-			if password == "admin" {
-
-				// Update the session for the user
-				u := structs.User{
-					Name: "Max Mustermann",
-				}
+		// Get the user with the given username from the hashmap
+		// Check if the given username and password are correct
+		if user, errUser := users[username]; errUser {
+			if username == user.Username && hashing.CheckPassword(user.Hash, password) {
 
 				// Create a session to update the current one
 				session, _ := GetSession(userCookie.Value)
-				session.User = u
+				session.User = user
 				session.IsLoggedIn = true
 				session.CreateTime = time.Now()
 
 				// Update the session with the one just created
 				UpdateSession(userCookie.Value, session)
+			} else {
+				// TODO: Provide error of wrong login credentials
 			}
+		} else {
+			// TODO: Provide error of wrong login credentials
 		}
 	}
 
@@ -96,6 +95,11 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect the user to the index
 	http.Redirect(w, r, "/", 302)
+}
+
+// handleCreateTicket creates a new ticket struct and saves it
+func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
+
 }
 
 // createSessionCookie returns a http cookie to hold the session

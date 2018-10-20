@@ -39,8 +39,9 @@ type SessionManager struct {
 
 // User is the model for a user that works on tickets
 type User struct {
-	Id          int32  `json:"Id"`
+	Id          string `json:"Id"`
 	Name        string `json:"Name"`
+	Username    string `json:"Username"`
 	Mail        string `json:"Mail"`
 	Hash        string `json:"Hash"`
 	IsOnHoliday bool   `json:"IsOnHoliday"`

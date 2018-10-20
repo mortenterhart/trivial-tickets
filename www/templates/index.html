@@ -1,18 +1,18 @@
 {{define "index"}}
-{{template "header"}}
-<header>
-    <div class="headers">
-        <h1>Trivial Tickets</h1>
+    {{template "header"}}
+    <header>
+        <div class="headers">
+            <h1>Trivial Tickets</h1>
+        </div>
+        {{template "login" .}}
+    </header>
+    <div class="container">
+        {{template "navigation"}}
+        <div class="content">
+            {{template "dashboard"}}
+            {{template "create_ticket"}}
+            {{template "all_tickets"}}
+        </div>
     </div>
-    {{template "login" .}}
-</header>
-<div class="container">
-    {{template "navigation"}}
-    <div class="content">
-        {{template "create_ticket"}}
-
-        {{template "all_tickets"}}
-    </div>
-</div>
-{{template "footer" .CreateTime}}
-{{end}}>
+    {{template "footer" .CreateTime}}
+{{end}}
