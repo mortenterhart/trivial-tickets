@@ -1,5 +1,16 @@
 {{define "dashboard"}}
 <div class="dashboard" id="dashboard">
-    
+    <div class="settings">
+        <div class="holiday_mode">
+            <form action="/holiday" method="POST">
+                {{if .User.IsOnHoliday}}
+                    <button type="submit">Urlaubsmodus deaktivieren</button>
+                {{else}}
+                    <button type="submit">Urlaubsmodus aktivieren</button>
+                {{end}}   
+            </form>  
+        </div>
+    </div>
+    <div class="my_tickets"></div>
 </div>
 {{end}}

@@ -39,6 +39,17 @@ func ReadUserFile(src string, users *map[string]structs.User) {
 	}
 }
 
+// WriteUserFile writes the contents of the users map to the
+// file system to persist any changes
+func WriteUserFile(dest string, users *map[string]structs.User) error {
+
+	// Create json from the hashmap
+	usersMarshal, _ := json.MarshalIndent(users, "", "   ")
+
+	// Write json to file
+	return ioutil.WriteFile(dest, usersMarshal, 0644)
+}
+
 // CreateFile writes a given ticket to a given path in the json format
 func CreateFile(path string, ticket *structs.Ticket) error {
 
