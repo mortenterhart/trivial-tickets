@@ -2,10 +2,12 @@ package server
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 	"github.com/mortenterhart/trivial-tickets/util/hashing"
 )
 
@@ -22,6 +24,9 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	var session structs.Session
 
+	// Check if the user already has a session
+	// If not, create one
+	// Otherwise read the session id and load the index with his session
 	if _, err := r.Cookie("session"); err != nil {
 
 		cookie, sessionId := createSessionCookie()
@@ -31,9 +36,9 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		session = sessions[sessionId].Session
 
 	} else {
-		cookie, _ := r.Cookie("session")
+		sessionId := getSessionId(r)
 
-		session = sessions[cookie.Value].Session
+		session = sessions[sessionId].Session
 	}
 
 	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", session)
@@ -44,7 +49,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Get session id
-	userCookie, _ := r.Cookie("session")
+	sessionId := getSessionId(r)
 
 	// Only handle POST-Requests
 	if r.Method == "POST" {
@@ -59,13 +64,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 			if username == user.Username && hashing.CheckPassword(user.Hash, password) {
 
 				// Create a session to update the current one
-				session, _ := GetSession(userCookie.Value)
+				session, _ := GetSession(sessionId)
 				session.User = user
 				session.IsLoggedIn = true
 				session.CreateTime = time.Now()
 
 				// Update the session with the one just created
-				UpdateSession(userCookie.Value, session)
+				UpdateSession(sessionId, session)
 			} else {
 				// TODO: Provide error of wrong login credentials
 			}
@@ -81,13 +86,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 // handleLogout logs the user out and clears their session
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 
-	// Get the cookie with the session id
-	userCookie, _ := r.Cookie("session")
+	// Get session id
+	sessionId := getSessionId(r)
 
 	if r.Method == "POST" {
 
 		// Remove the session of the user
-		delete(sessions, userCookie.Value)
+		delete(sessions, sessionId)
 
 		// Delete the session cookie
 		http.SetCookie(w, deleteSessionCookie())
@@ -102,6 +107,38 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// handleHoliday activates / deactivates the holiday mode for a given user
+func handleHoliday(w http.ResponseWriter, r *http.Request) {
+
+	// Get session id
+	sessionId := getSessionId(r)
+
+	// Create a session to update the current one
+	session, _ := GetSession(sessionId)
+
+	// Get the current user
+	user := users[session.User.Username]
+
+	// Toggle IsOnHoliday
+	if session.User.IsOnHoliday {
+		session.User.IsOnHoliday, user.IsOnHoliday = false, false
+	} else {
+		session.User.IsOnHoliday, user.IsOnHoliday = true, true
+	}
+
+	// Update the session with the one just created
+	UpdateSession(sessionId, session)
+
+	// Update the users hash map
+	users[session.User.Username] = user
+
+	// Persist the changes to the file system
+	filehandler.WriteUserFile(serverConfig.Users, &users)
+
+	// Redirect the user to the index
+	http.Redirect(w, r, "/", 302)
+}
+
 // createSessionCookie returns a http cookie to hold the session
 // id for the user
 func createSessionCookie() (*http.Cookie, string) {
@@ -112,7 +149,7 @@ func createSessionCookie() (*http.Cookie, string) {
 		Name:     "session",
 		Value:    sessionId,
 		HttpOnly: false,
-		Expires:  time.Now().Add(365 * 24 * time.Hour)}, sessionId
+		Expires:  time.Now().Add(2 * time.Hour)}, sessionId
 }
 
 // deleteSessionCookie returns a http cookie which will overwrite the
@@ -124,4 +161,17 @@ func deleteSessionCookie() *http.Cookie {
 		Value:    "",
 		HttpOnly: false,
 		Expires:  time.Now().Add(-100 * time.Hour)}
+}
+
+// getSessionId retrieves the session id from the cookie of the user
+func getSessionId(r *http.Request) string {
+
+	// Get the cookie with the session id
+	userCookie, errUserCookie := r.Cookie("session")
+
+	if errUserCookie != nil {
+		log.Fatal(errUserCookie)
+	}
+
+	return userCookie.Value
 }

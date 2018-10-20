@@ -7,7 +7,8 @@
  */
 
 html {
-    font-family: 'Futura'
+    font-family: 'Futura';
+    background-color: #798ba8;
 }
 
 header{
@@ -22,11 +23,35 @@ header > .headers{
     width: 55%;
 }
 
+.heading {
+    text-decoration: none;
+    color: white;
+}
+
 header > .login {
     display: inline-block;
     margin-top: 1.5%;
     margin-right: 5%;
     color: white;
+}
+
+.login_input {
+    height: 1.5em;
+    font-size: 12px;
+}
+
+button {
+    background-color: #505050;
+    color: white;
+    font-size: 15px;
+    padding: 7px 20px;
+    border: none;
+    border-radius: 8px;
+}
+
+button:hover {
+    background-color: #a1a1a1;
+    cursor: pointer;
 }
 
 .container {
@@ -59,7 +84,6 @@ header > .login {
 
 .container > .content {
     display: inline-block;
-    background-color: orange;
     width: 80%;
     height: 100%;
     margin-left: 10%;
@@ -83,9 +107,13 @@ header > .login {
 
 footer {
     margin-left: 10%;
-    margin-bottom: 1%;
+    padding-top: 1%;
+    padding-bottom: 1%;
     position: fixed;
     bottom: 0;
+    color: white;
+    background-color: #000044;
+    width: 100%;
 }
 
 .nav_active {

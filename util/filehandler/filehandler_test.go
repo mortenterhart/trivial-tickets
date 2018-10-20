@@ -1,8 +1,6 @@
 package filehandler
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -20,7 +18,9 @@ import (
 * 3478222
  */
 
-func TestReadUserFile(t *testing.T) {
+// TestWriteReaduserFile tests both WriteUserFile and ReadUserFile back to back since the
+// mock data can be used for both
+func TestWriteReadUserFile(t *testing.T) {
 
 	// File name for test
 	const file = "testUsers.json"
@@ -53,11 +53,8 @@ func TestReadUserFile(t *testing.T) {
 	users[u.Username] = u
 	users[u1.Username] = u1
 
-	// Create json from the hashmap
-	usersMarshal, _ := json.MarshalIndent(users, "", "   ")
-
 	// Write json to file
-	errWriteFile := ioutil.WriteFile(file, usersMarshal, 0644)
+	errWriteFile := WriteUserFile(file, &users)
 	assert.Nil(t, errWriteFile, "Error writing file")
 
 	// Create hashmap to store the read json

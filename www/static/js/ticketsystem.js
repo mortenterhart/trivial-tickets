@@ -15,10 +15,10 @@ const ALL_TICKETS   = document.querySelector("#all_tickets");
 
 /**
  * toggle sets the desired html div visible, while disabling the visibility of the others
- * @param {} e The given a element from the navigation
+ * @param {} ALL_TICKETS The given a element from the navigation
  */
-function toggle(e){
-    switch(document.querySelector(e.href.substring(e.href.indexOf('#')))){
+function toggle(a) {
+    switch(document.querySelector(a.href.substring(a.href.indexOf('#')))){
 
         case DASHBOARD: 
             DASHBOARD.style.display     = "";

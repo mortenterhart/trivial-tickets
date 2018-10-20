@@ -1,4 +1,12 @@
 {
+   "admin": {
+      "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
+      "Name": "Admin",
+      "Username": "admin",
+      "Mail": "admin@example.com",
+      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+      "IsOnHoliday": false
+   },
    "max4711": {
       "Id": "1lefJPUAZgd58hTuZrN16GbUjDOgCA0xShaUCD2spPY=",
       "Name": "Max Mustermann",
@@ -12,14 +20,6 @@
       "Name": "Boris Floricic",
       "Username": "tron",
       "Mail": "boris.floricic@example.com",
-      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
-      "IsOnHoliday": false
-   },
-   "admin": {
-      "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
-      "Name": "Admin",
-      "Username": "admin",
-      "Mail": "admin@example.com",
       "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
       "IsOnHoliday": false
    }

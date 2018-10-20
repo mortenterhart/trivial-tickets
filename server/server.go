@@ -31,20 +31,26 @@ var users = make(map[string]structs.User)
 // Holds all the tickets
 var tickets = make(map[string]structs.Ticket)
 
+// Holds the given config for access to the backend systems
+var serverConfig *structs.Config
+
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
 
+	// Assign given config to the global variable
+	serverConfig = config
+
 	// Read in the users
-	filehandler.ReadUserFile(config.Users, &users)
+	filehandler.ReadUserFile(serverConfig.Users, &users)
 
 	// Read in the templates
-	tmpl = GetTemplates(config.Web)
+	tmpl = GetTemplates(serverConfig.Web)
 
 	// Register the handlers
-	startHandlers(config.Web)
+	startHandlers(serverConfig.Web)
 
 	// Start the server according to config
-	return http.ListenAndServe(fmt.Sprintf("%s%d", ":", config.Port), nil)
+	return http.ListenAndServe(fmt.Sprintf("%s%d", ":", serverConfig.Port), nil)
 }
 
 // GetTemplates crawls through the templates folder and reads in all
@@ -68,6 +74,7 @@ func startHandlers(path string) {
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/logout", handleLogout)
 	http.HandleFunc("/create_ticket", handleCreateTicket)
+	http.HandleFunc("/holiday", handleHoliday)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
