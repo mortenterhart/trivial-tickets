@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 )
 
 /*
@@ -33,10 +34,16 @@ var tickets = make(map[string]structs.Ticket)
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
 
+	// Read in the users
+	filehandler.ReadUserFile(config.Users, &users)
+
+	// Read in the templates
 	tmpl = GetTemplates(config.Web)
 
+	// Register the handlers
 	startHandlers(config.Web)
 
+	// Start the server according to config
 	return http.ListenAndServe(fmt.Sprintf("%s%d", ":", config.Port), nil)
 }
 
@@ -60,6 +67,7 @@ func startHandlers(path string) {
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/logout", handleLogout)
+	http.HandleFunc("/create_ticket", handleCreateTicket)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))

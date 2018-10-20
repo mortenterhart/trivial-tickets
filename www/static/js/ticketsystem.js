@@ -9,7 +9,8 @@
 /**
  * Holders for divs
  */
-const CREATE_TICKET = ocument.querySelector("#create_ticket");
+const DASHBOARD     = document.querySelector("#dashboard");
+const CREATE_TICKET = document.querySelector("#create_ticket");
 const ALL_TICKETS   = document.querySelector("#all_tickets");
 
 /**
@@ -17,17 +18,24 @@ const ALL_TICKETS   = document.querySelector("#all_tickets");
  * @param {} e The given a element from the navigation
  */
 function toggle(e){
-
     switch(document.querySelector(e.href.substring(e.href.indexOf('#')))){
 
-        case CREATE_TICKET: 
-            ALL_TICKETS.style.display   = "none";
-            CREATE_TICKET.style.display = "";
-            e.style.color               = "#ffffff";
-        break;
-        case ALL_TICKETS: 
-            ALL_TICKETS.style.display   = "";
+        case DASHBOARD: 
+            DASHBOARD.style.display     = "";
             CREATE_TICKET.style.display = "none";
-        break;
+            ALL_TICKETS.style.display   = "none";  
+            break;
+
+        case CREATE_TICKET: 
+            DASHBOARD.style.display     = "none";
+            CREATE_TICKET.style.display = "";
+            ALL_TICKETS.style.display   = "none";    
+            break;
+            
+        case ALL_TICKETS: 
+            DASHBOARD.style.display     = "none";
+            CREATE_TICKET.style.display = "none";
+            ALL_TICKETS.style.display   = "";  
+            break;
     }
 }

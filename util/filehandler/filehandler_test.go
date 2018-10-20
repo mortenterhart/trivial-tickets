@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/hashing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,29 +25,52 @@ func TestReadUserFile(t *testing.T) {
 	// File name for test
 	const file = "testUsers.json"
 
-	user := structs.User{
-		Id:          12,
-		Name:        "Max Mustermann",
-		Mail:        "max.mustermann@example.com",
-		Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",
+	// Create hashmap for users
+	var users = make(map[string]structs.User)
+
+	// Hash their passwords
+	a, _ := hashing.GenerateHash("thisisatestPw12!!")
+
+	// Mock two users and add them to the map
+	u := structs.User{
+		Id:          "abc123",
+		Name:        "Admin",
+		Username:    "admin",
+		Mail:        "admin@example.com",
+		Hash:        a,
 		IsOnHoliday: false,
 	}
 
-	// Turn struct into json
-	usersMarshal, _ := json.Marshal(user)
+	u1 := structs.User{
+		Id:          "def456",
+		Name:        "Max Mustermann",
+		Username:    "max4711",
+		Mail:        "max.mustermann@example.com",
+		Hash:        a,
+		IsOnHoliday: true,
+	}
+
+	users[u.Username] = u
+	users[u1.Username] = u1
+
+	// Create json from the hashmap
+	usersMarshal, _ := json.MarshalIndent(users, "", "   ")
 
 	// Write json to file
 	errWriteFile := ioutil.WriteFile(file, usersMarshal, 0644)
 	assert.Nil(t, errWriteFile, "Error writing file")
 
-	// Read the file from disk and unmarshal into struct of type User
-	readUsers := ReadUserFile(file)
+	// Create hashmap to store the read json
+	var readUsers = make(map[string]structs.User)
+
+	// Read the file from disk and unmarshal into the hashmap
+	ReadUserFile(file, &readUsers)
 
 	// Delete the test file
 	errDeleteFile := os.Remove(file)
 	assert.Nil(t, errDeleteFile, "Error deleting file")
 	// Make sure the struct before writing to disk and after reading from disk is the same
-	assert.Equal(t, user, readUsers)
+	assert.Equal(t, users, readUsers)
 }
 
 func TestCreateFile(t *testing.T) {
@@ -66,7 +90,7 @@ func TestCreateFile(t *testing.T) {
 	entries := []structs.Entry{e1, e2}
 
 	user := structs.User{
-		Id:          12,
+		Id:          "12",
 		Name:        "Max Mustermann",
 		Mail:        "max.mustermann@example.com",
 		Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",

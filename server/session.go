@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"io"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
@@ -33,11 +32,6 @@ func CreateSession(sessionId string) structs.SessionManager {
 		Session: session,
 		TTL:     3600,
 	}
-}
-
-func DestroySession(w http.ResponseWriter, r *http.Request) error {
-
-	return nil
 }
 
 func GetSession(sessionId string) (structs.Session, error) {
