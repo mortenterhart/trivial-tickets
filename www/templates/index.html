@@ -2,16 +2,20 @@
     {{template "header"}}
     <header>
         <div class="headers">
-            <h1>Trivial Tickets</h1>
+            <h1><a href="/" class="heading">Trivial Tickets</a></h1>
         </div>
         {{template "login" .}}
     </header>
     <div class="container">
-        {{template "navigation"}}
+        {{template "navigation" .}}
         <div class="content">
-            {{template "dashboard"}}
-            {{template "create_ticket"}}
-            {{template "all_tickets"}}
+            {{if .IsLoggedIn}}
+                {{template "dashboard" .}}
+                {{template "create_ticket" .}}
+                {{template "all_tickets"}}
+            {{else}}
+                {{template "create_ticket" .}}
+            {{end}}
         </div>
     </div>
     {{template "footer" .CreateTime}}
