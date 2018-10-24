@@ -39,3 +39,45 @@ function toggle(a) {
             break;
     }
 }
+
+function unassignTicket(btn) {
+
+    let id = btn.replace("btn_", "");
+
+    let req = ajaxObject();
+    
+    let url = "/unassignTicket?id=" + id;
+
+	req.open("GET", encodeURI(url), true);
+	req.onreadystatechange = () => {
+		if(req.readyState == 4 && req.status == 200){
+			document.querySelector("#" + btn.replace("btn_", "ticket_")).innerHTML = req.responseText;
+		}
+	}
+	req.send(null);
+}
+
+/**
+ * Create ajax object, supporting IE as well
+ */
+function ajaxObject() { 
+
+	let activexmodes=["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"];
+
+	if(window.ActiveXObject) {
+
+		for(var i = 0; i < activexmodes.length; i++) {
+
+			try{
+				return new ActiveXObjext(activexmodes[i]);
+			}
+			catch(e){}
+		}
+	}
+	else if(window.XMLHttpRequest) {
+		return new XMLHttpRequest();
+	}
+	else {
+		return false;
+	}
+}
