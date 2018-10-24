@@ -64,8 +64,7 @@ button:hover {
     width: 10%;
     background-color: #000044;
     height: 100%;
-    position: fixed;
-    z-index: 1;    
+    bottom: 0;
 }
 
 .container > .sidebar > a{
@@ -103,6 +102,54 @@ button:hover {
 .ticket_input {
     width: 50%;
     margin-bottom: 0.5%;
+}
+
+.dashboard {
+    margin-left: 5%;
+    margin-top: 1%;
+}
+
+.ticket_dashboard {
+    padding: 1%;
+}
+
+.settings {
+    background-color: #8ba0c1;
+}
+
+.region_label {
+    font-size: 20px;
+    color: white;
+    padding-left: 1%;
+    padding-top: 1%;
+}
+
+.holiday_mode {
+    padding-left: 1%;
+    padding-top:1%;
+    padding-bottom:1%;
+}
+
+.my_tickets {
+    background-color: #8ba0c1;
+}
+
+.ticket {
+    margin-left: 10%;
+    margin-top: 1%;
+}
+
+.input_label {
+    background: rgba(0,0,0,0);
+    border: none;
+}
+
+.reply {
+    background-color:  #8ba0c1;
+    padding-left: 2%;
+    padding-right: 2%;
+    padding-top: 1%;
+    padding-bottom: 1%;
 }
 
 footer {

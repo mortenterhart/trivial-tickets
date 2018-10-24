@@ -4,19 +4,19 @@
         <div class="headers">
             <h1><a href="/" class="heading">Trivial Tickets</a></h1>
         </div>
-        {{template "login" .}}
+        {{template "login" .Session}}
     </header>
     <div class="container">
-        {{template "navigation" .}}
+        {{template "navigation" .Session}}
         <div class="content">
-            {{if .IsLoggedIn}}
+            {{if .Session.IsLoggedIn}}
                 {{template "dashboard" .}}
-                {{template "create_ticket" .}}
-                {{template "all_tickets"}}
+                {{template "create_ticket" .Session}}
+                {{template "all_tickets" .Tickets}}
             {{else}}
-                {{template "create_ticket" .}}
+                {{template "create_ticket" .Session}}
             {{end}}
         </div>
     </div>
-    {{template "footer" .CreateTime}}
+    {{template "footer"}}
 {{end}}

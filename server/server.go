@@ -43,6 +43,9 @@ func StartServer(config *structs.Config) error {
 	// Read in the users
 	filehandler.ReadUserFile(serverConfig.Users, &users)
 
+	// Read in the tickets
+	filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
+
 	// Read in the templates
 	tmpl = GetTemplates(serverConfig.Web)
 
@@ -75,6 +78,10 @@ func startHandlers(path string) {
 	http.HandleFunc("/logout", handleLogout)
 	http.HandleFunc("/create_ticket", handleCreateTicket)
 	http.HandleFunc("/holiday", handleHoliday)
+	http.HandleFunc("/ticketSend", handleTicketSent)
+	http.HandleFunc("/ticket", handleTicket)
+	http.HandleFunc("/updateTicket", handleUpdateTicket)
+	http.HandleFunc("/unassignTicket", handleUnassignTicket)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))

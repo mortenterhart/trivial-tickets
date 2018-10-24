@@ -1,9 +1,11 @@
 {{define "dashboard"}}
+{{$session := .Session}}
 <div class="dashboard" id="dashboard">
     <div class="settings">
+        <p class="region_label">Einstellungen</p>
         <div class="holiday_mode">
             <form action="/holiday" method="POST">
-                {{if .User.IsOnHoliday}}
+                {{if .Session.User.IsOnHoliday}}
                     <button type="submit">Urlaubsmodus deaktivieren</button>
                 {{else}}
                     <button type="submit">Urlaubsmodus aktivieren</button>
@@ -11,6 +13,38 @@
             </form>  
         </div>
     </div>
-    <div class="my_tickets"></div>
+    <div class="my_tickets">
+        <p class="region_label">Meine Tickets</p>
+        {{range $index, $element := .Tickets}}
+            {{if eq $element.User.Id $session.User.Id}}
+                <div class="ticket_dashboard" id="ticket_{{$element.Id}}">
+                    <table>
+                        <tr>
+                            <td>Kunde:</td>
+                            <td>{{$element.Customer}}</td>
+                            <td>Status:</td>
+                            <td>
+                                <select name="status">
+                                    <option value="0" {{if eq $element.Status 0 }} selected {{end}}>Offen</option>
+                                    <option value="1" {{if eq $element.Status 1 }} selected {{end}}>In Bearbeitung</option>
+                                    <option value="2" {{if eq $element.Status 2 }} selected {{end}}>Geschlossen</option>     
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Betreff:</td><td>{{$element.Subject}}</td>
+                        </tr>
+                        <tr>
+                            <td>Ticketnummer:</td>
+                            <td><input name="ticket" class="input_label" type="text" value="{{$element.Id}}"></td>
+                        </tr>
+                    </table>
+        
+                    <button onclick="location.href='/ticket?id={{$element.Id}}'" type="button">Ticket öffnen</button>
+                    <button id="btn_{{$element.Id}}" onclick="unassignTicket(this.id)">Ticket freigeben</button>
+                </div>
+            {{end}}
+        {{end}} 
+    </div>
 </div>
 {{end}}
