@@ -1,14 +1,14 @@
 {
    "Id": "Py3KVE24MS",
    "Subject": "blabla",
-   "Status": 1,
+   "Status": 0,
    "User": {
-        "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
-        "Name": "Admin",
-        "Username": "admin",
-        "Mail": "admin@example.com",
-        "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
-        "IsOnHoliday": false
+      "Id": "",
+      "Name": "",
+      "Username": "",
+      "Mail": "",
+      "Hash": "",
+      "IsOnHoliday": false
    },
    "Customer": "test2@gmail.com",
    "Entries": [

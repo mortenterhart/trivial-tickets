@@ -134,6 +134,11 @@ button:hover {
     background-color: #8ba0c1;
 }
 
+.all_tickets {
+    width: 80%;
+    margin-left: 5%;
+}
+
 .ticket {
     margin-left: 10%;
     margin-top: 1%;
@@ -169,4 +174,14 @@ footer {
 
 input:focus {
     background-color: lightblue;
+}
+
+table {
+    width: 100%;
+}
+
+th, td {
+    padding-right: 1%;
+    text-align: left;
+    padding-bottom: 1%;
 }
