@@ -18,7 +18,7 @@
         {{range $index, $element := .Tickets}}
             {{if eq $element.User.Id $session.User.Id}}
                 <div class="ticket_dashboard" id="ticket_{{$element.Id}}">
-                    <table>
+                    <table style="width: 50%;">
                         <tr>
                             <td>Kunde:</td>
                             <td>{{$element.Customer}}</td>
@@ -39,9 +39,10 @@
                             <td><input name="ticket" class="input_label" type="text" value="{{$element.Id}}"></td>
                         </tr>
                     </table>
-        
-                    <button onclick="location.href='/ticket?id={{$element.Id}}'" type="button">Ticket öffnen</button>
-                    <button id="btn_{{$element.Id}}" onclick="unassignTicket(this.id)">Ticket freigeben</button>
+                    <div>
+                        <button onclick="location.href='/ticket?id={{$element.Id}}'" type="button">Ticket öffnen</button>
+                        <button id="btn_{{$element.Id}}" onclick="unassignTicket(this.id)">Ticket freigeben</button>
+                    </div>
                 </div>
             {{end}}
         {{end}} 

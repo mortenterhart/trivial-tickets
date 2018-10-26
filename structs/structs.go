@@ -51,6 +51,7 @@ type User struct {
 type Data struct {
 	Session Session
 	Tickets map[string]Ticket
+	Users   map[string]User
 }
 
 // DataSingleTicket holds the session and ticket data for a call to a single ticket

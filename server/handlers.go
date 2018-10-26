@@ -26,7 +26,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	session := checkForSession(w, r)
 
-	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: tickets})
+	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: tickets, Users: users})
 }
 
 // handleLogin checks the login credentials against the stored users
@@ -269,6 +269,7 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 
 			// Replace the assigned user with nobody
 			ticket.User = structs.User{}
+			ticket.Status = structs.OPEN
 			tickets[ticketId] = ticket
 
 			// Persist the changed ticket to the file system
@@ -276,6 +277,44 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 
 			// Create a json response and write it to the header
 			response := "Das Ticket wurde erfolgreich freigegeben"
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte(response))
+		}
+	}
+}
+
+// handleAssignTicket assigns a given user to a given ticket and returns the user name
+// of the newly assigned user to the browser
+func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method == "GET" {
+
+		// Get the session
+		session := checkForSession(w, r)
+
+		if session.IsLoggedIn {
+
+			// Extract the GET request parameters
+			params := r.URL.Query()
+
+			ticketId := params["id"][0]
+			user := params["user"][0]
+
+			// Get the ticket based on the given id
+			ticket := tickets[ticketId]
+
+			// Assign the user to the specified ticket
+			ticket.User = users[user]
+			ticket.Status = structs.PROCESSING
+
+			// Update the ticket in memory
+			tickets[ticketId] = ticket
+
+			// Persist the change in the file system
+			filehandler.WriteTicketFile(serverConfig.Tickets, &ticket)
+
+			// Return the assigned user
+			response := ticket.User.Username
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(response))
 		}

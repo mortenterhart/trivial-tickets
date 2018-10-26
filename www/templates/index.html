@@ -12,7 +12,7 @@
             {{if .Session.IsLoggedIn}}
                 {{template "dashboard" .}}
                 {{template "create_ticket" .Session}}
-                {{template "all_tickets" .Tickets}}
+                {{template "all_tickets" .}}
             {{else}}
                 {{template "create_ticket" .Session}}
             {{end}}

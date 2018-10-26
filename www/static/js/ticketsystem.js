@@ -57,6 +57,27 @@ function unassignTicket(btn) {
 	req.send(null);
 }
 
+function assignTicket(btn) {
+
+	let id = btn.replace("btn_", "");
+	let user = document.querySelector("#select_"+id).value;
+
+	let req = ajaxObject();
+    
+    let url = "/assignTicket?id=" + id + "&user=" + user;
+
+	req.open("GET", encodeURI(url), true);
+	req.onreadystatechange = () => {
+		if(req.readyState == 4 && req.status == 200){
+			document.querySelector("#" + btn.replace("btn_", "td_")).innerHTML = req.responseText;
+			document.querySelector("#"+btn).disabled = true;
+			document.querySelector("#"+btn).style.opacity = 0.25;
+			document.querySelector("#td_status").innerHTML = "In Bearbeitung";
+		}
+	}
+	req.send(null);
+}
+
 /**
  * Create ajax object, supporting IE as well
  */
