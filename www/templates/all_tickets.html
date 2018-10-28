@@ -17,11 +17,13 @@
             <td>{{$element.Id}}</td>
             <td>{{$element.Customer}}</td>
             <td>{{$element.Subject}}</td>
-            <td id="td_status">{{if eq $element.Status 0 }} Offen {{end}}{{if eq $element.Status 1 }} In Bearbeitung {{end}}{{if eq $element.Status 2 }} Geschlossen {{end}}</td>
+            <td id="td_status_{{$element.Id}}">{{if eq $element.Status 0 }} Offen {{end}}{{if eq $element.Status 1 }} In Bearbeitung {{end}}{{if eq $element.Status 2 }} Geschlossen {{end}}</td>
             <td id="td_{{$element.Id}}">{{if ne $element.Status 0 }} {{$element.User.Username}} {{else}} 
                 <select name="user" id="select_{{$element.Id}}">
                 {{range $in, $el := $users}}
-                    <option value="{{$el.Username}}">{{$el.Username}}</option>
+                    {{if not $el.IsOnHoliday}}
+                        <option value="{{$el.Username}}">{{$el.Username}}</option>
+                    {{end}}
                 {{end}}
                 </select>{{end}}
             </td>

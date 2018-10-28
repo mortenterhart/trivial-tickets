@@ -22,14 +22,6 @@
                         <tr>
                             <td>Kunde:</td>
                             <td>{{$element.Customer}}</td>
-                            <td>Status:</td>
-                            <td>
-                                <select name="status">
-                                    <option value="0" {{if eq $element.Status 0 }} selected {{end}}>Offen</option>
-                                    <option value="1" {{if eq $element.Status 1 }} selected {{end}}>In Bearbeitung</option>
-                                    <option value="2" {{if eq $element.Status 2 }} selected {{end}}>Geschlossen</option>     
-                                </select>
-                            </td>
                         </tr>
                         <tr>
                             <td>Betreff:</td><td>{{$element.Subject}}</td>

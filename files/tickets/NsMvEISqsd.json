@@ -17,6 +17,12 @@
          "FormattedDate": "Thu Oct 25 00:27:14 2018",
          "User": "blabla@web.de",
          "Text": "Stsrtet nur ganz kurz und geht wieder aus."
+      },
+      {
+         "Date": "2018-10-28T21:20:15.5785425+01:00",
+         "FormattedDate": "Sun Oct 28 21:20:15 2018",
+         "User": "",
+         "Text": "Neues Netzteil wurde bestellt."
       }
    ]
 }
