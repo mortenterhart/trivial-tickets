@@ -64,8 +64,7 @@ button:hover {
     width: 10%;
     background-color: #000044;
     height: 100%;
-    position: fixed;
-    z-index: 1;    
+    bottom: 0;
 }
 
 .container > .sidebar > a{
@@ -105,6 +104,59 @@ button:hover {
     margin-bottom: 0.5%;
 }
 
+.dashboard {
+    margin-left: 5%;
+    margin-top: 1%;
+}
+
+.ticket_dashboard {
+    padding: 1%;
+}
+
+.settings {
+    background-color: #8ba0c1;
+}
+
+.region_label {
+    font-size: 20px;
+    color: white;
+    padding-left: 1%;
+    padding-top: 1%;
+}
+
+.holiday_mode {
+    padding-left: 1%;
+    padding-top:1%;
+    padding-bottom:1%;
+}
+
+.my_tickets {
+    background-color: #8ba0c1;
+}
+
+.all_tickets {
+    width: 80%;
+    margin-left: 5%;
+}
+
+.ticket {
+    margin-left: 10%;
+    margin-top: 1%;
+}
+
+.input_label {
+    background: rgba(0,0,0,0);
+    border: none;
+}
+
+.reply {
+    background-color:  #8ba0c1;
+    padding-left: 2%;
+    padding-right: 2%;
+    padding-top: 1%;
+    padding-bottom: 1%;
+}
+
 footer {
     margin-left: 10%;
     padding-top: 1%;
@@ -122,4 +174,14 @@ footer {
 
 input:focus {
     background-color: lightblue;
+}
+
+table {
+    width: 100%;
+}
+
+th, td {
+    padding-right: 1%;
+    text-align: left;
+    padding-bottom: 1%;
 }

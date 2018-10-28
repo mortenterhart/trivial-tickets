@@ -43,14 +43,20 @@ func StartServer(config *structs.Config) error {
 	// Read in the users
 	filehandler.ReadUserFile(serverConfig.Users, &users)
 
+	// Read in the tickets
+	filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
+
 	// Read in the templates
 	tmpl = GetTemplates(serverConfig.Web)
 
 	// Register the handlers
 	startHandlers(serverConfig.Web)
 
+	// Redirect http requests to https
+	go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+
 	// Start the server according to config
-	return http.ListenAndServe(fmt.Sprintf("%s%d", ":", serverConfig.Port), nil)
+	return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", serverConfig.Port), serverConfig.Cert, serverConfig.Key, nil)
 }
 
 // GetTemplates crawls through the templates folder and reads in all
@@ -67,6 +73,20 @@ func GetTemplates(path string) *template.Template {
 	return t
 }
 
+// redirectToTLS is invoked as soon as someone tries to reach the ticket system
+// via http, the request is then redirected to https.
+// Taken from https://gist.github.com/d-schmidt/587ceec34ce1334a5e60
+func redirectToTLS(w http.ResponseWriter, req *http.Request) {
+
+	target := "https://" + req.Host + req.URL.Path
+
+	if len(req.URL.RawQuery) > 0 {
+		target += "?" + req.URL.RawQuery
+	}
+
+	http.Redirect(w, req, target, http.StatusTemporaryRedirect)
+}
+
 // startHandlers maps all the various handles to the url patterns.
 func startHandlers(path string) {
 
@@ -75,6 +95,11 @@ func startHandlers(path string) {
 	http.HandleFunc("/logout", handleLogout)
 	http.HandleFunc("/create_ticket", handleCreateTicket)
 	http.HandleFunc("/holiday", handleHoliday)
+	http.HandleFunc("/ticketSend", handleTicketSent)
+	http.HandleFunc("/ticket", handleTicket)
+	http.HandleFunc("/updateTicket", handleUpdateTicket)
+	http.HandleFunc("/unassignTicket", handleUnassignTicket)
+	http.HandleFunc("/assignTicket", handleAssignTicket)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))

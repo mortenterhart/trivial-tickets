@@ -2,11 +2,9 @@ package filehandler
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
 )
@@ -50,10 +48,9 @@ func WriteUserFile(dest string, users *map[string]structs.User) error {
 	return ioutil.WriteFile(dest, usersMarshal, 0644)
 }
 
-// CreateFile writes a given ticket to a given path in the json format
-func CreateFile(path string, ticket *structs.Ticket) error {
-
-	// TODO: If already exists, overwrite contents
+// WriteTicketFile writes a given ticket to a given path in the json format.
+// If the ticket already exists, it overwrites its contents
+func WriteTicketFile(path string, ticket *structs.Ticket) error {
 
 	// Check if path exists. If not, create it
 	if _, errExists := os.Stat(path); os.IsNotExist(errExists) {
@@ -65,24 +62,54 @@ func CreateFile(path string, ticket *structs.Ticket) error {
 	}
 
 	// Encode the struct with json
-	marshalTicket, errMarshalTicket := json.Marshal(ticket)
+	marshalTicket, errMarshalTicket := json.MarshalIndent(ticket, "", "   ")
 
 	if errMarshalTicket != nil {
 		log.Fatal(errMarshalTicket)
 	}
 
 	// Create the final output path
-	finalPath := path + "/" + strconv.Itoa(int(ticket.Id)) + ".json"
+	finalPath := path + "/" + ticket.Id + ".json"
 
-	// If the file already exists, return an error. Otherwise write the file
-	if _, errExistsFile := os.Stat(finalPath); os.IsNotExist(errExistsFile) {
-		return ioutil.WriteFile(finalPath, marshalTicket, 0644)
-	} else {
-		return errors.New("File already exists on disk.\nPath: " + finalPath)
-	}
+	// Write the file to the given path
+	return ioutil.WriteFile(finalPath, marshalTicket, 0644)
 }
 
 // CreateFolders creates the folders specified in the parameter
 func CreateFolders(path string) error {
 	return os.MkdirAll(path, os.ModePerm)
+}
+
+// ReadTicketFiles reads all the tickets into memory at the server start
+func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) {
+
+	// Get all the files in given directory
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Iterate over each file
+	for _, f := range files {
+
+		// Read contents of each ticket file
+		fileContent, errReadFile := ioutil.ReadFile(path + "/" + f.Name())
+
+		if errReadFile != nil {
+			log.Fatal(errReadFile)
+		}
+
+		// Create a ticket struct to hold the file contents
+		ticket := structs.Ticket{}
+
+		// Unmarshal into a ticket struct
+		errUnmarshal := json.Unmarshal(fileContent, &ticket)
+
+		if errUnmarshal != nil {
+			log.Fatal(errUnmarshal)
+		}
+
+		// Store the ticket in the tickets hashmap
+		(*tickets)[ticket.Id] = ticket
+	}
 }
