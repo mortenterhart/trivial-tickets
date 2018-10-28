@@ -52,8 +52,8 @@ func initConfig() (structs.Config, error) {
 	port := flag.Int("port", 443, "Port on which the web server will run")
 	tickets := flag.String("tickets", "../../files/tickets", "Folder in which the tickets will be stored")
 	users := flag.String("users", "../../files/users/users.json", "Path where the users file is stored")
-	cert := flag.String("cert", "ssl/server.cert", "Location of the ssl certificate")
-	key := flag.String("key", "ssl/server.key", "Location of the ssl key file")
+	cert := flag.String("cert", "../../ssl/server.cert", "Location of the ssl certificate")
+	key := flag.String("key", "../../ssl/server.key", "Location of the ssl key file")
 	web := flag.String("web", "../../www", "Location of the www folder")
 
 	// Parse all arguments, e.g. populate the variables
