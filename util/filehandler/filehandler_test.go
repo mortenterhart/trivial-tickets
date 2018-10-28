@@ -70,7 +70,7 @@ func TestWriteReadUserFile(t *testing.T) {
 	assert.Equal(t, users, readUsers)
 }
 
-func TestCreateFile(t *testing.T) {
+func TestWriteTicketFile(t *testing.T) {
 
 	e1 := structs.Entry{
 		Date: time.Now(),
@@ -95,7 +95,7 @@ func TestCreateFile(t *testing.T) {
 	}
 
 	ticket := structs.Ticket{
-		Id:       34654522,
+		Id:       "test123",
 		Subject:  "Help",
 		Status:   0,
 		User:     user,
@@ -106,11 +106,11 @@ func TestCreateFile(t *testing.T) {
 	// Path to ticket files
 	const usersFile = "testFiles/testTickets"
 
-	errCreateFile := CreateFile(usersFile, &ticket)
+	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
 
 	os.RemoveAll("testFiles/")
 
-	assert.Nil(t, errCreateFile, "Error creating the File")
+	assert.Nil(t, errWriteTicketFile, "Error creating the File")
 }
 
 func TestCreateFolder(t *testing.T) {
