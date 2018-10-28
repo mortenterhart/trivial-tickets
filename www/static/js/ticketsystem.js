@@ -70,9 +70,9 @@ function assignTicket(btn) {
 	req.onreadystatechange = () => {
 		if(req.readyState == 4 && req.status == 200){
 			document.querySelector("#" + btn.replace("btn_", "td_")).innerHTML = req.responseText;
-			document.querySelector("#"+btn).disabled = true;
-			document.querySelector("#"+btn).style.opacity = 0.25;
-			document.querySelector("#td_status").innerHTML = "In Bearbeitung";
+			document.querySelector("#" + btn).disabled = true;
+			document.querySelector("#" + btn).style.opacity = 0.25;
+			document.querySelector("#" + btn.replace("btn_", "td_status_")).innerHTML = "In Bearbeitung";
 		}
 	}
 	req.send(null);

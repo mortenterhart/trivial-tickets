@@ -1,13 +1,13 @@
 {
    "Id": "Py3KVE24MS",
    "Subject": "blabla",
-   "Status": 0,
+   "Status": 2,
    "User": {
-      "Id": "",
-      "Name": "",
-      "Username": "",
-      "Mail": "",
-      "Hash": "",
+      "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
+      "Name": "Admin",
+      "Username": "admin",
+      "Mail": "admin@example.com",
+      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
       "IsOnHoliday": false
    },
    "Customer": "test2@gmail.com",
@@ -35,6 +35,12 @@
          "FormattedDate": "Wed Oct 24 23:23:31 2018",
          "User": "",
          "Text": "wieder offen, noch nicht fertig."
+      },
+      {
+         "Date": "2018-10-28T21:21:15.9946178+01:00",
+         "FormattedDate": "Sun Oct 28 21:21:15 2018",
+         "User": "",
+         "Text": "Geschlossen"
       }
    ]
 }
