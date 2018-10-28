@@ -321,38 +321,6 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// handleHoliday activates / deactivates the holiday mode for a given user
-func handleHoliday(w http.ResponseWriter, r *http.Request) {
-
-	// Get session id
-	sessionId := getSessionId(r)
-
-	// Create a session to update the current one
-	session, _ := GetSession(sessionId)
-
-	// Get the current user
-	user := users[session.User.Username]
-
-	// Toggle IsOnHoliday
-	if session.User.IsOnHoliday {
-		session.User.IsOnHoliday, user.IsOnHoliday = false, false
-	} else {
-		session.User.IsOnHoliday, user.IsOnHoliday = true, true
-	}
-
-	// Update the session with the one just created
-	UpdateSession(sessionId, session)
-
-	// Update the users hash map
-	users[session.User.Username] = user
-
-	// Persist the changes to the file system
-	filehandler.WriteUserFile(serverConfig.Users, &users)
-
-	// Redirect the user to the index
-	http.Redirect(w, r, "/", 302)
-}
-
 // createSessionCookie returns a http cookie to hold the session
 // id for the user
 func createSessionCookie() (*http.Cookie, string) {
