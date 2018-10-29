@@ -275,7 +275,7 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 			// Persist the changed ticket to the file system
 			filehandler.WriteTicketFile(serverConfig.Tickets, &ticket)
 
-			// Create a json response and write it to the header
+			// Create a response and write it to the header
 			response := "Das Ticket wurde erfolgreich freigegeben"
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(response))
@@ -352,7 +352,8 @@ func getSessionId(r *http.Request) string {
 	userCookie, errUserCookie := r.Cookie("session")
 
 	if errUserCookie != nil {
-		log.Fatal(errUserCookie)
+		log.Print(errUserCookie)
+		return errUserCookie.Error()
 	}
 
 	return userCookie.Value
