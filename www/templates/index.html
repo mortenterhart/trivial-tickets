@@ -1,13 +1,22 @@
 {{define "index"}}
-{{template "header"}}
-<header>
-    <div class="headers">
-        <h1>Trivial Tickets</h1>
+    {{template "header"}}
+    <header>
+        <div class="headers">
+            <h1><a href="/" class="heading">Trivial Tickets</a></h1>
+        </div>
+        {{template "login" .Session}}
+    </header>
+    <div class="container">
+        {{template "navigation" .Session}}
+        <div class="content">
+            {{if .Session.IsLoggedIn}}
+                {{template "dashboard" .}}
+                {{template "create_ticket" .Session}}
+                {{template "all_tickets" .}}
+            {{else}}
+                {{template "create_ticket" .Session}}
+            {{end}}
+        </div>
     </div>
-    {{template "login"}}
-</header>
-
-{{template "create_ticket"}}
-
-{{template "footer" .Time}}
+    {{template "footer"}}
 {{end}}

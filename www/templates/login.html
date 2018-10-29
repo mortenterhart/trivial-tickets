@@ -1,18 +1,16 @@
 {{define "login"}}
 <div class="login">
-    <form method="POST" action="/login">
-        <input type="text" name="username" placeholder="username" required />
-        <input type="password" name="password" placeholder="password" required />
-        <button type="submit">Login</button>
-    </form>
+    {{if .IsLoggedIn}}
+        <form method="POST" action="/logout">
+            <label>Willkommen, {{.User.Name}}</label>
+            &nbsp;&nbsp;<button type="submit">Logout</button>
+        </form>
+    {{else}}
+        <form method="POST" action="/login">
+            <input type="text"     name="username" class="login_input" placeholder="Nutzername" required />
+            <input type="password" name="password" class="login_input" placeholder="Passwort" required />
+            <button type="submit">Login</button>
+        </form>
+    {{end}}
 </div>
-
-<!--
-    If logged in
-    <form method="POST" action="/logout">
-        <label>Hello there, Kevin Mitnick</label>
-        <button type="submit">Logout</button>
-    </form>
-    
--->
 {{end}}

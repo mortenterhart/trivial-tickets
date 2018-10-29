@@ -39,18 +39,32 @@ type SessionManager struct {
 
 // User is the model for a user that works on tickets
 type User struct {
-	Id          int32  `json:"Id"`
+	Id          string `json:"Id"`
 	Name        string `json:"Name"`
+	Username    string `json:"Username"`
 	Mail        string `json:"Mail"`
 	Hash        string `json:"Hash"`
 	IsOnHoliday bool   `json:"IsOnHoliday"`
 }
 
+// Data holds session and ticket data to parse to the web templates
+type Data struct {
+	Session Session
+	Tickets map[string]Ticket
+	Users   map[string]User
+}
+
+// DataSingleTicket holds the session and ticket data for a call to a single ticket
+type DataSingleTicket struct {
+	Session Session
+	Ticket  Ticket
+}
+
 // Ticket represents a ticket
 type Ticket struct {
-	Id       int32   `json:"Id"`
+	Id       string  `json:"Id"`
 	Subject  string  `json:"Subject"`
-	Status   state   `json:"Status"`
+	Status   State   `json:"Status"`
 	User     User    `json:"User"`
 	Customer string  `json:"Customer"`
 	Entries  []Entry `json:"Entries"`
@@ -58,20 +72,17 @@ type Ticket struct {
 
 // Entry describes a single reply within a ticket
 type Entry struct {
-	Date time.Time
-	User string
-	Text string
+	Date          time.Time
+	FormattedDate string
+	User          string
+	Text          string
 }
 
 // State is an enum to represent the current status of a ticket
-type state int
+type State int
 
 const (
-	OPEN state = iota
+	OPEN State = iota
 	PROCESSING
 	CLOSED
 )
-
-type Status interface {
-	Status() state
-}
