@@ -1,0 +1,28 @@
+{
+   "Id": "NsMvEISqsd",
+   "Subject": "Hilfe mein PC geht nicht mehr an",
+   "Status": 1,
+   "User": {
+      "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
+      "Name": "Admin",
+      "Username": "admin",
+      "Mail": "admin@example.com",
+      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+      "IsOnHoliday": false
+   },
+   "Customer": "blabla@web.de",
+   "Entries": [
+      {
+         "Date": "2018-10-25T00:27:14.2499203+02:00",
+         "FormattedDate": "Thu Oct 25 00:27:14 2018",
+         "User": "blabla@web.de",
+         "Text": "Stsrtet nur ganz kurz und geht wieder aus."
+      },
+      {
+         "Date": "2018-10-28T21:20:15.5785425+01:00",
+         "FormattedDate": "Sun Oct 28 21:20:15 2018",
+         "User": "",
+         "Text": "Neues Netzteil wurde bestellt."
+      }
+   ]
+}

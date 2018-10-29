@@ -1,0 +1,62 @@
+{{define "ticket"}}
+    {{template "header"}}
+    <header>
+        <div class="headers">
+            <h1><a href="/" class="heading">Trivial Tickets</a></h1>
+        </div>
+        {{template "login" .Session}}
+    </header>
+    <div class="container">
+        {{template "navigation" .Session}}
+        <div class="content">
+            <div class="ticket">
+                <form method="POST" action="updateTicket">
+                    <div>
+                        <table>
+                            <tr>
+                                <td>Kunde:</td>
+                                <td>{{.Ticket.Customer}}</td>
+                                <td>Status:</td>
+                                <td>
+                                    {{if .Session.IsLoggedIn}}   
+                                        {{if eq .Session.User.Id .Ticket.User.Id}}
+                                            <select name="status">
+                                                <option value="0" {{if eq .Ticket.Status 0 }} selected {{end}}>Offen</option>
+                                                <option value="1" {{if eq .Ticket.Status 1 }} selected {{end}}>In Bearbeitung</option>
+                                                <option value="2" {{if eq .Ticket.Status 2 }} selected {{end}}>Geschlossen</option>     
+                                            </select>
+                                        {{else}}
+                                            <input type="text" class="input_label" value="{{if eq .Ticket.Status 0 }}Offen{{end}}{{if eq .Ticket.Status 1 }}In Bearbeitung{{end}}{{if eq .Ticket.Status 2 }}Geschlossen{{end}}">
+                                        {{end}}
+                                    {{else}}
+                                        <input type="text" class="input_label" value="{{if eq .Ticket.Status 0 }}Offen{{end}}{{if eq .Ticket.Status 1 }}In Bearbeitung{{end}}{{if eq .Ticket.Status 2 }}Geschlossen{{end}}">
+                                    {{end}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Betreff:</td><td>{{.Ticket.Subject}}</td>
+                            </tr>
+                            <tr>
+                                <td>Ticketnummer:</td>
+                                <td><input name="ticket" class="input_label" type="text" value="{{.Ticket.Id}}"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <br>
+                    <p>Nachrichtenverlauf:</p>
+                    {{range $replies := .Ticket.Entries}}
+                        <div class="reply">
+                            <p>{{$replies.FormattedDate}} {{$replies.User}}:</p>
+                            <textarea class="ticket_text" cols="60" rows="5" readonly>{{$replies.Text}}</textarea>
+                        </div>
+                    {{end}}
+                    <br>
+                    <input type="text" class="ticket_input" name="mail" placeholder="Ihre E-Mail" {{if .Session.IsLoggedIn }} disabled value="{{.Session.User.Mail}}" {{end}}><br>
+                    <textarea class="ticket_text" name="reply" cols="60" rows="10" placeholder="Antworten ..."></textarea><br>
+                    <button type="submit">Speichern</button>
+                </form>
+            </div>     
+        </div>
+    </div>
+    {{template "footer" .Session.CreateTime}}
+{{end}}

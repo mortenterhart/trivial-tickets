@@ -1,5 +1,5 @@
-# go-tickets
+# trivial-tickets
 
-[![Travis Build Status](https://travis-ci.com/mortenterhart/go-tickets.svg?branch=master)](https://travis-ci.com/mortenterhart/go-tickets)
+[![Travis Build Status](https://travis-ci.com/mortenterhart/trivial-tickets.svg?branch=master)](https://travis-ci.com/mortenterhart/trivial-tickets)
 
 Support ticket system in Go

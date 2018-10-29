@@ -1,0 +1,11 @@
+{{define "navigation"}}
+<div class="sidebar">
+    {{if .IsLoggedIn}}
+        <a href="/"              onclick="toggle(this)">Dashboard</a>
+        <a href="#create_ticket" onclick="toggle(this)">Ticket erstellen</a>
+        <a href="#all_tickets"   onclick="toggle(this)">Alle Tickets</a>
+    {{else}}
+        <a href="#create_ticket" onclick="toggle(this)">Ticket erstellen</a>
+    {{end}}
+</div>
+{{end}}
