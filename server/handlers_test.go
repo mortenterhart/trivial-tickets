@@ -16,6 +16,15 @@ import (
 * 3478222
  */
 
+// TestCreateTicketId makes sure the created ticket id is in line with the specification
+func TestCreateTicketId(t *testing.T) {
+
+	ticketId := createTicketId(10)
+
+	assert.True(t, (len(ticketId) == 10), "Ticket id has the wrong length")
+}
+
+// TestCookieFunctions tests all cookie related functions including errors
 func TestCookieFunctions(t *testing.T) {
 
 	// Test creating a new session cookie
@@ -46,4 +55,23 @@ func TestCookieFunctions(t *testing.T) {
 
 	assert.NotNil(t, cookie2, "Cookie was not overwritten")
 	assert.Equal(t, cookie2.Value, "", "Value of cookie was not emptied")
+}
+
+// TestCheckForSession creates a request to test the creation of a session for a user
+func TestCheckForSession(t *testing.T) {
+
+	// Create a mock request
+	cookie, _ := createSessionCookie()
+	rr := httptest.NewRecorder()
+	http.SetCookie(rr, cookie)
+	request := &http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
+
+	// Get session with mock request
+	session := checkForSession(rr, request)
+
+	session2 := checkForSession(httptest.NewRecorder(), &http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}})
+
+	assert.NotNil(t, session, "The session was not created correctly")
+	assert.True(t, !session.User.IsOnHoliday, "The session was not created correctly")
+	assert.NotNil(t, session2, "The session without the cookie was not created properly")
 }

@@ -59,6 +59,7 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 		errCreateFolders := CreateFolders(path)
 		if errCreateFolders != nil {
 			log.Print(errCreateFolders)
+			return errCreateFolders
 		}
 	}
 
@@ -67,6 +68,7 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 
 	if errMarshalTicket != nil {
 		log.Print(errMarshalTicket)
+		return errMarshalTicket
 	}
 
 	// Create the final output path
