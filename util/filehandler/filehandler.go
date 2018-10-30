@@ -2,7 +2,6 @@ package filehandler
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -21,13 +20,14 @@ import (
 // ReadUserFile takes a string as parameter for the location
 // of the users.json file, reads the content and stores it inside
 // of the hashmap for the users
-func ReadUserFile(src string, users *map[string]structs.User) {
+func ReadUserFile(src string, users *map[string]structs.User) error {
 
 	// Read contents of users.json
 	fileContent, errReadFile := ioutil.ReadFile(src)
 
 	if errReadFile != nil {
 		log.Print(errReadFile)
+		return errReadFile
 	}
 
 	// Unmarshal into users hashmap
@@ -35,7 +35,10 @@ func ReadUserFile(src string, users *map[string]structs.User) {
 
 	if errUnmarshal != nil {
 		log.Print(errUnmarshal)
+		return errUnmarshal
 	}
+
+	return nil
 }
 
 // WriteUserFile writes the contents of the users map to the
@@ -90,7 +93,7 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
 		log.Print(err)
-		return errors.New("Unable to load the ticket files directory")
+		return err
 	}
 
 	// Iterate over each file
@@ -101,6 +104,7 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
 
 		if errReadFile != nil {
 			log.Print(errReadFile)
+			return errReadFile
 		} else {
 			// Create a ticket struct to hold the file contents
 			ticket := structs.Ticket{}
@@ -110,6 +114,7 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
 
 			if errUnmarshal != nil {
 				log.Print(errUnmarshal)
+				return errUnmarshal
 			} else {
 				// Store the ticket in the tickets hashmap
 				(*tickets)[ticket.Id] = ticket

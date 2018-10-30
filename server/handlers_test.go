@@ -68,7 +68,6 @@ func TestCheckForSession(t *testing.T) {
 
 	// Get session with mock request
 	session := checkForSession(rr, request)
-
 	session2 := checkForSession(httptest.NewRecorder(), &http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}})
 
 	assert.NotNil(t, session, "The session was not created correctly")
