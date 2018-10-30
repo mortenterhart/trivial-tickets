@@ -42,29 +42,37 @@ func StartServer(config *structs.Config) error {
 	serverConfig = config
 
 	// Read in the users
-	filehandler.ReadUserFile(serverConfig.Users, &users)
+	errReadUserFile := filehandler.ReadUserFile(serverConfig.Users, &users)
 
-	// Read in the tickets
-	filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
+	if errReadUserFile != nil {
+		// Read in the tickets
+		errReadTicketFiles := filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
 
-	// Read in the templates
-	tmpl = GetTemplates(serverConfig.Web)
+		if errReadTicketFiles != nil {
+			// Read in the templates
+			tmpl = GetTemplates(serverConfig.Web)
 
-	if tmpl != nil {
-		// Register the handlers
-		errStartHandlers := startHandlers(serverConfig.Web)
+			if tmpl != nil {
+				// Register the handlers
+				errStartHandlers := startHandlers(serverConfig.Web)
 
-		if errStartHandlers != nil {
-			return errors.New("Unable to register handlers")
+				if errStartHandlers != nil {
+					return errors.New("Unable to register handlers")
+				} else {
+					// Start a GoRoutine to redirect http requests to https
+					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+
+					// Start the server according to config
+					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", serverConfig.Port), serverConfig.Cert, serverConfig.Key, nil)
+				}
+			} else {
+				return errors.New("Unable to load templates")
+			}
 		} else {
-			// Start a GoRoutine to redirect http requests to https
-			go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
-
-			// Start the server according to config
-			return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", serverConfig.Port), serverConfig.Cert, serverConfig.Key, nil)
+			return errors.New("Unable to load ticket files")
 		}
 	} else {
-		return errors.New("Unable to load templates")
+		return errors.New("Unable to load user file")
 	}
 }
 
