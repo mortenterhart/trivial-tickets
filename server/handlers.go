@@ -138,27 +138,31 @@ func handleHoliday(w http.ResponseWriter, r *http.Request) {
 	// Get session id
 	sessionId := getSessionId(r)
 
-	// Create a session to update the current one
-	session, _ := GetSession(sessionId)
+	// Make sure user is logged in
+	if sessions[sessionId].Session.IsLoggedIn {
 
-	// Get the current user
-	user := users[session.User.Username]
+		// Create a session to update the current one
+		session, _ := GetSession(sessionId)
 
-	// Toggle IsOnHoliday
-	if session.User.IsOnHoliday {
-		session.User.IsOnHoliday, user.IsOnHoliday = false, false
-	} else {
-		session.User.IsOnHoliday, user.IsOnHoliday = true, true
+		// Get the current user
+		user := users[session.User.Username]
+
+		// Toggle IsOnHoliday
+		if session.User.IsOnHoliday {
+			session.User.IsOnHoliday, user.IsOnHoliday = false, false
+		} else {
+			session.User.IsOnHoliday, user.IsOnHoliday = true, true
+		}
+
+		// Update the session with the one just created
+		UpdateSession(sessionId, session)
+
+		// Update the users hash map
+		users[session.User.Username] = user
+
+		// Persist the changes to the file system
+		filehandler.WriteUserFile(serverConfig.Users, &users)
 	}
-
-	// Update the session with the one just created
-	UpdateSession(sessionId, session)
-
-	// Update the users hash map
-	users[session.User.Username] = user
-
-	// Persist the changes to the file system
-	filehandler.WriteUserFile(serverConfig.Users, &users)
 
 	// Redirect the user to the index
 	http.Redirect(w, r, "/", 302)

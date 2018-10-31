@@ -44,11 +44,11 @@ func StartServer(config *structs.Config) error {
 	// Read in the users
 	errReadUserFile := filehandler.ReadUserFile(serverConfig.Users, &users)
 
-	if errReadUserFile != nil {
+	if errReadUserFile == nil {
 		// Read in the tickets
 		errReadTicketFiles := filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
 
-		if errReadTicketFiles != nil {
+		if errReadTicketFiles == nil {
 			// Read in the templates
 			tmpl = GetTemplates(serverConfig.Web)
 
