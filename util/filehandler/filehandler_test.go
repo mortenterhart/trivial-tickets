@@ -73,7 +73,6 @@ func TestWriteReadUserFile(t *testing.T) {
 
 	errReadUserFile2 := ReadUserFile("bla.json", &readUsers)
 	assert.NotNil(t, errReadUserFile2, "No error was returned")
-
 }
 
 func TestWriteTicketFile(t *testing.T) {
