@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -52,18 +54,12 @@ import (
  *          an API call with mail contents in the correct JSON format.
  */
 
-type mail struct {
-	Email   string `json:"email"`
-	Subject string `json:"subject"`
-	Message string `json:"message"`
-}
-
 func ReceiveMail(writer http.ResponseWriter, req *http.Request) {
 
 	if req.Method == "POST" {
 		// curl -X POST -H 'Content-Type: application/json' --insecure -d '{"email": "example@example.org", "subject": "Test", "message": "Another test"}' https://127.0.0.1:443/api/create_ticket
 
-		var newTicket mail
+		var newTicket structs.Mail
 		err := json.NewDecoder(req.Body).Decode(&newTicket)
 
 		defer req.Body.Close()
