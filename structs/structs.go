@@ -86,3 +86,11 @@ const (
 	PROCESSING
 	CLOSED
 )
+
+// Mail struct holds the information for a received email in order
+// to create new tickets or answers
+type Mail struct {
+	Email   string `json:"email"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
+}
