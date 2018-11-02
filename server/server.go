@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -41,22 +42,38 @@ func StartServer(config *structs.Config) error {
 	serverConfig = config
 
 	// Read in the users
-	filehandler.ReadUserFile(serverConfig.Users, &users)
+	errReadUserFile := filehandler.ReadUserFile(serverConfig.Users, &users)
 
-	// Read in the tickets
-	filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
+	if errReadUserFile != nil {
+		// Read in the tickets
+		errReadTicketFiles := filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
 
-	// Read in the templates
-	tmpl = GetTemplates(serverConfig.Web)
+		if errReadTicketFiles != nil {
+			// Read in the templates
+			tmpl = GetTemplates(serverConfig.Web)
 
-	// Register the handlers
-	startHandlers(serverConfig.Web)
+			if tmpl != nil {
+				// Register the handlers
+				errStartHandlers := startHandlers(serverConfig.Web)
 
-	// Redirect http requests to https
-	go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+				if errStartHandlers != nil {
+					return errors.New("Unable to register handlers")
+				} else {
+					// Start a GoRoutine to redirect http requests to https
+					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
 
-	// Start the server according to config
-	return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", serverConfig.Port), serverConfig.Cert, serverConfig.Key, nil)
+					// Start the server according to config
+					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", serverConfig.Port), serverConfig.Cert, serverConfig.Key, nil)
+				}
+			} else {
+				return errors.New("Unable to load templates")
+			}
+		} else {
+			return errors.New("Unable to load ticket files")
+		}
+	} else {
+		return errors.New("Unable to load user file")
+	}
 }
 
 // GetTemplates crawls through the templates folder and reads in all
@@ -67,7 +84,8 @@ func GetTemplates(path string) *template.Template {
 	t, errTemplates := template.ParseGlob(path + "/templates/*.html")
 
 	if errTemplates != nil {
-		log.Fatal("Unable to load the templates: ", errTemplates)
+		log.Print("Unable to load the templates: ", errTemplates)
+		return nil
 	}
 
 	return t
@@ -88,7 +106,11 @@ func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 }
 
 // startHandlers maps all the various handles to the url patterns.
-func startHandlers(path string) {
+func startHandlers(path string) error {
+
+	if len(path) < 1 {
+		return errors.New("No path given for web folders")
+	}
 
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/login", handleLogin)
@@ -103,4 +125,6 @@ func startHandlers(path string) {
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
+
+	return nil
 }

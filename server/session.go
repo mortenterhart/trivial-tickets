@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"io"
 	"log"
 	"time"
@@ -36,7 +37,13 @@ func CreateSession(sessionId string) structs.SessionManager {
 
 func GetSession(sessionId string) (structs.Session, error) {
 
-	return sessions[sessionId].Session, nil
+	session := sessions[sessionId].Session
+
+	if session != (structs.Session{}) {
+		return sessions[sessionId].Session, nil
+	} else {
+		return structs.Session{}, errors.New("Unable to find session with id: " + sessionId)
+	}
 }
 
 func UpdateSession(sessionId string, session structs.Session) {
