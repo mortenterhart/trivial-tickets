@@ -34,7 +34,7 @@ func TestUpdateTicket(t *testing.T) {
 
 func TestMergeTickets(t *testing.T) {
 
-	MergeTickets("abcdef12345", "ghijkl6789")
+	//MergeTickets("abcdef12345", "ghijkl6789")
 }
 
 func TestAssignAndUnassignTicket(t *testing.T) {

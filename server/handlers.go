@@ -289,6 +289,38 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleMergeTickets(w http.ResponseWriter, r *http.Request) {
+
+	// Only support POST
+	if r.Method == "POST" {
+
+		// Create or get the users session
+		session := checkForSession(w, r)
+
+		// Make sure user is logged in
+		if session.IsLoggedIn {
+
+			// Get both ticket ids
+			ticketIdMergeTo := ""
+			ticketIdMergeFrom := ""
+
+			// Merge tickets
+			ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(Tickets[ticketIdMergeTo], Tickets[ticketIdMergeFrom])
+
+			// Write both tickets to memory
+			Tickets[ticketMergedTo.Id] = ticketMergedTo
+			Tickets[ticketMergedFrom.Id] = ticketMergedFrom
+
+			// Persist both tickets to file system
+			filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedTo)
+			filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedFrom)
+
+			// Serve the template to show a single ticket
+			tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticketMergedTo})
+		}
+	}
+}
+
 // createSessionCookie returns a http cookie to hold the session
 // id for the user
 func createSessionCookie() (*http.Cookie, string) {
