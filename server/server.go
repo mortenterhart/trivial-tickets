@@ -122,6 +122,7 @@ func startHandlers(path string) error {
 	http.HandleFunc("/updateTicket", handleUpdateTicket)
 	http.HandleFunc("/unassignTicket", handleUnassignTicket)
 	http.HandleFunc("/assignTicket", handleAssignTicket)
+	http.HandleFunc("/merge", handleMergeTickets)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
