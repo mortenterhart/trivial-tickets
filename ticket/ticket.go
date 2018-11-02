@@ -30,6 +30,7 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 		User:     structs.User{},
 		Customer: mail,
 		Entries:  entries,
+		MergeTo:  "",
 	}
 }
 
@@ -59,8 +60,18 @@ func UpdateTicket(status, mail, reply string, currentTicket structs.Ticket) stru
 	return currentTicket
 }
 
-func MergeTickets(mergeToTicketId, mergeFromTicketId string) {
+func MergeTickets(mergeToTicket, mergeFromTicket structs.Ticket) (structs.Ticket, structs.Ticket) {
 
+	// Get and merge the entries
+	entriesMerged := append(mergeFromTicket.Entries, mergeToTicket.Entries...)
+
+	// Assign the merged entries
+	mergeToTicket.Entries = entriesMerged
+
+	// Point to the newly merged ticket
+	mergeFromTicket.MergeTo = mergeToTicket.Id
+
+	return mergeToTicket, mergeFromTicket
 }
 
 func AssignTicket(user structs.User, currentTicket structs.Ticket) structs.Ticket {

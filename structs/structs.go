@@ -68,6 +68,7 @@ type Ticket struct {
 	User     User    `json:"User"`
 	Customer string  `json:"Customer"`
 	Entries  []Entry `json:"Entries"`
+	MergeTo  string  `json:"MergeTo"`
 }
 
 // Entry describes a single reply within a ticket
