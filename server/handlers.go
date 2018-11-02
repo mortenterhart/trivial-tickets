@@ -3,12 +3,11 @@ package server
 import (
 	"html/template"
 	"log"
-	"math/rand"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 	"github.com/mortenterhart/trivial-tickets/util/hashing"
 )
@@ -26,7 +25,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	session := checkForSession(w, r)
 
-	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: tickets, Users: users})
+	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: Tickets, Users: users})
 }
 
 // handleLogin checks the login credentials against the stored users
@@ -98,33 +97,14 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 		subject := template.HTMLEscapeString(r.FormValue("subject"))
 		text := template.HTMLEscapeString(r.FormValue("text"))
 
-		// Create a new entry for the ticket
-		entry := structs.Entry{
-			Date:          time.Now(),
-			FormattedDate: time.Now().Format(time.ANSIC),
-			User:          mail,
-			Text:          text,
-		}
-
-		var entries []structs.Entry
-		entries = append(entries, entry)
-
-		// Construct the ticket
-		ticket := structs.Ticket{
-			Id:       createTicketId(10),
-			Subject:  subject,
-			Status:   structs.OPEN,
-			User:     structs.User{},
-			Customer: mail,
-			Entries:  entries,
-		}
+		// Create the ticket
+		newTicket := ticket.CreateTicket(mail, subject, text)
 
 		// Assign the ticket to the tickets kept in memory
-		tickets[ticket.Id] = ticket
+		Tickets[newTicket.Id] = newTicket
 
 		// Persist the ticket to the file system
-		filehandler.WriteTicketFile(serverConfig.Tickets, &ticket)
-
+		filehandler.WriteTicketFile(ServerConfig.Tickets, &newTicket)
 	}
 
 	// Redirect the user to the status page
@@ -138,27 +118,31 @@ func handleHoliday(w http.ResponseWriter, r *http.Request) {
 	// Get session id
 	sessionId := getSessionId(r)
 
-	// Create a session to update the current one
-	session, _ := GetSession(sessionId)
+	// Make sure user is logged in
+	if sessions[sessionId].Session.IsLoggedIn {
 
-	// Get the current user
-	user := users[session.User.Username]
+		// Create a session to update the current one
+		session, _ := GetSession(sessionId)
 
-	// Toggle IsOnHoliday
-	if session.User.IsOnHoliday {
-		session.User.IsOnHoliday, user.IsOnHoliday = false, false
-	} else {
-		session.User.IsOnHoliday, user.IsOnHoliday = true, true
+		// Get the current user
+		user := users[session.User.Username]
+
+		// Toggle IsOnHoliday
+		if session.User.IsOnHoliday {
+			session.User.IsOnHoliday, user.IsOnHoliday = false, false
+		} else {
+			session.User.IsOnHoliday, user.IsOnHoliday = true, true
+		}
+
+		// Update the session with the one just created
+		UpdateSession(sessionId, session)
+
+		// Update the users hash map
+		users[session.User.Username] = user
+
+		// Persist the changes to the file system
+		filehandler.WriteUserFile(ServerConfig.Users, &users)
 	}
-
-	// Update the session with the one just created
-	UpdateSession(sessionId, session)
-
-	// Update the users hash map
-	users[session.User.Username] = user
-
-	// Persist the changes to the file system
-	filehandler.WriteUserFile(serverConfig.Users, &users)
 
 	// Redirect the user to the index
 	http.Redirect(w, r, "/", 302)
@@ -186,7 +170,7 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Get the ticket based on the given id
 		id := param[0]
-		ticket := tickets[id]
+		ticket := Tickets[id]
 
 		// Create or get the users session
 		session := checkForSession(w, r)
@@ -212,35 +196,19 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
 
 		// Get the ticket which was edited
-		ticket := tickets[ticketId]
+		currentTicket := Tickets[ticketId]
 
-		// Set the status to the one provided by the form
-		statusValue, _ := strconv.Atoi(status)
-		ticket.Status = structs.State(statusValue)
-
-		// If there has been a reply, attach it to the entries slice of the ticket
-		if reply != "" {
-
-			newEntry := structs.Entry{
-				Date:          time.Now(),
-				FormattedDate: time.Now().Format(time.ANSIC),
-				User:          mail,
-				Text:          reply,
-			}
-
-			entries := ticket.Entries
-			entries = append(entries, newEntry)
-			ticket.Entries = entries
-		}
+		// Update the current ticket
+		updatedTicket := ticket.UpdateTicket(status, mail, reply, currentTicket)
 
 		// Assign the updated ticket to the ticket map in memory
-		tickets[ticketId] = ticket
+		Tickets[ticketId] = updatedTicket
 
 		// Persist the updated ticket to the file system
-		filehandler.WriteTicketFile(serverConfig.Tickets, &ticket)
+		filehandler.WriteTicketFile(ServerConfig.Tickets, &updatedTicket)
 
 		// Redirect to the ticket again, now with updated Values
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket})
 	}
 }
 
@@ -259,21 +227,22 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Get the ticket based on the given id
 		ticketId := param[0]
-		ticket := tickets[ticketId]
+		currentTicket := Tickets[ticketId]
 
 		// Get the session
 		session := checkForSession(w, r)
 
 		// Make sure, the requesting user owns the ticket
-		if session.User.Id == ticket.User.Id {
+		if session.User.Id == currentTicket.User.Id {
 
 			// Replace the assigned user with nobody
-			ticket.User = structs.User{}
-			ticket.Status = structs.OPEN
-			tickets[ticketId] = ticket
+			updatedTicket := ticket.UnassignTicket(currentTicket)
+
+			// Set the ticket to memory
+			Tickets[ticketId] = updatedTicket
 
 			// Persist the changed ticket to the file system
-			filehandler.WriteTicketFile(serverConfig.Tickets, &ticket)
+			filehandler.WriteTicketFile(ServerConfig.Tickets, &updatedTicket)
 
 			// Create a response and write it to the header
 			response := "Das Ticket wurde erfolgreich freigegeben"
@@ -301,20 +270,19 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 			user := params["user"][0]
 
 			// Get the ticket based on the given id
-			ticket := tickets[ticketId]
+			currentTicket := Tickets[ticketId]
 
-			// Assign the user to the specified ticket
-			ticket.User = users[user]
-			ticket.Status = structs.PROCESSING
+			// Update the ticket itself
+			updatedTicket := ticket.AssignTicket(users[user], currentTicket)
 
 			// Update the ticket in memory
-			tickets[ticketId] = ticket
+			Tickets[ticketId] = updatedTicket
 
 			// Persist the change in the file system
-			filehandler.WriteTicketFile(serverConfig.Tickets, &ticket)
+			filehandler.WriteTicketFile(ServerConfig.Tickets, &updatedTicket)
 
 			// Return the assigned user
-			response := ticket.User.Username
+			response := updatedTicket.User.Username
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(response))
 		}
@@ -357,27 +325,6 @@ func getSessionId(r *http.Request) string {
 	}
 
 	return userCookie.Value
-}
-
-// letters are the valid characters for the ticket id
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-// createTicketId generates a pseudo random id for the tickets
-// Tweaked example from https://stackoverflow.com/a/22892986
-func createTicketId(n int) string {
-
-	// Seed the random function to make it more random
-	rand.Seed(time.Now().UnixNano())
-
-	// Create a slice, big enough to hold the id
-	b := make([]rune, n)
-
-	// Randomly choose a letter from the letters rune
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-
-	return string(b)
 }
 
 func checkForSession(w http.ResponseWriter, r *http.Request) structs.Session {

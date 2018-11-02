@@ -16,14 +16,6 @@ import (
 * 3478222
  */
 
-// TestCreateTicketId makes sure the created ticket id is in line with the specification
-func TestCreateTicketId(t *testing.T) {
-
-	ticketId := createTicketId(10)
-
-	assert.True(t, (len(ticketId) == 10), "Ticket id has the wrong length")
-}
-
 // TestCookieFunctions tests all cookie related functions including errors
 func TestCookieFunctions(t *testing.T) {
 
