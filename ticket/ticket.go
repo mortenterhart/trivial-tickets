@@ -33,6 +33,8 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 	}
 }
 
+// UpdateTicket gets update parameters as well as the ticket to be updated
+// and returns it with the values overwritten
 func UpdateTicket(status, mail, reply string, currentTicket structs.Ticket) structs.Ticket {
 
 	// Set the status to the one provided by the form
@@ -61,14 +63,24 @@ func MergeTickets(mergeToTicketId, mergeFromTicketId string) {
 
 }
 
-func AssignTicket(ticketId, userName string) structs.Ticket {
+func AssignTicket(user structs.User, currentTicket structs.Ticket) structs.Ticket {
 
-	return structs.Ticket{}
+	// Assign the user to the specified ticket
+	// and change the Status
+	currentTicket.User = user
+	currentTicket.Status = structs.PROCESSING
+
+	return currentTicket
 }
 
-func UnassignTicket(ticketId string) structs.Ticket {
+func UnassignTicket(currentTicket structs.Ticket) structs.Ticket {
 
-	return structs.Ticket{}
+	// Replace the assigned user with an empty struct
+	// and set the status to open
+	currentTicket.User = structs.User{}
+	currentTicket.Status = structs.OPEN
+
+	return currentTicket
 }
 
 // letters are the valid characters for the ticket id
