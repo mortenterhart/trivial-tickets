@@ -86,3 +86,11 @@ const (
 	PROCESSING
 	CLOSED
 )
+
+type Command int
+
+const (
+	FETCH Command = iota
+	SUBMIT
+	EXIT
+)
