@@ -60,20 +60,24 @@ func UpdateTicket(status, mail, reply string, currentTicket structs.Ticket) stru
 	return currentTicket
 }
 
+// MergeTickets merges two tickets if they share the same customer
 func MergeTickets(mergeToTicket, mergeFromTicket structs.Ticket) (structs.Ticket, structs.Ticket) {
 
-	// Get and merge the entries
-	entriesMerged := append(mergeFromTicket.Entries, mergeToTicket.Entries...)
+	if mergeToTicket.Customer == mergeFromTicket.Customer {
+		// Get and merge the entries
+		entriesMerged := append(mergeFromTicket.Entries, mergeToTicket.Entries...)
 
-	// Assign the merged entries
-	mergeToTicket.Entries = entriesMerged
+		// Assign the merged entries
+		mergeToTicket.Entries = entriesMerged
 
-	// Point to the newly merged ticket
-	mergeFromTicket.MergeTo = mergeToTicket.Id
+		// Point to the newly merged ticket
+		mergeFromTicket.MergeTo = mergeToTicket.Id
+	}
 
 	return mergeToTicket, mergeFromTicket
 }
 
+// AssignTicket adds a user to a ticket
 func AssignTicket(user structs.User, currentTicket structs.Ticket) structs.Ticket {
 
 	// Assign the user to the specified ticket
@@ -84,6 +88,7 @@ func AssignTicket(user structs.User, currentTicket structs.Ticket) structs.Ticke
 	return currentTicket
 }
 
+// UnassignTicket removes a user from a ticket
 func UnassignTicket(currentTicket structs.Ticket) structs.Ticket {
 
 	// Replace the assigned user with an empty struct
