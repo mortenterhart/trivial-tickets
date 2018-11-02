@@ -105,11 +105,13 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Persist the ticket to the file system
 		filehandler.WriteTicketFile(ServerConfig.Tickets, &newTicket)
+
+		// Redirect the user to the ticket page
+		http.Redirect(w, r, "/ticket?id="+newTicket.Id, 302)
 	}
 
-	// Redirect the user to the status page
-	http.Redirect(w, r, "/ticketSend", 302)
-
+	// If there is any other request, just redirect to index
+	http.Redirect(w, r, "/", 302)
 }
 
 // handleHoliday activates / deactivates the holiday mode for a given user
@@ -148,13 +150,6 @@ func handleHoliday(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 302)
 }
 
-func handleTicketSent(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method == "GET" {
-
-	}
-}
-
 // handleTicket gets the requested ticket via the url GET parameters and serves it to the template
 func handleTicket(w http.ResponseWriter, r *http.Request) {
 
@@ -178,6 +173,8 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 		// Serve the template to show a single ticket
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket})
 	}
+
+	http.Redirect(w, r, "/", 302)
 }
 
 // handleUpdateTicket gets the requested ticket via the url GET parameters and serves it to the template
@@ -210,6 +207,8 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		// Redirect to the ticket again, now with updated Values
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket})
 	}
+
+	http.Redirect(w, r, "/", 302)
 }
 
 // handleUnassignTicket unassigns a ticket from a certain user, only if the actual user makes the request.
@@ -325,6 +324,8 @@ func handleMergeTickets(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	http.Redirect(w, r, "/", 302)
 }
 
 // createSessionCookie returns a http cookie to hold the session
