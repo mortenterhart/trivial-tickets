@@ -30,31 +30,31 @@ var sessions = make(map[string]structs.SessionManager)
 var users = make(map[string]structs.User)
 
 // Holds all the tickets
-var tickets = make(map[string]structs.Ticket)
+var Tickets = make(map[string]structs.Ticket)
 
 // Holds the given config for access to the backend systems
-var serverConfig *structs.Config
+var ServerConfig *structs.Config
 
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
 
 	// Assign given config to the global variable
-	serverConfig = config
+	ServerConfig = config
 
 	// Read in the users
-	errReadUserFile := filehandler.ReadUserFile(serverConfig.Users, &users)
+	errReadUserFile := filehandler.ReadUserFile(ServerConfig.Users, &users)
 
-	if errReadUserFile != nil {
+	if errReadUserFile == nil {
 		// Read in the tickets
-		errReadTicketFiles := filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
+		errReadTicketFiles := filehandler.ReadTicketFiles(ServerConfig.Tickets, &Tickets)
 
-		if errReadTicketFiles != nil {
+		if errReadTicketFiles == nil {
 			// Read in the templates
-			tmpl = GetTemplates(serverConfig.Web)
+			tmpl = GetTemplates(ServerConfig.Web)
 
 			if tmpl != nil {
 				// Register the handlers
-				errStartHandlers := startHandlers(serverConfig.Web)
+				errStartHandlers := startHandlers(ServerConfig.Web)
 
 				if errStartHandlers != nil {
 					return errors.New("Unable to register handlers")
@@ -63,7 +63,7 @@ func StartServer(config *structs.Config) error {
 					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
 
 					// Start the server according to config
-					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", serverConfig.Port), serverConfig.Cert, serverConfig.Key, nil)
+					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", ServerConfig.Port), ServerConfig.Cert, ServerConfig.Key, nil)
 				}
 			} else {
 				return errors.New("Unable to load templates")
