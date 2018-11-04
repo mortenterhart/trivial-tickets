@@ -26,9 +26,6 @@ func main() {
 	}
 
 	// TODO:
-	//		- Create the folders and populate a users.json
-	// 			filehandler.CreateFolders(config.Tickets)
-	// 			filehandler.CreateFolders(config.Users)
 	//
 	//	    - Create a way so that the server can start up and use
 	//		  files that are already there without having to provide the config again.

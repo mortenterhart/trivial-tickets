@@ -61,13 +61,18 @@ func TestWriteReadUserFile(t *testing.T) {
 	var readUsers = make(map[string]structs.User)
 
 	// Read the file from disk and unmarshal into the hashmap
-	ReadUserFile(file, &readUsers)
+	errReadUserFile := ReadUserFile(file, &readUsers)
+	assert.Nil(t, errReadUserFile, "There was an error reading the file")
 
 	// Delete the test file
 	errDeleteFile := os.Remove(file)
 	assert.Nil(t, errDeleteFile, "Error deleting file")
+
 	// Make sure the struct before writing to disk and after reading from disk is the same
 	assert.Equal(t, users, readUsers)
+
+	errReadUserFile2 := ReadUserFile("bla.json", &readUsers)
+	assert.NotNil(t, errReadUserFile2, "No error was returned")
 }
 
 func TestWriteTicketFile(t *testing.T) {
@@ -126,4 +131,22 @@ func TestCreateFolder(t *testing.T) {
 
 	// Check that there was no error
 	assert.Nil(t, errCreateFolder, "Error creating the folder(s)")
+}
+
+// TestReadTicketFiles checks if the ticket files a read correctly and if errors are returned when expected
+func TestReadTicketFiles(t *testing.T) {
+
+	var tickets = make(map[string]structs.Ticket)
+
+	// Path does not exist
+	errReadTicketFiles := ReadTicketFiles("abc", &tickets)
+	assert.NotNil(t, errReadTicketFiles, "No error was returned, although the path does not exist")
+
+	// Goes to html files, no json
+	errReadTicketFiles2 := ReadTicketFiles("../../www/templates", &tickets)
+	assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket files do not exist")
+
+	// Correct path to ticket files
+	errReadTicketFiles3 := ReadTicketFiles("../../files/tickets", &tickets)
+	assert.Nil(t, errReadTicketFiles3, "An erorr was returned, although the path is correct")
 }
