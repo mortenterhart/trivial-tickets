@@ -68,6 +68,7 @@ type Ticket struct {
 	User     User    `json:"User"`
 	Customer string  `json:"Customer"`
 	Entries  []Entry `json:"Entries"`
+	MergeTo  string  `json:"MergeTo"`
 }
 
 // Entry describes a single reply within a ticket
@@ -86,6 +87,14 @@ const (
 	PROCESSING
 	CLOSED
 )
+
+// Mail struct holds the information for a received email in order
+// to create new tickets or answers
+type Mail struct {
+	Email   string `json:"email"`
+	Subject string `json:"subject"`
+	Message string `json:"message"`
+}
 
 type Command int
 

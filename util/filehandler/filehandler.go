@@ -20,21 +20,25 @@ import (
 // ReadUserFile takes a string as parameter for the location
 // of the users.json file, reads the content and stores it inside
 // of the hashmap for the users
-func ReadUserFile(src string, users *map[string]structs.User) {
+func ReadUserFile(src string, users *map[string]structs.User) error {
 
 	// Read contents of users.json
 	fileContent, errReadFile := ioutil.ReadFile(src)
 
 	if errReadFile != nil {
-		log.Fatal(errReadFile)
+		log.Print(errReadFile)
+		return errReadFile
 	}
 
 	// Unmarshal into users hashmap
 	errUnmarshal := json.Unmarshal(fileContent, users)
 
 	if errUnmarshal != nil {
-		log.Fatal(errUnmarshal)
+		log.Print(errUnmarshal)
+		return errUnmarshal
 	}
+
+	return nil
 }
 
 // WriteUserFile writes the contents of the users map to the
@@ -57,7 +61,8 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 
 		errCreateFolders := CreateFolders(path)
 		if errCreateFolders != nil {
-			log.Fatal(errCreateFolders)
+			log.Print(errCreateFolders)
+			return errCreateFolders
 		}
 	}
 
@@ -65,7 +70,8 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 	marshalTicket, errMarshalTicket := json.MarshalIndent(ticket, "", "   ")
 
 	if errMarshalTicket != nil {
-		log.Fatal(errMarshalTicket)
+		log.Print(errMarshalTicket)
+		return errMarshalTicket
 	}
 
 	// Create the final output path
@@ -81,12 +87,13 @@ func CreateFolders(path string) error {
 }
 
 // ReadTicketFiles reads all the tickets into memory at the server start
-func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) {
+func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
 
 	// Get all the files in given directory
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return err
 	}
 
 	// Iterate over each file
@@ -96,20 +103,24 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) {
 		fileContent, errReadFile := ioutil.ReadFile(path + "/" + f.Name())
 
 		if errReadFile != nil {
-			log.Fatal(errReadFile)
+			log.Print(errReadFile)
+			return errReadFile
+		} else {
+			// Create a ticket struct to hold the file contents
+			ticket := structs.Ticket{}
+
+			// Unmarshal into a ticket struct
+			errUnmarshal := json.Unmarshal(fileContent, &ticket)
+
+			if errUnmarshal != nil {
+				log.Print(errUnmarshal)
+				return errUnmarshal
+			} else {
+				// Store the ticket in the tickets hashmap
+				(*tickets)[ticket.Id] = ticket
+			}
 		}
-
-		// Create a ticket struct to hold the file contents
-		ticket := structs.Ticket{}
-
-		// Unmarshal into a ticket struct
-		errUnmarshal := json.Unmarshal(fileContent, &ticket)
-
-		if errUnmarshal != nil {
-			log.Fatal(errUnmarshal)
-		}
-
-		// Store the ticket in the tickets hashmap
-		(*tickets)[ticket.Id] = ticket
 	}
+
+	return nil
 }
