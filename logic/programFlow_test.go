@@ -28,6 +28,6 @@ func TestRequestCommandOutput(t *testing.T) {
 	com = structs.FETCH
 	err = nil
 	requestCommand()
-	assert.Equal(t, string(structs.REQUEST_COMMAND_INPUT), output[0])
+	assert.Equal(t, string(structs.RequestCommandInput), output[0])
 	clearOutput()
 }
