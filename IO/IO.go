@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-var reader io.Reader = io.Reader(os.Stdin)
+var reader = io.Reader(os.Stdin)
 var writer = io.Writer(os.Stdout)
 
 func GetNextCommand() (structs.Command, error) {

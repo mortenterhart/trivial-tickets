@@ -14,7 +14,7 @@ var requestCom = requestCommand
 func MainLoop() {
 	ok := true
 	for ok {
-		com := requestCommand()
+		com := requestCom()
 		var err error
 		switch com {
 		case structs.FETCH:
@@ -35,11 +35,11 @@ func MainLoop() {
 func requestCommand() (com structs.Command) {
 	for ok := true; ok; {
 		var err error
-		Output(string(structs.REQUEST_COMMAND_INPUT))
+		Output(string(structs.RequestCommandInput))
 		com, err = NextCommand()
 		ok = err != nil
 		if ok {
-			Output(structs.COMMAND_NOT_ACCEPTED + err.Error())
+			Output(structs.CommandNotAccepted + err.Error())
 		}
 	}
 	return
@@ -48,22 +48,22 @@ func requestCommand() (com structs.Command) {
 func submitEmail() error {
 	var mail structs.Mail
 	var err error
-	Output(structs.REQUEST_EMAIL_ADDRESS)
+	Output(structs.RequestEmailAddress)
 	mail.Email, err = IO.GetEmailAddress()
 	for err != nil {
-		Output(structs.COMMAND_NOT_ACCEPTED + err.Error() + "\n" + structs.REQUEST_EMAIL_ADDRESS)
+		Output(structs.CommandNotAccepted + err.Error() + "\n" + structs.RequestEmailAddress)
 		mail.Email, err = IO.GetEmailAddress()
 	}
-	Output(structs.REQUEST_SUBJECT)
+	Output(structs.RequestSubject)
 	mail.Subject, err = IO.GetString()
 	for err != nil {
-		Output(structs.COMMAND_NOT_ACCEPTED + err.Error() + "\n" + structs.REQUEST_SUBJECT)
+		Output(structs.CommandNotAccepted + err.Error() + "\n" + structs.RequestSubject)
 		mail.Subject, err = IO.GetString()
 	}
-	Output(structs.REQUEST_MESSAGE)
+	Output(structs.RequestMessage)
 	mail.Message, err = IO.GetString()
 	for err != nil {
-		Output(structs.COMMAND_NOT_ACCEPTED + err.Error() + "\n" + structs.REQUEST_MESSAGE)
+		Output(structs.CommandNotAccepted + err.Error() + "\n" + structs.RequestMessage)
 		mail.Subject, err = IO.GetString()
 	}
 	err = send(mail, net.ParseIP("127.0.0.0"), 443)
