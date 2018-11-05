@@ -4,6 +4,7 @@ import (
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"strconv"
 	"testing"
 )
 
@@ -62,22 +63,23 @@ func (r *TestReader) Read(p []byte) (n int, err error) {
 }
 
 func TestGetNextCommandSuccess(t *testing.T) {
-	reader = NewTestReader("0")
-	command, _ := GetNextCommand()
+	reader = NewTestReader(strconv.Itoa(int(structs.FETCH)))
+	command, err := GetNextCommand()
 	assert.Equal(t, structs.FETCH, command, "does not return the correct number defined in structs.FETCH.")
+	assert.Equal(t, nil, err, "should run without error")
 	r, ok := reader.(ITestReader)
 	if ok {
-		r.setData("1")
+		r.setData(strconv.Itoa(int(structs.SUBMIT)))
 		command, _ = GetNextCommand()
 		assert.Equal(t, structs.SUBMIT, command, "does not return the correct number defined in structs.SUBMIT.")
-		r.setData("2")
+		r.setData(strconv.Itoa(int(structs.EXIT)))
 		command, _ = GetNextCommand()
 		assert.Equal(t, structs.EXIT, command, "does not return the correct number defined in structs.EXIT.")
 	}
 }
 
 func TestGetNextCommandError(t *testing.T) {
-	reader = NewTestReader("-1")
+	reader = ITestReader(NewTestReader("-1"))
 	_, err := GetNextCommand()
 	assert.Error(t, err, "-1 should not be a valid argument.")
 	r, ok := reader.(ITestReader)
@@ -97,4 +99,34 @@ func TestOutputStringToCommandLine(t *testing.T) {
 	testString := "a String!!"
 	OutputStringToCommandLine(testString)
 	assert.Equal(t, testString, output, "string output failed.")
+}
+
+func TestGetEmailAddress(t *testing.T) {
+	correctEmailAddress := "john.doe@example.com"
+	reader = NewTestReader(correctEmailAddress)
+	emailAddress, err := GetEmailAddress()
+	assert.True(t, err == nil, "unexpected error with correct email address.")
+	assert.Equal(t, correctEmailAddress, emailAddress, "Eamil address was distorted during reading.")
+	r, ok := reader.(ITestReader)
+	if ok {
+		r.setData("name@notARealDomain")
+		_, err = GetEmailAddress()
+		assert.Error(t, err, "function should not accept a syntactically wrong domain")
+		r.setData("notARealEmailAddress")
+		assert.Error(t, err, "function should not accept a string without an @ in it")
+	}
+}
+
+func TestGetString(t *testing.T) {
+	testString := "abcd"
+	reader = NewTestReader(testString)
+	outputString, err := GetString()
+	assert.Equal(t, testString, outputString, "string was distorted during reading.")
+	assert.Equal(t, nil, err, "function should not throw an error with a normal string.")
+	r, ok := reader.(ITestReader)
+	if ok {
+		r.setData("")
+		_, err = GetString()
+		assert.Errorf(t, err, "string empty", "getting empty strings is not very useful.")
+	}
 }
