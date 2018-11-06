@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/mortenterhart/trivial-tickets/api/api_in"
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 )
@@ -29,32 +31,26 @@ var sessions = make(map[string]structs.SessionManager)
 // Holds all the users
 var users = make(map[string]structs.User)
 
-// Holds all the tickets
-var Tickets = make(map[string]structs.Ticket)
-
-// Holds the given config for access to the backend systems
-var ServerConfig *structs.Config
-
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
 
 	// Assign given config to the global variable
-	ServerConfig = config
+	globals.ServerConfig = config
 
 	// Read in the users
-	errReadUserFile := filehandler.ReadUserFile(ServerConfig.Users, &users)
+	errReadUserFile := filehandler.ReadUserFile(globals.ServerConfig.Users, &users)
 
 	if errReadUserFile == nil {
 		// Read in the tickets
-		errReadTicketFiles := filehandler.ReadTicketFiles(ServerConfig.Tickets, &Tickets)
+		errReadTicketFiles := filehandler.ReadTicketFiles(globals.ServerConfig.Tickets, &globals.Tickets)
 
 		if errReadTicketFiles == nil {
 			// Read in the templates
-			tmpl = GetTemplates(ServerConfig.Web)
+			tmpl = GetTemplates(globals.ServerConfig.Web)
 
 			if tmpl != nil {
 				// Register the handlers
-				errStartHandlers := startHandlers(ServerConfig.Web)
+				errStartHandlers := startHandlers(globals.ServerConfig.Web)
 
 				if errStartHandlers != nil {
 					return errors.New("Unable to register handlers")
@@ -63,7 +59,7 @@ func StartServer(config *structs.Config) error {
 					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
 
 					// Start the server according to config
-					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", ServerConfig.Port), ServerConfig.Cert, ServerConfig.Key, nil)
+					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
 				}
 			} else {
 				return errors.New("Unable to load templates")
@@ -122,6 +118,7 @@ func startHandlers(path string) error {
 	http.HandleFunc("/unassignTicket", handleUnassignTicket)
 	http.HandleFunc("/assignTicket", handleAssignTicket)
 	http.HandleFunc("/merge", handleMergeTickets)
+	http.HandleFunc("/receive", api_in.ReceiveMail)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))

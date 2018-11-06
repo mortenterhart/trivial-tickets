@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
@@ -25,7 +26,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	session := checkForSession(w, r)
 
-	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: Tickets, Users: users})
+	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: globals.Tickets, Users: users})
 }
 
 // handleLogin checks the login credentials against the stored users
@@ -101,10 +102,10 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 		newTicket := ticket.CreateTicket(mail, subject, text)
 
 		// Assign the ticket to the tickets kept in memory
-		Tickets[newTicket.Id] = newTicket
+		globals.Tickets[newTicket.Id] = newTicket
 
 		// Persist the ticket to the file system
-		filehandler.WriteTicketFile(ServerConfig.Tickets, &newTicket)
+		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &newTicket)
 
 		// Redirect the user to the ticket page
 		http.Redirect(w, r, "/ticket?id="+newTicket.Id, 302)
@@ -143,7 +144,7 @@ func handleHoliday(w http.ResponseWriter, r *http.Request) {
 		users[session.User.Username] = user
 
 		// Persist the changes to the file system
-		filehandler.WriteUserFile(ServerConfig.Users, &users)
+		filehandler.WriteUserFile(globals.ServerConfig.Users, &users)
 	}
 
 	// Redirect the user to the index
@@ -165,7 +166,7 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Get the ticket based on the given id
 		id := param[0]
-		ticket := Tickets[id]
+		ticket := globals.Tickets[id]
 
 		// Create or get the users session
 		session := checkForSession(w, r)
@@ -193,16 +194,16 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
 
 		// Get the ticket which was edited
-		currentTicket := Tickets[ticketId]
+		currentTicket := globals.Tickets[ticketId]
 
 		// Update the current ticket
 		updatedTicket := ticket.UpdateTicket(status, mail, reply, currentTicket)
 
 		// Assign the updated ticket to the ticket map in memory
-		Tickets[ticketId] = updatedTicket
+		globals.Tickets[ticketId] = updatedTicket
 
 		// Persist the updated ticket to the file system
-		filehandler.WriteTicketFile(ServerConfig.Tickets, &updatedTicket)
+		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
 
 		// Redirect to the ticket again, now with updated Values
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket})
@@ -226,7 +227,7 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Get the ticket based on the given id
 		ticketId := param[0]
-		currentTicket := Tickets[ticketId]
+		currentTicket := globals.Tickets[ticketId]
 
 		// Get the session
 		session := checkForSession(w, r)
@@ -238,10 +239,10 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 			updatedTicket := ticket.UnassignTicket(currentTicket)
 
 			// Set the ticket to memory
-			Tickets[ticketId] = updatedTicket
+			globals.Tickets[ticketId] = updatedTicket
 
 			// Persist the changed ticket to the file system
-			filehandler.WriteTicketFile(ServerConfig.Tickets, &updatedTicket)
+			filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
 
 			// Create a response and write it to the header
 			response := "Das Ticket wurde erfolgreich freigegeben"
@@ -269,16 +270,16 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 			user := params["user"][0]
 
 			// Get the ticket based on the given id
-			currentTicket := Tickets[ticketId]
+			currentTicket := globals.Tickets[ticketId]
 
 			// Update the ticket itself
 			updatedTicket := ticket.AssignTicket(users[user], currentTicket)
 
 			// Update the ticket in memory
-			Tickets[ticketId] = updatedTicket
+			globals.Tickets[ticketId] = updatedTicket
 
 			// Persist the change in the file system
-			filehandler.WriteTicketFile(ServerConfig.Tickets, &updatedTicket)
+			filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
 
 			// Return the assigned user
 			response := updatedTicket.User.Username
@@ -302,22 +303,22 @@ func handleMergeTickets(w http.ResponseWriter, r *http.Request) {
 		if session.IsLoggedIn {
 
 			// Get both ticket ids
-			ticketIdMergeTo := Tickets[template.HTMLEscapeString(r.FormValue("merge_to"))]
-			ticketIdMergeFrom := Tickets[template.HTMLEscapeString(r.FormValue("merge_from"))]
+			ticketIdMergeTo := globals.Tickets[template.HTMLEscapeString(r.FormValue("merge_to"))]
+			ticketIdMergeFrom := globals.Tickets[template.HTMLEscapeString(r.FormValue("merge_from"))]
 
 			// Only if they have the same assigned user
 			if ticketIdMergeFrom.User == session.User && ticketIdMergeTo.User == session.User {
 
-				// Merge tickets
+				// Merge structs.Ticket
 				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(ticketIdMergeTo, ticketIdMergeFrom)
 
 				// Write both tickets to memory
-				Tickets[ticketMergedTo.Id] = ticketMergedTo
-				Tickets[ticketMergedFrom.Id] = ticketMergedFrom
+				globals.Tickets[ticketMergedTo.Id] = ticketMergedTo
+				globals.Tickets[ticketMergedFrom.Id] = ticketMergedFrom
 
 				// Persist both tickets to file system
-				filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedTo)
-				filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedFrom)
+				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedTo)
+				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedFrom)
 
 				// Serve the template to show a single ticket
 				tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticketMergedTo})
