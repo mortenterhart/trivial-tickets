@@ -1,4 +1,5 @@
 {{define "ticket"}}
+{{$session := .Session}}
     {{template "header"}}
     <header>
         <div class="headers">
@@ -10,7 +11,7 @@
         {{template "navigation" .Session}}
         <div class="content">
             <div class="ticket">
-                <form method="POST" action="updateTicket">
+                <form method="POST" action="/updateTicket">
                     <div>
                         <table>
                             <tr>
@@ -35,6 +36,16 @@
                             </tr>
                             <tr>
                                 <td>Betreff:</td><td>{{.Ticket.Subject}}</td>
+                                {{if .Session.IsLoggedIn}}
+                                    <td>Antworttyp:</td>
+                                    <td>
+                                        <select name="reply_type" required>
+                                            <option value="" selected></option>
+                                            <option value="intern">Intern</option>
+                                            <option value="extern">Extern</option>
+                                        </select>
+                                    </td>
+                                {{end}}
                             </tr>
                             <tr>
                                 <td>Ticketnummer:</td>
@@ -44,14 +55,23 @@
                     </div>
                     <br>
                     <p>Nachrichtenverlauf:</p>
-                    {{range $replies := .Ticket.Entries}}
-                        <div class="reply">
-                            <p>{{$replies.FormattedDate}} {{$replies.User}}:</p>
-                            <textarea class="ticket_text" cols="60" rows="5" readonly>{{$replies.Text}}</textarea>
-                        </div>
+                    {{range $replies := .Ticket.Entries}} 
+                        {{if $session.IsLoggedIn}}
+                            <div class="reply {{$replies.Reply_Type}}">
+                                <p>{{$replies.FormattedDate}} {{$replies.User}}:</p>
+                                <textarea class="ticket_text" cols="60" rows="5" readonly>{{$replies.Text}}</textarea>
+                            </div>
+                        {{else}}
+                            {{if ne $replies.Reply_Type "intern"}}
+                                <div class="reply {{$replies.Reply_Type}}">
+                                    <p>{{$replies.FormattedDate}} {{$replies.User}}:</p>
+                                    <textarea class="ticket_text" cols="60" rows="5" readonly>{{$replies.Text}}</textarea>
+                                </div>
+                            {{end}}
+                        {{end}}
                     {{end}}
                     <br>
-                    <input type="text" class="ticket_input" name="mail" placeholder="Ihre E-Mail" {{if .Session.IsLoggedIn }} disabled value="{{.Session.User.Mail}}" {{end}}><br>
+                    <input type="text" class="ticket_input" name="mail" placeholder="Ihre E-Mail" {{if .Session.IsLoggedIn }} disabled value="{{.Session.User.Mail}}" {{end}} pattern="^[\w.-]+@[\w-]+\.[\w.]+$"><br>
                     <textarea class="ticket_text" name="reply" cols="60" rows="10" placeholder="Antworten ..."></textarea><br>
                     <button type="submit">Speichern</button>
                 </form>
