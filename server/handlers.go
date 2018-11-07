@@ -208,7 +208,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
 
 		// Publish mail if the reply was selected for external
-		if reply_type == "External" {
+		if reply_type == "extern" {
 			api_out.SendMail(mail, updatedTicket.Subject, reply)
 		}
 
