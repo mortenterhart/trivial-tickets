@@ -34,20 +34,6 @@
          "Reply_Type": ""
       },
       {
-         "Date": "2018-11-07T10:48:40.7939221+01:00",
-         "FormattedDate": "Wed Nov  7 10:48:40 2018",
-         "User": "",
-         "Text": "lalalaa",
-         "Reply_Type": ""
-      },
-      {
-         "Date": "2018-11-07T10:49:09.5757487+01:00",
-         "FormattedDate": "Wed Nov  7 10:49:09 2018",
-         "User": "",
-         "Text": "aaaa",
-         "Reply_Type": ""
-      },
-      {
          "Date": "2018-11-07T10:49:46.7569002+01:00",
          "FormattedDate": "Wed Nov  7 10:49:46 2018",
          "User": "dsgasdg@example.com",
@@ -74,6 +60,27 @@
          "User": "",
          "Text": "intern2",
          "Reply_Type": "intern"
+      },
+      {
+         "Date": "2018-11-07T12:33:41.8175907+01:00",
+         "FormattedDate": "Wed Nov  7 12:33:41 2018",
+         "User": "",
+         "Text": "test extern",
+         "Reply_Type": "extern"
+      },
+      {
+         "Date": "2018-11-07T12:39:12.3079822+01:00",
+         "FormattedDate": "Wed Nov  7 12:39:12 2018",
+         "User": "dddd@gmail.com",
+         "Text": "ddddd",
+         "Reply_Type": ""
+      },
+      {
+         "Date": "2018-11-07T12:40:15.1773577+01:00",
+         "FormattedDate": "Wed Nov  7 12:40:15 2018",
+         "User": "boris.floricic@example.com",
+         "Text": "fadsfsadfsadf",
+         "Reply_Type": "extern"
       }
    ],
    "MergeTo": ""
