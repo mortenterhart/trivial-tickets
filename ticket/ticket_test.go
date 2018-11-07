@@ -26,8 +26,9 @@ func TestUpdateTicket(t *testing.T) {
 	const STATUS = "2"
 	const TICKET_ID = "abcdef12345"
 	const MAIL = "text@exmaple.com"
+	const REPLY_TYPE = ""
 
-	ticket := UpdateTicket(STATUS, TICKET_ID, MAIL, structs.Ticket{})
+	ticket := UpdateTicket(STATUS, TICKET_ID, MAIL, REPLY_TYPE, structs.Ticket{})
 
 	assert.NotNil(t, ticket, "No ticket was returned")
 	assert.Equal(t, ticket.Status, structs.CLOSED)
