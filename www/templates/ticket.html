@@ -71,12 +71,12 @@
                         {{end}}
                     {{end}}
                     <br>
-                    <input type="text" class="ticket_input" name="mail" placeholder="Ihre E-Mail" {{if .Session.IsLoggedIn }} disabled value="{{.Session.User.Mail}}" {{end}} pattern="^[\w.-]+@[\w-]+\.[\w.]+$"><br>
+                    <input type="text" class="ticket_input" name="mail" placeholder="Ihre E-Mail" readonly {{if .Session.IsLoggedIn }} value="{{.Session.User.Mail}}" {{else}} value="{{.Ticket.Customer}}" {{end}} pattern="^[\w.-]+@[\w-]+\.[\w.]+$"><br>
                     <textarea class="ticket_text" name="reply" cols="60" rows="10" placeholder="Antworten ..."></textarea><br>
                     <button type="submit">Speichern</button>
                 </form>
             </div>     
         </div>
     </div>
-    {{template "footer" .Session.CreateTime}}
+    {{template "footer"}}
 {{end}}
