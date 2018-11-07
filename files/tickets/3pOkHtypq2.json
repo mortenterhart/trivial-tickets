@@ -1,0 +1,29 @@
+{
+   "Id": "3pOkHtypq2",
+   "Subject": "hallo pc kaputt",
+   "Status": 1,
+   "User": {
+      "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
+      "Name": "Admin",
+      "Username": "admin",
+      "Mail": "admin@example.com",
+      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+      "IsOnHoliday": false
+   },
+   "Customer": "testticket@test.com",
+   "Entries": [
+      {
+         "Date": "2018-11-02T12:40:23.0675732+01:00",
+         "FormattedDate": "Fri Nov  2 12:40:23 2018",
+         "User": "testticket@test.com",
+         "Text": "lalalala"
+      },
+      {
+         "Date": "2018-11-06T13:09:15.8563623+01:00",
+         "FormattedDate": "Tue Nov  6 13:09:15 2018",
+         "User": "",
+         "Text": "lololol"
+      }
+   ],
+   "MergeTo": ""
+}

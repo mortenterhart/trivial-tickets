@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mortenterhart/trivial-tickets/server"
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
@@ -73,7 +73,7 @@ func ReceiveMail(writer http.ResponseWriter, req *http.Request) {
 
 		createdTicket := ticket.CreateTicket(newTicket.Email, newTicket.Subject, newTicket.Message)
 
-		server.Tickets[createdTicket.Id] = createdTicket
-		filehandler.WriteTicketFile(server.ServerConfig.Tickets, &createdTicket)
+		globals.Tickets[createdTicket.Id] = createdTicket
+		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &createdTicket)
 	}
 }

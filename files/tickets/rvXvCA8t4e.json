@@ -1,0 +1,73 @@
+{
+   "Id": "rvXvCA8t4e",
+   "Subject": "handy hat spiderman app",
+   "Status": 0,
+   "User": {
+      "Id": "CLwt_Y27ktggbjaNzn5U2fpCM6Az1ktAKo46n0mLP6A=",
+      "Name": "Boris Floricic",
+      "Username": "tron",
+      "Mail": "boris.floricic@example.com",
+      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+      "IsOnHoliday": false
+   },
+   "Customer": "ticketest2@ticket.de",
+   "Entries": [
+      {
+         "Date": "2018-11-02T12:41:10.8692958+01:00",
+         "FormattedDate": "Fri Nov  2 12:41:10 2018",
+         "User": "ticketest2@ticket.de",
+         "Text": "alles kaputt =(",
+         "Reply_Type": ""
+      },
+      {
+         "Date": "2018-11-07T10:35:08.0599354+01:00",
+         "FormattedDate": "Wed Nov  7 10:35:08 2018",
+         "User": "bla@example.com",
+         "Text": "lalala",
+         "Reply_Type": ""
+      },
+      {
+         "Date": "2018-11-07T10:35:27.3188694+01:00",
+         "FormattedDate": "Wed Nov  7 10:35:27 2018",
+         "User": "test2@gmail.com",
+         "Text": "aaaaaa",
+         "Reply_Type": ""
+      },
+      {
+         "Date": "2018-11-07T10:48:40.7939221+01:00",
+         "FormattedDate": "Wed Nov  7 10:48:40 2018",
+         "User": "",
+         "Text": "lalalaa",
+         "Reply_Type": ""
+      },
+      {
+         "Date": "2018-11-07T10:49:09.5757487+01:00",
+         "FormattedDate": "Wed Nov  7 10:49:09 2018",
+         "User": "",
+         "Text": "aaaa",
+         "Reply_Type": ""
+      },
+      {
+         "Date": "2018-11-07T10:49:46.7569002+01:00",
+         "FormattedDate": "Wed Nov  7 10:49:46 2018",
+         "User": "dsgasdg@example.com",
+         "Text": "lalala",
+         "Reply_Type": ""
+      },
+      {
+         "Date": "2018-11-07T11:11:48.6844525+01:00",
+         "FormattedDate": "Wed Nov  7 11:11:48 2018",
+         "User": "",
+         "Text": "intern",
+         "Reply_Type": "intern"
+      },
+      {
+         "Date": "2018-11-07T11:23:26.1186717+01:00",
+         "FormattedDate": "Wed Nov  7 11:23:26 2018",
+         "User": "",
+         "Text": "extern",
+         "Reply_Type": "extern"
+      }
+   ],
+   "MergeTo": ""
+}
