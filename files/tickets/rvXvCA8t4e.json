@@ -67,6 +67,13 @@
          "User": "",
          "Text": "extern",
          "Reply_Type": "extern"
+      },
+      {
+         "Date": "2018-11-07T12:28:52.4202304+01:00",
+         "FormattedDate": "Wed Nov  7 12:28:52 2018",
+         "User": "",
+         "Text": "intern2",
+         "Reply_Type": "intern"
       }
    ],
    "MergeTo": ""

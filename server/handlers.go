@@ -209,7 +209,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Publish mail if the reply was selected for external
 		if reply_type == "extern" {
-			api_out.SendMail(mail, updatedTicket.Subject, reply)
+			api_out.SendMail(updatedTicket.Customer, updatedTicket.Subject, reply)
 		}
 
 		// Redirect to the ticket again, now with updated Values
