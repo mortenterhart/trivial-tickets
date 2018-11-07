@@ -157,6 +157,14 @@ button:hover {
   padding-bottom: 1%;
 }
 
+.intern {
+  background-color: #8ba0a0;
+}
+
+.extern {
+  background-color: #8ba0d5;
+}
+
 footer {
   margin-left: 10%;
   padding-top: 1%;

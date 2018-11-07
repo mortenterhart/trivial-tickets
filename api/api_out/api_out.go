@@ -1,6 +1,6 @@
 package api_out
 
-func SendMail() {
+func SendMail(mail, subject, message string) {
 
 }
 

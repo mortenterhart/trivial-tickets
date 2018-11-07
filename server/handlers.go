@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
@@ -192,18 +193,24 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		status := template.HTMLEscapeString(r.FormValue("status"))
 		mail := template.HTMLEscapeString(r.FormValue("mail"))
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
+		reply_type := template.HTMLEscapeString(r.FormValue("reply_type"))
 
 		// Get the ticket which was edited
 		currentTicket := globals.Tickets[ticketId]
 
 		// Update the current ticket
-		updatedTicket := ticket.UpdateTicket(status, mail, reply, currentTicket)
+		updatedTicket := ticket.UpdateTicket(status, mail, reply, reply_type, currentTicket)
 
 		// Assign the updated ticket to the ticket map in memory
 		globals.Tickets[ticketId] = updatedTicket
 
 		// Persist the updated ticket to the file system
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
+
+		// Publish mail if the reply was selected for external
+		if reply_type == "External" {
+			api_out.SendMail(mail, updatedTicket.Subject, reply)
+		}
 
 		// Redirect to the ticket again, now with updated Values
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket})
