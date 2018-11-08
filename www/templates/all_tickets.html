@@ -1,15 +1,6 @@
 {{define "all_tickets"}}
 {{$users := .Users}}
     <div class="all_tickets" id="all_tickets" style="display: none;">
-        <div>
-            <p>Sortieren:</p>
-            <select>
-                <option value="my_tickets">Meine Tickets</option>
-                <option value="all_tickets">Alle Tickets</option>
-                <option value="new_tickets">Neue Tickets</option>
-            </select>
-        </div>
-        <br><br>
         <table>
             <tr><th>Id</th><th>Kunde</th><th>Betreff</th><th>Status</th><th>Bearbeiter</th><th></th></tr>
         {{range $index, $element := .Tickets}}
@@ -28,6 +19,7 @@
                     </select>{{end}}
                 </td>
                 <td>{{if eq $element.Status 0 }} <button id="btn_{{$element.Id}}" onclick="assignTicket(this.id)">Zuweisen</button> {{end}}</td>
+                <td>{{if eq $element.Status 0 }} <button onclick="window.location='ticket?id={{$element.Id}}'">Öffnen</button> {{end}}</td>
             </tr>
         {{end}}  
         </table>
