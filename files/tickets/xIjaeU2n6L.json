@@ -1,0 +1,24 @@
+{
+   "Id": "xIjaeU2n6L",
+   "Subject": "dddd",
+   "Status": 0,
+   "User": {
+      "Id": "",
+      "Name": "",
+      "Username": "",
+      "Mail": "",
+      "Hash": "",
+      "IsOnHoliday": false
+   },
+   "Customer": "blabla@mail.com",
+   "Entries": [
+      {
+         "Date": "2018-11-08T15:34:23.2448326+01:00",
+         "FormattedDate": "Thu Nov  8 15:34:23 2018",
+         "User": "blabla@mail.com",
+         "Text": "sfdsdfa",
+         "Reply_Type": ""
+      }
+   ],
+   "MergeTo": ""
+}
