@@ -25,14 +25,6 @@ func main() {
 		log.Fatal(errConfig)
 	}
 
-	// TODO:
-	//
-	//	    - Create a way so that the server can start up and use
-	//		  files that are already there without having to provide the config again.
-	//		  (Maybe some kind of config.ini stored on file system)
-	//        On a special flag or as default, use the config in that file
-	//
-
 	errServer := server.StartServer(&config)
 
 	if errServer != nil {
