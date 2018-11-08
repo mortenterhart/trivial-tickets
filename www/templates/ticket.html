@@ -1,5 +1,6 @@
 {{define "ticket"}}
 {{$session := .Session}}
+{{$currentTicket := .Ticket}}
     {{template "header"}}
     <header>
         <div class="headers">
@@ -10,7 +11,7 @@
     <div class="container">
         {{template "navigation" .Session}}
         <div class="content">
-            <div class="ticket">
+            <div class="ticket" id="ticket">
                 <form method="POST" action="/updateTicket">
                     <div>
                         <table>
@@ -50,6 +51,19 @@
                             <tr>
                                 <td>Ticketnummer:</td>
                                 <td><input name="ticket" class="input_label" type="text" value="{{.Ticket.Id}}"></td>
+                                {{if .Session.IsLoggedIn}}
+                                    <td>Zusammenführen mit:</td>
+                                    <td>
+                                        <select name="merge">
+                                            <option value="" selected></option>
+                                            {{range $index, $element := .Tickets}}
+                                                {{if and (eq $session.User.Id $element.User.Id) (ne $element.Id $currentTicket.Id) (eq $element.MergeTo "")}}
+                                                    <option value="{{$element.Id}}">{{$element.Id}} - {{$element.Subject}}</option>
+                                                {{end}}
+                                            {{end}}
+                                        </select>
+                                    </td>
+                                {{end}}
                             </tr>
                         </table>
                     </div>
@@ -75,7 +89,16 @@
                     <textarea class="ticket_text" name="reply" cols="60" rows="10" placeholder="Antworten ..."></textarea><br>
                     <button type="submit">Speichern</button>
                 </form>
-            </div>     
+            </div>
+            {{if .Session.IsLoggedIn}}
+                <div style="display: none">
+                    {{template "dashboard" .}}
+                </div>
+                {{template "create_ticket" .Session}}
+                {{template "all_tickets" .}}
+            {{else}}
+                {{template "create_ticket" .Session}}
+            {{end}}
         </div>
     </div>
     {{template "footer"}}
