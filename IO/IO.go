@@ -58,7 +58,7 @@ func GetEmailAddress() (result string, err error) {
 	} else {
 		return
 	}
-	r, _ := regexp.Compile("^(\\w*|\\.*)+@(\\w*)(\\.\\w+)+$")
+	r, _ := regexp.Compile("^([\\w\\.\\-]+)@([\\w*\\.\\-]+)(\\.\\w+)$")
 	result = r.FindString(input)
 	if result == "" {
 		err = errors.New("not a valid email address")
@@ -78,7 +78,7 @@ func GetString() (result string, err error) {
 		return
 	}
 	if result == "" {
-		err = errors.New("string empty")
+		err = errors.New("empty string")
 	}
 	return
 }
