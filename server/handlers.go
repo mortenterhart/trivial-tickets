@@ -169,11 +169,16 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 		id := param[0]
 		ticket := globals.Tickets[id]
 
+		// If it is a merged ticket, redirect to the merged one
+		if ticket.MergeTo != "" {
+			ticket = globals.Tickets[ticket.MergeTo]
+		}
+
 		// Create or get the users session
 		session := checkForSession(w, r)
 
 		// Serve the template to show a single ticket
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket, Tickets: globals.Tickets, Users: users})
 	}
 
 	http.Redirect(w, r, "/", 302)
@@ -194,6 +199,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		mail := template.HTMLEscapeString(r.FormValue("mail"))
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
 		reply_type := template.HTMLEscapeString(r.FormValue("reply_type"))
+		merge := template.HTMLEscapeString(r.FormValue("merge"))
 
 		// Get the ticket which was edited
 		currentTicket := globals.Tickets[ticketId]
@@ -201,11 +207,35 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		// Update the current ticket
 		updatedTicket := ticket.UpdateTicket(status, mail, reply, reply_type, currentTicket)
 
-		// Assign the updated ticket to the ticket map in memory
-		globals.Tickets[ticketId] = updatedTicket
+		if merge != "" {
+			// Get the ticket to merge from the tickets map
+			ticketFrom := globals.Tickets[merge]
 
-		// Persist the updated ticket to the file system
-		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
+			// Only if they have the same assigned user
+			if ticketFrom.User == session.User && updatedTicket.User == session.User {
+
+				// Merge structs.Ticket
+				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(updatedTicket, ticketFrom)
+
+				// Write both tickets to memory
+				globals.Tickets[ticketMergedTo.Id] = ticketMergedTo
+				globals.Tickets[ticketMergedFrom.Id] = ticketMergedFrom
+
+				// Persist both tickets to file system
+				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedTo)
+				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedFrom)
+
+				// Update to the merged ticket so serve to client
+				updatedTicket = globals.Tickets[ticketMergedTo.Id]
+			}
+		} else {
+
+			// Assign the updated ticket to the ticket map in memory
+			globals.Tickets[ticketId] = updatedTicket
+
+			// Persist the updated ticket to the file system
+			filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
+		}
 
 		// Publish mail if the reply was selected for external
 		if reply_type == "extern" {
@@ -213,7 +243,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Redirect to the ticket again, now with updated Values
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket, Tickets: globals.Tickets})
 	}
 
 	http.Redirect(w, r, "/", 302)
@@ -294,46 +324,6 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 		}
 	}
-}
-
-// handleMergeTickets merges two tickets, writes them to memory and persist them.
-// Then, the newly merged ticket is returned to the view
-func handleMergeTickets(w http.ResponseWriter, r *http.Request) {
-
-	// Only support POST
-	if r.Method == "POST" {
-
-		// Create or get the users session
-		session := checkForSession(w, r)
-
-		// Make sure user is logged in
-		if session.IsLoggedIn {
-
-			// Get both ticket ids
-			ticketIdMergeTo := globals.Tickets[template.HTMLEscapeString(r.FormValue("merge_to"))]
-			ticketIdMergeFrom := globals.Tickets[template.HTMLEscapeString(r.FormValue("merge_from"))]
-
-			// Only if they have the same assigned user
-			if ticketIdMergeFrom.User == session.User && ticketIdMergeTo.User == session.User {
-
-				// Merge structs.Ticket
-				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(ticketIdMergeTo, ticketIdMergeFrom)
-
-				// Write both tickets to memory
-				globals.Tickets[ticketMergedTo.Id] = ticketMergedTo
-				globals.Tickets[ticketMergedFrom.Id] = ticketMergedFrom
-
-				// Persist both tickets to file system
-				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedTo)
-				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedFrom)
-
-				// Serve the template to show a single ticket
-				tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticketMergedTo})
-			}
-		}
-	}
-
-	http.Redirect(w, r, "/", 302)
 }
 
 // createSessionCookie returns a http cookie to hold the session

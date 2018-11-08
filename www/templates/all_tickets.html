@@ -1,35 +1,35 @@
 {{define "all_tickets"}}
 {{$users := .Users}}
-<div class="all_tickets" id="all_tickets" style="display: none;">
-    <div>
-        <p>Sortieren:</p>
-        <select>
-            <option value="my_tickets">Meine Tickets</option>
-            <option value="all_tickets">Alle Tickets</option>
-            <option value="new_tickets">Neue Tickets</option>
-        </select>
-    </div>
-    <br><br>
-    <table>
-        <tr><th>Id</th><th>Kunde</th><th>Betreff</th><th>Status</th><th>Bearbeiter</th><th></th></tr>
-    {{range $index, $element := .Tickets}}
-        <tr>
-            <td>{{$element.Id}}</td>
-            <td>{{$element.Customer}}</td>
-            <td>{{$element.Subject}}</td>
-            <td id="td_status_{{$element.Id}}">{{if eq $element.Status 0 }} Offen {{end}}{{if eq $element.Status 1 }} In Bearbeitung {{end}}{{if eq $element.Status 2 }} Geschlossen {{end}}</td>
-            <td id="td_{{$element.Id}}">{{if ne $element.Status 0 }} {{$element.User.Username}} {{else}} 
-                <select name="user" id="select_{{$element.Id}}">
-                {{range $in, $el := $users}}
-                    {{if not $el.IsOnHoliday}}
-                        <option value="{{$el.Username}}">{{$el.Username}}</option>
+    <div class="all_tickets" id="all_tickets" style="display: none;">
+        <div>
+            <p>Sortieren:</p>
+            <select>
+                <option value="my_tickets">Meine Tickets</option>
+                <option value="all_tickets">Alle Tickets</option>
+                <option value="new_tickets">Neue Tickets</option>
+            </select>
+        </div>
+        <br><br>
+        <table>
+            <tr><th>Id</th><th>Kunde</th><th>Betreff</th><th>Status</th><th>Bearbeiter</th><th></th></tr>
+        {{range $index, $element := .Tickets}}
+            <tr>
+                <td>{{$element.Id}}</td>
+                <td>{{$element.Customer}}</td>
+                <td>{{$element.Subject}}</td>
+                <td id="td_status_{{$element.Id}}">{{if eq $element.Status 0 }} Offen {{end}}{{if eq $element.Status 1 }} In Bearbeitung {{end}}{{if eq $element.Status 2 }} Geschlossen {{end}}</td>
+                <td id="td_{{$element.Id}}">{{if ne $element.Status 0 }} {{$element.User.Username}} {{else}} 
+                    <select name="user" id="select_{{$element.Id}}">
+                    {{range $in, $el := $users}}
+                        {{if not $el.IsOnHoliday}}
+                            <option value="{{$el.Username}}">{{$el.Username}}</option>
+                        {{end}}
                     {{end}}
-                {{end}}
-                </select>{{end}}
-            </td>
-            <td>{{if eq $element.Status 0 }} <button id="btn_{{$element.Id}}" onclick="assignTicket(this.id)">Zuweisen</button> {{end}}</td>
-        </tr>
-    {{end}}  
-    </table>
-</div>
+                    </select>{{end}}
+                </td>
+                <td>{{if eq $element.Status 0 }} <button id="btn_{{$element.Id}}" onclick="assignTicket(this.id)">Zuweisen</button> {{end}}</td>
+            </tr>
+        {{end}}  
+        </table>
+    </div>
 {{end}}
