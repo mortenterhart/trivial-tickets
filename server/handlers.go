@@ -57,11 +57,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 				// Update the session with the one just created
 				UpdateSession(sessionId, session)
-			} else {
-				// TODO: Provide error of wrong login credentials
 			}
-		} else {
-			// TODO: Provide error of wrong login credentials
 		}
 	}
 
