@@ -25,9 +25,6 @@ import (
 // the templates once on startup, instead of on every GET - request to index.
 var tmpl *template.Template
 
-// Holds all the sessions for the users
-var sessions = make(map[string]structs.SessionManager)
-
 // Holds all the users
 var users = make(map[string]structs.User)
 
