@@ -8,6 +8,7 @@ import (
 
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/session"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
@@ -25,7 +26,11 @@ import (
 // handleIndex handles the traffic for the index.html
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 
-	session := checkForSession(w, r)
+	session, errCheckForSession := session.CheckForSession(w, r)
+
+	if errCheckForSession != nil {
+		log.Print("Unable to create session")
+	}
 
 	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: globals.Tickets, Users: users})
 }
@@ -35,7 +40,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Get session id
-	sessionId := getSessionId(r)
+	sessionId := session.GetSessionId(r)
 
 	// Only handle POST-Requests
 	if r.Method == "POST" {
@@ -50,13 +55,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 			if username == user.Username && hashing.CheckPassword(user.Hash, password) {
 
 				// Create a session to update the current one
-				session, _ := GetSession(sessionId)
-				session.User = user
-				session.IsLoggedIn = true
-				session.CreateTime = time.Now()
+				currentSession, _ := session.GetSession(sessionId)
+				currentSession.User = user
+				currentSession.IsLoggedIn = true
+				currentSession.CreateTime = time.Now()
 
 				// Update the session with the one just created
-				UpdateSession(sessionId, session)
+				session.UpdateSession(sessionId, currentSession)
 			}
 		}
 	}
@@ -69,15 +74,15 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	// Get session id
-	sessionId := getSessionId(r)
+	sessionId := session.GetSessionId(r)
 
 	if r.Method == "POST" {
 
 		// Remove the session of the user
-		delete(sessions, sessionId)
+		delete(globals.Sessions, sessionId)
 
 		// Delete the session cookie
-		http.SetCookie(w, deleteSessionCookie())
+		http.SetCookie(w, session.DeleteSessionCookie())
 	}
 
 	// Redirect the user to the index
@@ -116,29 +121,29 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 func handleHoliday(w http.ResponseWriter, r *http.Request) {
 
 	// Get session id
-	sessionId := getSessionId(r)
+	sessionId := session.GetSessionId(r)
 
 	// Make sure user is logged in
-	if sessions[sessionId].Session.IsLoggedIn {
+	if globals.Sessions[sessionId].Session.IsLoggedIn {
 
 		// Create a session to update the current one
-		session, _ := GetSession(sessionId)
+		currentSession, _ := session.GetSession(sessionId)
 
 		// Get the current user
-		user := users[session.User.Username]
+		user := users[currentSession.User.Username]
 
 		// Toggle IsOnHoliday
-		if session.User.IsOnHoliday {
-			session.User.IsOnHoliday, user.IsOnHoliday = false, false
+		if currentSession.User.IsOnHoliday {
+			currentSession.User.IsOnHoliday, user.IsOnHoliday = false, false
 		} else {
-			session.User.IsOnHoliday, user.IsOnHoliday = true, true
+			currentSession.User.IsOnHoliday, user.IsOnHoliday = true, true
 		}
 
 		// Update the session with the one just created
-		UpdateSession(sessionId, session)
+		session.UpdateSession(sessionId, currentSession)
 
 		// Update the users hash map
-		users[session.User.Username] = user
+		users[currentSession.User.Username] = user
 
 		// Persist the changes to the file system
 		filehandler.WriteUserFile(globals.ServerConfig.Users, &users)
@@ -171,10 +176,14 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Create or get the users session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
+
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
 
 		// Serve the template to show a single ticket
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket, Tickets: globals.Tickets, Users: users})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: currentSession, Ticket: ticket, Tickets: globals.Tickets, Users: users})
 
 		return
 	}
@@ -189,7 +198,11 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 
 		// Get the session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
+
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
 
 		// Get form values
 		ticketId := template.HTMLEscapeString(r.FormValue("ticket"))
@@ -210,7 +223,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 			ticketFrom := globals.Tickets[merge]
 
 			// Only if they have the same assigned user
-			if ticketFrom.User == session.User && updatedTicket.User == session.User {
+			if ticketFrom.User == currentSession.User && updatedTicket.User == currentSession.User {
 
 				// Merge structs.Ticket
 				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(updatedTicket, ticketFrom)
@@ -241,7 +254,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Redirect to the ticket again, now with updated Values
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket, Tickets: globals.Tickets})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: currentSession, Ticket: updatedTicket, Tickets: globals.Tickets})
 
 		return
 	}
@@ -267,10 +280,14 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 		currentTicket := globals.Tickets[ticketId]
 
 		// Get the session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
+
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
 
 		// Make sure, the requesting user owns the ticket
-		if session.User.Id == currentTicket.User.Id {
+		if currentSession.User.Id == currentTicket.User.Id {
 
 			// Replace the assigned user with nobody
 			updatedTicket := ticket.UnassignTicket(currentTicket)
@@ -296,9 +313,13 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 
 		// Get the session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
 
-		if session.IsLoggedIn {
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
+
+		if currentSession.IsLoggedIn {
 
 			// Extract the GET request parameters
 			params := r.URL.Query()
@@ -324,67 +345,4 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 		}
 	}
-}
-
-// createSessionCookie returns a http cookie to hold the session
-// id for the user
-func createSessionCookie() (*http.Cookie, string) {
-
-	sessionId := CreateSessionId()
-
-	return &http.Cookie{
-		Name:     "session",
-		Value:    sessionId,
-		HttpOnly: false,
-		Expires:  time.Now().Add(2 * time.Hour)}, sessionId
-}
-
-// deleteSessionCookie returns a http cookie which will overwrite the
-// existing session cookie in order to nulify it
-func deleteSessionCookie() *http.Cookie {
-
-	return &http.Cookie{
-		Name:     "session",
-		Value:    "",
-		HttpOnly: false,
-		Expires:  time.Now().Add(-100 * time.Hour)}
-}
-
-// getSessionId retrieves the session id from the cookie of the user
-func getSessionId(r *http.Request) string {
-
-	// Get the cookie with the session id
-	userCookie, errUserCookie := r.Cookie("session")
-
-	if errUserCookie != nil {
-		log.Print(errUserCookie)
-		return errUserCookie.Error()
-	}
-
-	return userCookie.Value
-}
-
-// checkForSession either returns a new session or the existing session of a user.
-func checkForSession(w http.ResponseWriter, r *http.Request) structs.Session {
-
-	var session structs.Session
-
-	// Check if the user already has a session
-	// If not, create one
-	// Otherwise read the session id and load the index with his session
-	if _, err := r.Cookie("session"); err != nil {
-
-		cookie, sessionId := createSessionCookie()
-		http.SetCookie(w, cookie)
-		sessions[sessionId] = CreateSession(sessionId)
-
-		session = sessions[sessionId].Session
-
-	} else {
-		sessionId := getSessionId(r)
-
-		session = sessions[sessionId].Session
-	}
-
-	return session
 }
