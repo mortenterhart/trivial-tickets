@@ -97,7 +97,9 @@
                 {{template "create_ticket" .Session}}
                 {{template "all_tickets" .}}
             {{else}}
-                {{template "create_ticket" .Session}}
+                <div style="display: none">
+                    {{template "create_ticket" .Session}}
+                </div>
             {{end}}
         </div>
     </div>

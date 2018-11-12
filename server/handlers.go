@@ -175,6 +175,8 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Serve the template to show a single ticket
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket, Tickets: globals.Tickets, Users: users})
+
+		return
 	}
 
 	http.Redirect(w, r, "/", 302)
@@ -240,6 +242,8 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Redirect to the ticket again, now with updated Values
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket, Tickets: globals.Tickets})
+
+		return
 	}
 
 	http.Redirect(w, r, "/", 302)
