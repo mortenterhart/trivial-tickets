@@ -2,6 +2,7 @@ package ticket
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
@@ -32,11 +33,40 @@ func TestUpdateTicket(t *testing.T) {
 	assert.Equal(t, ticket.Status, structs.CLOSED)
 }
 
+// TestMergeTickets makes sure that the entries of merged tickets are combined and that the
+// ticket, where it is matched from has the id of the merged to ticket
 func TestMergeTickets(t *testing.T) {
 
-	//MergeTickets("abcdef12345", "ghijkl6789")
+	// Create Mock entries
+	entry := structs.Entry{
+		Date:          time.Now(),
+		FormattedDate: time.Now().Format(time.ANSIC),
+		User:          "example@example.com",
+		Text:          "hallo mir gehts gut und dir?\n mfg",
+	}
+
+	var entries []structs.Entry
+
+	for i := 0; i < 3; i++ {
+		entries = append(entries, entry)
+	}
+
+	// Create mock tickets
+	ticketMergeTo := structs.Ticket{Id: "abcdef123"}
+	ticketMergeFrom := structs.Ticket{}
+	ticketMergeTo.Entries = entries
+	ticketMergeFrom.Entries = entries
+
+	// Merge the tickets
+	ticketMergeToAfterMerge, ticketMergeFromAfterMerge := MergeTickets(ticketMergeTo, ticketMergeFrom)
+
+	assert.NotNil(t, ticketMergeFromAfterMerge, "No ticket was returned")
+	assert.NotNil(t, ticketMergeToAfterMerge, "No ticket was returned")
+	assert.True(t, (len(ticketMergeToAfterMerge.Entries) == 6), "The entries have not been added to the ticket")
+	assert.Equal(t, "abcdef123", ticketMergeFromAfterMerge.MergeTo, "")
 }
 
+// TestAssignAndUnassignTicket tests that assign and unassigning a ticket works properly
 func TestAssignAndUnassignTicket(t *testing.T) {
 
 	// Test assigning the ticket

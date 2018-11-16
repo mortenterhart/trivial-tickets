@@ -117,7 +117,6 @@ func startHandlers(path string) error {
 	http.HandleFunc("/logout", handleLogout)
 	http.HandleFunc("/create_ticket", handleCreateTicket)
 	http.HandleFunc("/holiday", handleHoliday)
-	http.HandleFunc("/ticketSend", handleTicketSent)
 	http.HandleFunc("/ticket", handleTicket)
 	http.HandleFunc("/updateTicket", handleUpdateTicket)
 	http.HandleFunc("/unassignTicket", handleUnassignTicket)
