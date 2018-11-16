@@ -105,11 +105,13 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Persist the ticket to the file system
 		filehandler.WriteTicketFile(ServerConfig.Tickets, &newTicket)
+
+		// Redirect the user to the ticket page
+		http.Redirect(w, r, "/ticket?id="+newTicket.Id, 302)
 	}
 
-	// Redirect the user to the status page
-	http.Redirect(w, r, "/ticketSend", 302)
-
+	// If there is any other request, just redirect to index
+	http.Redirect(w, r, "/", 302)
 }
 
 // handleHoliday activates / deactivates the holiday mode for a given user
@@ -148,13 +150,6 @@ func handleHoliday(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 302)
 }
 
-func handleTicketSent(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method == "GET" {
-
-	}
-}
-
 // handleTicket gets the requested ticket via the url GET parameters and serves it to the template
 func handleTicket(w http.ResponseWriter, r *http.Request) {
 
@@ -178,6 +173,8 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 		// Serve the template to show a single ticket
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket})
 	}
+
+	http.Redirect(w, r, "/", 302)
 }
 
 // handleUpdateTicket gets the requested ticket via the url GET parameters and serves it to the template
@@ -210,6 +207,8 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		// Redirect to the ticket again, now with updated Values
 		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket})
 	}
+
+	http.Redirect(w, r, "/", 302)
 }
 
 // handleUnassignTicket unassigns a ticket from a certain user, only if the actual user makes the request.
@@ -289,6 +288,8 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handleMergeTickets merges two tickets, writes them to memory and persist them.
+// Then, the newly merged ticket is returned to the view
 func handleMergeTickets(w http.ResponseWriter, r *http.Request) {
 
 	// Only support POST
@@ -301,24 +302,30 @@ func handleMergeTickets(w http.ResponseWriter, r *http.Request) {
 		if session.IsLoggedIn {
 
 			// Get both ticket ids
-			ticketIdMergeTo := ""
-			ticketIdMergeFrom := ""
+			ticketIdMergeTo := Tickets[template.HTMLEscapeString(r.FormValue("merge_to"))]
+			ticketIdMergeFrom := Tickets[template.HTMLEscapeString(r.FormValue("merge_from"))]
 
-			// Merge tickets
-			ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(Tickets[ticketIdMergeTo], Tickets[ticketIdMergeFrom])
+			// Only if they have the same assigned user
+			if ticketIdMergeFrom.User == session.User && ticketIdMergeTo.User == session.User {
 
-			// Write both tickets to memory
-			Tickets[ticketMergedTo.Id] = ticketMergedTo
-			Tickets[ticketMergedFrom.Id] = ticketMergedFrom
+				// Merge tickets
+				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(ticketIdMergeTo, ticketIdMergeFrom)
 
-			// Persist both tickets to file system
-			filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedTo)
-			filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedFrom)
+				// Write both tickets to memory
+				Tickets[ticketMergedTo.Id] = ticketMergedTo
+				Tickets[ticketMergedFrom.Id] = ticketMergedFrom
 
-			// Serve the template to show a single ticket
-			tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticketMergedTo})
+				// Persist both tickets to file system
+				filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedTo)
+				filehandler.WriteTicketFile(ServerConfig.Tickets, &ticketMergedFrom)
+
+				// Serve the template to show a single ticket
+				tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticketMergedTo})
+			}
 		}
 	}
+
+	http.Redirect(w, r, "/", 302)
 }
 
 // createSessionCookie returns a http cookie to hold the session
@@ -359,6 +366,7 @@ func getSessionId(r *http.Request) string {
 	return userCookie.Value
 }
 
+// checkForSession either returns a new session or the existing session of a user.
 func checkForSession(w http.ResponseWriter, r *http.Request) structs.Session {
 
 	var session structs.Session
