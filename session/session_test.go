@@ -20,7 +20,7 @@ func TestSessionFunctions(t *testing.T) {
 	// Test CreateSession
 	session1 := CreateSession(sessionId)
 
-	assert.Equal(t, session1.Session.Id, sessionId, "The session id was not used to create the session")
+	assert.Equal(t, sessionId, session1.Session.Id, "The session id was not used to create the session")
 
 	// Test GetSession
 	session2, errGetSession := GetSession(sessionId)
@@ -32,7 +32,7 @@ func TestSessionFunctions(t *testing.T) {
 
 	session3, errGetSession3 := GetSession(sessionId)
 
-	assert.Equal(t, session3.Id, sessionId, "The session id was not used to create the session")
+	assert.Equal(t, sessionId, session3.Id, "The session id was not used to create the session")
 	assert.Nil(t, errGetSession3, "An error was returned, but the session was available")
 
 	// Test UpdateSession
@@ -68,7 +68,7 @@ func TestCookieFunctions(t *testing.T) {
 	assert.Nil(t, errCreateSessionCookie, "The cookie could not be created")
 	assert.NotNil(t, sessionId, "The returned session is was nil")
 	assert.NotNil(t, cookie, "The returned cookie is was nil")
-	assert.Equal(t, cookie.Name, "session", "The cookie was not named session")
+	assert.Equal(t, "session", cookie.Name, "The cookie was not named session")
 	assert.True(t, (len(sessionId) == 44), "The session is has the wrong length")
 
 	// Test to retrieve the session id from a set cookie
@@ -90,7 +90,7 @@ func TestCookieFunctions(t *testing.T) {
 	cookie2 := DeleteSessionCookie()
 
 	assert.NotNil(t, cookie2, "Cookie was not overwritten")
-	assert.Equal(t, cookie2.Value, "", "Value of cookie was not emptied")
+	assert.Equal(t, "", cookie2.Value, "Value of cookie was not emptied")
 }
 
 // TestCheckForSession creates a request to test the creation of a session for a user
