@@ -69,7 +69,7 @@ func TestWriteReadUserFile(t *testing.T) {
 	assert.Nil(t, errDeleteFile, "Error deleting file")
 
 	// Make sure the struct before writing to disk and after reading from disk is the same
-	assert.Equal(t, users, readUsers)
+	assert.Equal(t, users, readUsers, "User structs do not match")
 
 	errReadUserFile2 := ReadUserFile("bla.json", &readUsers)
 	assert.NotNil(t, errReadUserFile2, "No error was returned")
