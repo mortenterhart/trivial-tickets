@@ -1,0 +1,16 @@
+{
+   "Id": "abc123",
+   "Subject": "",
+   "Status": 0,
+   "User": {
+      "Id": "",
+      "Name": "",
+      "Username": "",
+      "Mail": "",
+      "Hash": "",
+      "IsOnHoliday": false
+   },
+   "Customer": "",
+   "Entries": null,
+   "MergeTo": ""
+}
