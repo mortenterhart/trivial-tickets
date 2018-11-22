@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/mortenterhart/trivial-tickets/api/api_in"
 	"github.com/mortenterhart/trivial-tickets/globals"
@@ -45,21 +46,18 @@ func StartServer(config *structs.Config) error {
 			// Read in the templates
 			tmpl = GetTemplates(globals.ServerConfig.Web)
 
-			if tmpl != nil {
-				// Register the handlers
-				errStartHandlers := startHandlers(globals.ServerConfig.Web)
+			// Register the handlers
+			errStartHandlers := startHandlers(globals.ServerConfig.Web)
 
-				if errStartHandlers != nil {
-					return errors.New("Unable to register handlers")
-				} else {
-					// Start a GoRoutine to redirect http requests to https
-					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+			if tmpl != nil || errStartHandlers == nil {
 
-					// Start the server according to config
-					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
-				}
+				// Start a GoRoutine to redirect http requests to https
+				//go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+
+				// Start the server according to config
+				return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
 			} else {
-				return errors.New("Unable to load templates")
+				return errors.New("Unable to load templates / register handlers")
 			}
 		} else {
 			return errors.New("Unable to load ticket files")
@@ -101,7 +99,9 @@ func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 // startHandlers maps all the various handles to the url patterns.
 func startHandlers(path string) error {
 
-	if len(path) < 1 {
+	// Check if the path exists
+	// Taken from https://gist.github.com/mattes/d13e273314c3b3ade33f
+	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return errors.New("No path given for web folders")
 	}
 

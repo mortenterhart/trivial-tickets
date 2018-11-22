@@ -57,6 +57,10 @@ func TestStartHandlers(t *testing.T) {
 	assert.Nil(t, err, "An error occured, although the path was correct")
 }
 
+func TestStartServer(t *testing.T) {
+
+}
+
 func TestStartHandlersNoPath(t *testing.T) {
 
 	err := startHandlers("")
@@ -64,8 +68,34 @@ func TestStartHandlersNoPath(t *testing.T) {
 	assert.NotNil(t, err, "No error occured, although the path was incorrect")
 }
 
-func TestStartServer(t *testing.T) {
+func TestStartServerNoUsersPath(t *testing.T) {
 
+	config := mockConfig()
+	config.Users = ""
+
+	err := StartServer(&config)
+
+	assert.NotNil(t, err, "No error was returned, although no users path was specified")
+}
+
+func TestStartServerNoWebPath(t *testing.T) {
+
+	config := mockConfig()
+	config.Web = ""
+
+	err := StartServer(&config)
+
+	assert.NotNil(t, err, "No error was returned, although no web path was specified")
+}
+
+func TestStartServerNoTicketsPath(t *testing.T) {
+
+	config := mockConfig()
+	config.Tickets = ""
+
+	err := StartServer(&config)
+
+	assert.NotNil(t, err, "No error was returned, although no tickets path was specified")
 }
 
 func mockConfig() structs.Config {

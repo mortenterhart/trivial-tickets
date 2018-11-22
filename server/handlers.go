@@ -67,7 +67,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect the user to the index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleLogout logs the user out and clears their session
@@ -86,7 +86,7 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect the user to the index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleCreateTicket creates a new ticket struct and saves it
@@ -110,11 +110,11 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &newTicket)
 
 		// Redirect the user to the ticket page
-		http.Redirect(w, r, "/ticket?id="+newTicket.Id, 302)
+		http.Redirect(w, r, "/ticket?id="+newTicket.Id, http.StatusFound)
 	}
 
 	// If there is any other request, just redirect to index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleHoliday activates / deactivates the holiday mode for a given user
@@ -150,7 +150,7 @@ func handleHoliday(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Redirect the user to the index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleTicket gets the requested ticket via the url GET parameters and serves it to the template
@@ -188,7 +188,7 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleUpdateTicket gets the requested ticket via the url GET parameters and serves it to the template
@@ -259,7 +259,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleUnassignTicket unassigns a ticket from a certain user, only if the actual user makes the request.
