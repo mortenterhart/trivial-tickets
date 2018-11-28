@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
@@ -20,6 +21,13 @@ import (
 * 3478222
  */
 
+/*
+* To test the handlers, the ServeHTTP function was mapped to a mock struct in
+* order to call them directly via the test server.
+*
+* Various mock structs and global variables are populated to make the tests work properly
+ */
+
 // index
 // --------------------------
 type indexHandler struct{}
@@ -30,6 +38,8 @@ func (h *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestHandleIndex(t *testing.T) {
 
+	tmpl = GetTemplates("../www")
+
 	handler := &indexHandler{}
 
 	globals.Tickets["abc123"] = structs.Ticket{}
@@ -38,7 +48,10 @@ func TestHandleIndex(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	http.Get(server.URL)
+	resp, err := http.Get(server.URL)
+
+	assert.Nil(t, err, "There was an unexpected error")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http status is not 200")
 }
 
 // login
@@ -84,7 +97,6 @@ func (h *logoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func TestHandleLogout(t *testing.T) {
 
 	handler := &logoutHandler{}
-
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -128,15 +140,40 @@ func TestHandleCreateTicket(t *testing.T) {
 type holidayHandler struct{}
 
 func (h *holidayHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	cookie := http.Cookie{
+		Name:  "session",
+		Value: "def123",
+	}
+	r.AddCookie(&cookie)
 	handleHoliday(w, r)
 }
 
 func TestHandleHandleHoliday(t *testing.T) {
 
 	handler := &holidayHandler{}
-
 	server := httptest.NewServer(handler)
 	defer server.Close()
+
+	users["testuser"] = structs.User{
+		Id:          "1",
+		Name:        "Test",
+		Username:    "testuser",
+		Mail:        "Testuser@mail.com",
+		Hash:        "$2a$12$rW6Ska0DaVjTX/8sQGCp/.y7kl2RvF.9936Hmm27HyI0cJ78q1UOG",
+		IsOnHoliday: false,
+	}
+
+	globals.Sessions["def123"] = structs.SessionManager{
+		Name: "def123",
+		Session: structs.Session{
+			User:       users["testuser"],
+			CreateTime: time.Now(),
+			IsLoggedIn: true,
+			Id:         "def123",
+		},
+		TTL: 3600,
+	}
 
 	resp, _ := http.Post(server.URL, "application/x-www-form-urlencoded", nil)
 
@@ -154,8 +191,9 @@ func (h *ticketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestHandleHandleTicket(t *testing.T) {
 
-	handler := &ticketHandler{}
+	tmpl = GetTemplates("../www")
 
+	handler := &ticketHandler{}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -165,7 +203,10 @@ func TestHandleHandleTicket(t *testing.T) {
 
 	globals.Tickets["abc123"] = ticket
 
-	http.Get(server.URL + "/ticket?id=abc123")
+	resp, err := http.Get(server.URL + "/ticket?id=abc123")
+
+	assert.Nil(t, err, "There was an unexpected error")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http response is wrong")
 }
 
 // update ticket
@@ -177,14 +218,48 @@ func (h *updateTicketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	handleUpdateTicket(w, r)
 }
 
-func TestHandleHandleUpdateTicket(t *testing.T) {
+func TestHandleHandleUpdateTicketMerge(t *testing.T) {
+
+	tmpl = GetTemplates("../www")
+
+	config := mockConfig()
+	config.Tickets = "../files/testticket"
+	globals.ServerConfig = &config
 
 	handler := &updateTicketHandler{}
-
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	http.Post(server.URL, "application/x-www-form-urlencoded", nil)
+	reader := strings.NewReader("ticketId=1&status=0&mail=bla@example.com&reply=hallo&reply_type=intern&merge=2")
+
+	resp, err := http.Post(server.URL, "application/x-www-form-urlencoded", reader)
+
+	assert.Nil(t, err, "")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "")
+
+	os.RemoveAll("../files/testticket")
+}
+
+func TestHandleHandleUpdateTicketExtern(t *testing.T) {
+
+	tmpl = GetTemplates("../www")
+
+	config := mockConfig()
+	config.Tickets = "../files/testticket"
+	globals.ServerConfig = &config
+
+	handler := &updateTicketHandler{}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	reader := strings.NewReader("ticketId=1&status=0&mail=bla@example.com&reply=hallo&reply_type=extern")
+
+	resp, err := http.Post(server.URL, "application/x-www-form-urlencoded", reader)
+
+	assert.Nil(t, err, "")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "")
+
+	os.RemoveAll("../files/testticket")
 }
 
 // unassign ticket
@@ -198,8 +273,12 @@ func (h *unassignTicketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 func TestHandleHandleUnassignTicket(t *testing.T) {
 
-	handler := &unassignTicketHandler{}
+	config := mockConfig()
+	config.Tickets = "../files/testtickets/"
 
+	globals.ServerConfig = &config
+
+	handler := &unassignTicketHandler{}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
@@ -209,7 +288,12 @@ func TestHandleHandleUnassignTicket(t *testing.T) {
 
 	globals.Tickets["abc123"] = ticket
 
-	http.Get(server.URL + "/unassignTicket?id=abc123")
+	resp, err := http.Get(server.URL + "/unassignTicket?id=abc123")
+
+	assert.Nil(t, err, "An unexpected error occured")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http status is not 200")
+
+	os.RemoveAll("../files/testtickets/")
 }
 
 // assign ticket
@@ -218,15 +302,50 @@ func TestHandleHandleUnassignTicket(t *testing.T) {
 type assignTicketHandler struct{}
 
 func (h *assignTicketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	cookie := http.Cookie{
+		Name:  "session",
+		Value: "def123",
+	}
+	r.AddCookie(&cookie)
+
 	handleAssignTicket(w, r)
 }
 
 func TestHandleHandleAssignTicket(t *testing.T) {
 
-	handler := &assignTicketHandler{}
+	config := mockConfig()
+	config.Tickets = "../files/testtickets/"
+	globals.ServerConfig = &config
 
+	users["testuser"] = structs.User{
+		Id:          "1",
+		Name:        "Test",
+		Username:    "testuser",
+		Mail:        "Testuser@mail.com",
+		Hash:        "$2a$12$rW6Ska0DaVjTX/8sQGCp/.y7kl2RvF.9936Hmm27HyI0cJ78q1UOG",
+		IsOnHoliday: false,
+	}
+
+	globals.Sessions["def123"] = structs.SessionManager{
+		Name: "def123",
+		Session: structs.Session{
+			User:       users["testuser"],
+			CreateTime: time.Now(),
+			IsLoggedIn: true,
+			Id:         "def123",
+		},
+		TTL: 3600,
+	}
+
+	handler := &assignTicketHandler{}
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	http.Get(server.URL + "/assignTicket")
+	resp, err := http.Get(server.URL + "/assignTicket?id=abc123&user=testuser")
+
+	assert.Nil(t, err, "An unexpected error occured")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http status is not 200")
+
+	os.RemoveAll("../files/testtickets/")
 }

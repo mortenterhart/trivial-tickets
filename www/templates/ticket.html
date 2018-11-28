@@ -50,7 +50,7 @@
                             </tr>
                             <tr>
                                 <td>Ticketnummer:</td>
-                                <td><input name="ticket" class="input_label" type="text" value="{{.Ticket.Id}}"></td>
+                                <td><input name="ticket" class="input_label" type="text" readonly value="{{.Ticket.Id}}"></td>
                                 {{if .Session.IsLoggedIn}}
                                     <td>Zusammenführen mit:</td>
                                     <td>

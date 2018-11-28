@@ -28,6 +28,7 @@ func TestGetTemplates(t *testing.T) {
 	assert.Nil(t, tmplNil, "GetTemplates() found templates where it was not supposed to be")
 }
 
+// TestRedirectToTLS tests the redirect to https, if a request with only http is made
 func TestRedirectToTLS(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "localhost", nil)
@@ -39,6 +40,7 @@ func TestRedirectToTLS(t *testing.T) {
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code, "The HTTP status code was incorrect")
 }
 
+// TestRedirectToTLS tests the reditect to https, if a request with parameters with only http is made
 func TestRedirectToTLSWithParams(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "localhost?id=123", nil)
@@ -50,6 +52,7 @@ func TestRedirectToTLSWithParams(t *testing.T) {
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code, "The HTTP status code was incorrect")
 }
 
+// TestStartHandlers makes sure the registering of the handlers works as planned
 func TestStartHandlers(t *testing.T) {
 
 	err := startHandlers("../www")
@@ -57,10 +60,7 @@ func TestStartHandlers(t *testing.T) {
 	assert.Nil(t, err, "An error occured, although the path was correct")
 }
 
-func TestStartServer(t *testing.T) {
-
-}
-
+// TestStartHandlersNoPath is used to produce an error to make sure the function works properly
 func TestStartHandlersNoPath(t *testing.T) {
 
 	err := startHandlers("")
@@ -68,6 +68,7 @@ func TestStartHandlersNoPath(t *testing.T) {
 	assert.NotNil(t, err, "No error occured, although the path was incorrect")
 }
 
+// TestStartServerNoUsersPath produces an error to make sure the server will not start without a path to the users.json file
 func TestStartServerNoUsersPath(t *testing.T) {
 
 	config := mockConfig()
@@ -78,6 +79,7 @@ func TestStartServerNoUsersPath(t *testing.T) {
 	assert.NotNil(t, err, "No error was returned, although no users path was specified")
 }
 
+// TestStartServerNoUsersPath produces an error to make sure the server will not start without a path to the web files
 func TestStartServerNoWebPath(t *testing.T) {
 
 	config := mockConfig()
@@ -88,6 +90,7 @@ func TestStartServerNoWebPath(t *testing.T) {
 	assert.NotNil(t, err, "No error was returned, although no web path was specified")
 }
 
+// TestStartServerNoUsersPath produces an error to make sure the server will not start without a path to the ticket folder
 func TestStartServerNoTicketsPath(t *testing.T) {
 
 	config := mockConfig()
@@ -98,6 +101,7 @@ func TestStartServerNoTicketsPath(t *testing.T) {
 	assert.NotNil(t, err, "No error was returned, although no tickets path was specified")
 }
 
+// Utility function to create a mock configuration for the server
 func mockConfig() structs.Config {
 
 	return structs.Config{

@@ -21,6 +21,8 @@ import (
 * 3478222
  */
 
+// CreateSession returns a new session manager struct with an empty user
+// and the given session id
 func CreateSession(sessionId string) structs.SessionManager {
 
 	session := structs.Session{
@@ -37,6 +39,8 @@ func CreateSession(sessionId string) structs.SessionManager {
 	}
 }
 
+// GetSession retrieves a session from the global session map
+// with a given session id
 func GetSession(sessionId string) (structs.Session, error) {
 
 	session := globals.Sessions[sessionId].Session
@@ -48,6 +52,8 @@ func GetSession(sessionId string) (structs.Session, error) {
 	}
 }
 
+// UpdateSession updates a session manager struct with the given session id
+// with a given session struct
 func UpdateSession(sessionId string, session structs.Session) {
 
 	globals.Sessions[sessionId] = structs.SessionManager{
@@ -57,6 +63,9 @@ func UpdateSession(sessionId string, session structs.Session) {
 	}
 }
 
+// CreateSessionId  generates a pseudo random id for session
+// with a length of 32 characters and returns it as a base64
+// encoded string
 func CreateSessionId() (string, error) {
 
 	const length = 32

@@ -89,6 +89,19 @@ func TestWriteTicketFile(t *testing.T) {
 	assert.Nil(t, errWriteTicketFile, "Error creating the File")
 }
 
+// TestWriteTicketFileError produces an error on creating a directory
+func TestWriteTicketFileError(t *testing.T) {
+
+	// Invalid Path
+	const usersFile = "//bla"
+
+	ticket := mockTicket()
+
+	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
+
+	assert.NotNil(t, errWriteTicketFile, "Error creating the File")
+}
+
 func TestCreateFolder(t *testing.T) {
 
 	// Test folders
