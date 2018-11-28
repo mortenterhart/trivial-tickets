@@ -9,8 +9,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Constant mock session id for testing
 const SESSION_ID = "zSkhrZiqZ1IF6nOJTxpSKFEEOGOgiZ0pn8vKxkW-S40="
 
+// TestCreateSessionCookie makes sure a session cookie is generated
+// accordingly, along with the session id itself
 func TestCreateSessionCookie(t *testing.T) {
 
 	cookie, sessionId, errCreateSessionCookie := CreateSessionCookie()
@@ -22,6 +25,7 @@ func TestCreateSessionCookie(t *testing.T) {
 	assert.True(t, (len(sessionId) == 44), "The session is has the wrong length")
 }
 
+// TestGetSessionId tests that a session id is retrievable if it is set
 func TestGetSessionId(t *testing.T) {
 
 	cookie, _, _ := CreateSessionCookie()
@@ -34,6 +38,8 @@ func TestGetSessionId(t *testing.T) {
 	assert.True(t, (len(sId) == 44), "Session id has the wrong length")
 }
 
+// TestGetSessionIdError produces an error to make sure the function will
+// return an error if the session id does not match the requirements
 func TestGetSessionIdError(t *testing.T) {
 
 	request := &http.Request{}
@@ -42,6 +48,7 @@ func TestGetSessionIdError(t *testing.T) {
 	assert.False(t, (len(sId) == 44), "No error was returned")
 }
 
+// TestDeleteSessionCookie tests the invalidation of a session cookie by overwriting its value
 func TestDeleteSessionCookie(t *testing.T) {
 
 	cookie := DeleteSessionCookie()
@@ -50,6 +57,7 @@ func TestDeleteSessionCookie(t *testing.T) {
 	assert.Equal(t, "", cookie.Value, "Value of cookie was not emptied")
 }
 
+// TestCreateSession tests the creation of a session itself with a given session id as parameter
 func TestCreateSession(t *testing.T) {
 
 	session := CreateSession(SESSION_ID)
@@ -57,14 +65,17 @@ func TestCreateSession(t *testing.T) {
 	assert.Equal(t, SESSION_ID, session.Session.Id, "The session id was not used to create the session")
 }
 
+// TestGetSessionIfNotExist tests to get a session which does not exist. In that case a new session
+// is created
 func TestGetSessionIfNotExist(t *testing.T) {
 
-	session, errGetSession := GetSession(SESSION_ID)
+	session, errGetSession := GetSession("abc123")
 
 	assert.NotNil(t, session, "Session was not created")
 	assert.NotNil(t, errGetSession, "No error was returned, although the id does not exist")
 }
 
+// TestGetSessionIfExist tests to get a session where the session does exist prior
 func TestGetSessionIfExist(t *testing.T) {
 
 	session := CreateSession(SESSION_ID)
@@ -76,6 +87,7 @@ func TestGetSessionIfExist(t *testing.T) {
 	assert.Nil(t, errGetSession, "An error was returned, but the session was available")
 }
 
+// TestUpdateSession makes sure the values of a session are updated correctly
 func TestUpdateSession(t *testing.T) {
 
 	session, _ := GetSession(SESSION_ID)
@@ -86,6 +98,8 @@ func TestUpdateSession(t *testing.T) {
 	assert.True(t, session.IsLoggedIn, "Struct value was not changed")
 }
 
+// TestCheckForSession tests the function to look for a session with and without
+// the pripor existence of a session
 func TestCheckForSession(t *testing.T) {
 
 	// Create a request with and without the session cookie set
