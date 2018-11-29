@@ -52,7 +52,7 @@ func StartServer(config *structs.Config) error {
 			if tmpl != nil || errStartHandlers == nil {
 
 				// Start a GoRoutine to redirect http requests to https
-				//go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+				go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
 
 				// Start the server according to config
 				return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
@@ -87,7 +87,7 @@ func GetTemplates(path string) *template.Template {
 // Taken from https://gist.github.com/d-schmidt/587ceec34ce1334a5e60
 func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 
-	target := "https://" + req.Host + req.URL.Path
+	target := "https://" + req.Host + fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port)
 
 	if len(req.URL.RawQuery) > 0 {
 		target += "?" + req.URL.RawQuery
