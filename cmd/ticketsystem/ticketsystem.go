@@ -38,7 +38,7 @@ func main() {
 func initConfig() (structs.Config, error) {
 
 	// Get the command line arguments
-	port := flag.Int("port", 443, "Port on which the web server will run")
+	port := flag.Int("port", 8443, "Port on which the web server will run")
 	tickets := flag.String("tickets", "../../files/tickets", "Folder in which the tickets will be stored")
 	users := flag.String("users", "../../files/users/users.json", "Path where the users file is stored")
 	cert := flag.String("cert", "../../ssl/server.cert", "Location of the ssl certificate")

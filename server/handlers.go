@@ -45,14 +45,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	// Only handle POST-Requests
 	if r.Method == "POST" {
 
-		// Get submitted form values
+		// Get submitted username
 		username := template.HTMLEscapeString(r.FormValue("username"))
-		password := template.HTMLEscapeString(r.FormValue("password"))
 
 		// Get the user with the given username from the hashmap
 		// Check if the given username and password are correct
 		if user, errUser := users[username]; errUser {
-			if username == user.Username && hashing.CheckPassword(user.Hash, password) {
+			if username == user.Username && hashing.CheckPassword(user.Hash, template.HTMLEscapeString(r.FormValue("password"))) {
 
 				// Create a session to update the current one
 				currentSession, _ := session.GetSession(sessionId)
