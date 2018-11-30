@@ -209,6 +209,32 @@ func TestHandleHandleTicket(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http response is wrong")
 }
 
+func TestHandleHandleTicketWithMergeTo(t *testing.T) {
+
+	tmpl = GetTemplates("../www")
+
+	handler := &ticketHandler{}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	ticket := structs.Ticket{
+		Id:      "abc123",
+		MergeTo: "def123",
+	}
+
+	ticket2 := structs.Ticket{
+		Id: "def123",
+	}
+
+	globals.Tickets["def123"] = ticket2
+	globals.Tickets["abc123"] = ticket
+
+	resp, err := http.Get(server.URL + "/ticket?id=abc123")
+
+	assert.Nil(t, err, "There was an unexpected error")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http response is wrong")
+}
+
 // update ticket
 // --------------------------
 
@@ -216,6 +242,17 @@ type updateTicketHandler struct{}
 
 func (h *updateTicketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handleUpdateTicket(w, r)
+}
+
+func TestHandleHandleUpdateTicketWrongMethod(t *testing.T) {
+
+	handler := &updateTicketHandler{}
+	server := httptest.NewServer(handler)
+	defer server.Close()
+
+	resp, _ := http.Get(server.URL)
+
+	assert.Equal(t, http.StatusFound, resp.StatusCode, "HTTP status code did not match 302")
 }
 
 func TestHandleHandleUpdateTicketMerge(t *testing.T) {
@@ -256,8 +293,8 @@ func TestHandleHandleUpdateTicketExtern(t *testing.T) {
 
 	resp, err := http.Post(server.URL, "application/x-www-form-urlencoded", reader)
 
-	assert.Nil(t, err, "")
-	assert.Equal(t, http.StatusOK, resp.StatusCode, "")
+	assert.Nil(t, err, "There was an error")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "Wrong http status code")
 
 	os.RemoveAll("../files/testticket")
 }
