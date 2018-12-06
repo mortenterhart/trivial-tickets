@@ -178,7 +178,7 @@ func TestGetEmail(t *testing.T) {
 	assert.NoError(t, outputError)
 	expectedMail := structs.Mail{
 		Email:   "emailAddress",
-		Subject: "[Ticket ticketID] subject",
+		Subject: `[Ticket "ticketID"] subject`,
 		Message: "and a message"}
 	assert.Equal(t, expectedMail, outputMail)
 
