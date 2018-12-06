@@ -9,7 +9,7 @@ import (
 // The ticketID in the subjectLine is used by the API to assign the message to an already existing ticket.
 func createSubjectLine(subject string, ticketID string) (subjectLine string) {
 	if ticketID != "" {
-		subjectLine = "[Ticket " + ticketID + "] "
+		subjectLine = "[Ticket \"" + ticketID + "\"] "
 	}
 	subjectLine += subject
 	return

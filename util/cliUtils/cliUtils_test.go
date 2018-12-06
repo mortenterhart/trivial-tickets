@@ -10,7 +10,7 @@ func TestCreateSubjectLine(t *testing.T) {
 	subjectline := createSubjectLine("abcd", "")
 	assert.Equal(t, "abcd", subjectline)
 	subjectline = createSubjectLine("abcd", "3FM")
-	assert.Equal(t, "[Ticket 3FM] abcd", subjectline)
+	assert.Equal(t, "[Ticket \"3FM\"] abcd", subjectline)
 }
 
 func TestCreateMail(t *testing.T) {
@@ -20,7 +20,7 @@ func TestCreateMail(t *testing.T) {
 	mes := "a message"
 	expected := structs.Mail{
 		Email:   eMailAddr,
-		Subject: "[Ticket " + tID + "] " + subj,
+		Subject: "[Ticket \"" + tID + "\"] " + subj,
 		Message: mes}
 	actual := CreateMail(eMailAddr, subj, tID, mes)
 	assert.Equal(t, expected, actual)
