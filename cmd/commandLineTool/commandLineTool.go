@@ -45,8 +45,9 @@ func main() {
 // The Parameters should also offer a way to directly invoke the send / fetch mail commands.
 
 func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail structs.Mail) {
-	IPAddr := flag.String("ip", "127.0.0.0", "IP address of the server")
+	IPAddr := flag.String("ip", "localhost", "IP address of the server")
 	port := flag.Uint("port", 443, "Port the server listens to")
+	cert := flag.String("cert", "./ssl/server.cert", "Location of the ssl certificate")
 	f := flag.Bool("f", false, "fetch (fetch): If set, the application will fetch all messages from the server.")
 	s := flag.Bool("s", false, "Use to submit a message to the server. Requires -email, -subject, -message. The use of -tID is optional.")
 	email := flag.String("email", "", "The eamil address of the sender")
@@ -63,7 +64,7 @@ func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail structs.
 	conf = structs.CLIConfig{
 		IPAddr: *IPAddr,
 		Port:   uint16(*port),
-	}
+		Cert:   *cert}
 
 	fetch = *f
 	submit = *s
@@ -92,7 +93,10 @@ func commandLoop() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			communicationToServer.SubmitEmail(mail)
+			err = communicationToServer.SubmitEmail(mail)
+			if err != nil {
+				log.Fatal(err)
+			}
 		case structs.EXIT:
 			ok = false
 		default:

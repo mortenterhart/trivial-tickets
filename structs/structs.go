@@ -26,6 +26,7 @@ type Config struct {
 type CLIConfig struct {
 	IPAddr string
 	Port   uint16
+	Cert   string
 }
 
 // Session is a struct that holds session variables for a certain user
