@@ -81,7 +81,7 @@ func TestInitializeClient(t *testing.T) {
 	clientConfigured = false
 	initializeClient()
 	assert.True(t, clientConfigured)
-	assert.Equal(t, 4*time.Second, client.Timeout)
+	assert.Equal(t, 5*time.Second, client.Timeout)
 	assert.NotEqual(t, http.Transport{}, client.Transport)
 }
 
@@ -90,7 +90,7 @@ func TestSendPost(t *testing.T) {
 	send = sendPost
 	conf := structs.CLIConfig{
 		IPAddr: "localhost",
-		Port:   443,
+		Port:   4443,
 		Cert:   "../ssl/server.cert"}
 	SetServerConfig(conf)
 	var requestURI string
