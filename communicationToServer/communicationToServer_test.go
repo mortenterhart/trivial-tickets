@@ -112,8 +112,9 @@ func TestSendPost(t *testing.T) {
 		requestMessage := "someString"
 		requestPath := "somePath"
 		responseCode = 200
-		send(requestMessage, requestPath)
+		_, sendError := send(requestMessage, requestPath)
 
+		assert.NoError(t, sendError)
 		assert.Equal(t, requestMessage, requestPayload)
 		assert.Contains(t, requestURI, requestPath)
 	})
