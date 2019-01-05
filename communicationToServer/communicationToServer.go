@@ -46,7 +46,11 @@ func sendPost(payload string, path string) (response string, err error) {
 		initializeClient()
 	}
 	buffer := bytes.NewBufferString(payload)
-	resp, err := client.Post("https://"+serverConfig.IPAddr+":"+strconv.Itoa(int(serverConfig.Port))+"/"+path, "application/json", buffer)
+	url := "https://" + serverConfig.IPAddr + ":" + strconv.Itoa(int(serverConfig.Port)) + "/" + path
+	if url[len(url)-1] != '/' {
+		url += "/"
+	}
+	resp, err := client.Post(url, "application/json", buffer)
 	if err != nil {
 		return "", fmt.Errorf("error sending post request: %v", err)
 	}
