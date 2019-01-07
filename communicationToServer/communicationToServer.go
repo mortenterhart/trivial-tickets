@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -45,7 +46,11 @@ func sendPost(payload string, path string) (response string, err error) {
 		initializeClient()
 	}
 	buffer := bytes.NewBufferString(payload)
-	resp, err := client.Post("https://"+serverConfig.IPAddr+"/"+path+":"+string(serverConfig.Port), "application/json", buffer)
+	url := "https://" + serverConfig.IPAddr + ":" + strconv.Itoa(int(serverConfig.Port)) + "/" + path
+	if url[len(url)-1] != '/' {
+		url += "/"
+	}
+	resp, err := client.Post(url, "application/json", buffer)
 	if err != nil {
 		return "", fmt.Errorf("error sending post request: %v", err)
 	}
@@ -73,7 +78,7 @@ func initializeClient() {
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				RootCAs: certPool}},
-		Timeout: (4 * time.Second)}
+		Timeout: (5 * time.Second)}
 	clientConfigured = true
 }
 
