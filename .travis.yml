@@ -7,3 +7,9 @@ os:
     - linux
     - windows
 
+before_script:
+    - echo "Display all current connections and used ports on this machine:"
+    - netstat -an
+    - echo "Checking if port 4443 is used by any process:"
+    - netstat -an | grep --color "4443"
+
