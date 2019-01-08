@@ -15,9 +15,9 @@ func main() {
 	conf, fetch, submit, mail := getConfig()
 	communicationToServer.SetServerConfig(conf)
 	switch {
-	case (!submit && !fetch):
+	case !submit && !fetch:
 		commandLoop()
-	case (!submit && fetch):
+	case !submit && fetch:
 		mails, err := communicationToServer.FetchEmails()
 		if err != nil {
 			log.Fatal(err)
@@ -25,7 +25,7 @@ func main() {
 		for _, mail := range mails {
 			IO.PrintEmail(mail)
 		}
-	case (submit && !fetch):
+	case submit && !fetch:
 		communicationToServer.SubmitEmail(mail)
 	default:
 		log.Fatal(structs.NoValidOption)
