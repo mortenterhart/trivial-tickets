@@ -90,7 +90,6 @@ func NextCommand() (com structs.Command, err error) {
 		output(structs.CommandNotAccepted + structs.Message(err.Error()))
 		counter++
 	}
-	return
 }
 
 func GetEmail() (structs.Mail, error) {
