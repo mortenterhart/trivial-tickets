@@ -65,59 +65,6 @@ import (
  *          an API call with mail contents in the correct JSON format.
  */
 
-/*// ReceiveMail accepts POST requests and
-func ReceiveMail(writer http.ResponseWriter, req *http.Request) {
-
-	// Only accept POST requests
-	if req.Method == "POST" {
-
-		// Extract the mail from the JSON body in the request
-		ticketMail := extractJSONMail(writer, req)
-
-		//
-		var createdTicket structs.Ticket
-
-		isAnswerMail := false
-
-		subjectRegex := regexp.MustCompile(answerSubjectRegex)
-
-		if match := subjectRegex.Match([]byte(ticketMail.Subject)); match {
-
-			ticketIdMatches := subjectRegex.FindStringSubmatch(ticketMail.Subject)
-
-			ticketId := ticketIdMatches[1]
-
-			if existingTicket, ticketExists := globals.Tickets[ticketId]; ticketExists {
-				isAnswerMail = true
-
-				if existingTicket.Status == structs.CLOSED {
-					existingTicket.Status = structs.OPEN
-				}
-
-				createdTicket = ticket.UpdateTicket(string(existingTicket.Status), ticketMail.Email, ticketMail.Message,
-					"extern", existingTicket)
-				log.Println("Attached new comment from '" + ticketMail.Email + "' to ticket '" + createdTicket.Id + "'")
-			} else {
-				log.Println("warning: ticket id '" + ticketId + "' does not belong to an existing ticket, " +
-					"creating new ticket out of mail")
-			}
-		}
-
-		if !isAnswerMail {
-			createdTicket = ticket.CreateTicket(ticketMail.Email, ticketMail.Subject, ticketMail.Message)
-			log.Println("Created new ticket for customer '" + ticketMail.Email + "' with id '" + createdTicket.Id + "'")
-		}
-
-		globals.Tickets[createdTicket.Id] = createdTicket
-		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &createdTicket)
-
-		writer.WriteHeader(200)
-	} else {
-		// If another method than POST is used, print a warning that this method is unsupported
-		log.Println("HTTP method " + req.Method + " not supported for /api/receive")
-	}
-}*/
-
 type jsonMap map[string]interface{}
 
 var answerSubjectRegex = regexp.MustCompile(`\[Ticket "([A-Za-z0-9]+)"\]\s*[A-Za-z0-9_\s"'\.,+=\[\]()@/&$§!#-]*`)
@@ -172,10 +119,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 		isAnswerMail := false
 
-		if answerSubjectRegex.Match([]byte(mail.Subject)) {
-			ticketIdMatches := answerSubjectRegex.FindStringSubmatch(mail.Subject)
-			ticketId := ticketIdMatches[0]
-
+		if ticketId, matchesAnswerRegex := matchSubject(mail.Subject); matchesAnswerRegex {
 			if existingTicket, ticketExists := globals.Tickets[ticketId]; ticketExists {
 				isAnswerMail = true
 
@@ -209,6 +153,16 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 func convertStatusToString(status structs.State) string {
 	return strconv.Itoa(int(status))
+}
+
+func matchSubject(subject string) (string, bool) {
+	if answerSubjectRegex.Match([]byte(subject)) {
+		ticketIdMatches := answerSubjectRegex.FindStringSubmatch(subject)
+		ticketId := ticketIdMatches[0]
+		return ticketId, true
+	}
+
+	return "", false
 }
 
 func extractMail(request *http.Request) (structs.Mail, error) {
