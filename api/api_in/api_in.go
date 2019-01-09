@@ -68,6 +68,8 @@ type jsonMap map[string]interface{}
 
 var answerSubjectRegex = regexp.MustCompile(`\[Ticket "([A-Za-z0-9]+)"\]\s*[A-Za-z0-9_\s"'\.,+=\[\]()@/&$§!#-]*`)
 
+var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
+
 var stringType = reflect.TypeOf("")
 
 var apiParameters = map[string]reflect.Type{
@@ -79,78 +81,110 @@ var apiParameters = map[string]reflect.Type{
 var jsonProperties = make(jsonMap)
 
 func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
+
+	// Only accept POST requests
 	if request.Method == "POST" {
 
+		// Read the request body
 		body, readErr := ioutil.ReadAll(request.Body)
 		if readErr != nil {
 			http.Error(writer, fmt.Sprintf("unable to read request body: %s", readErr), http.StatusInternalServerError)
 			return
 		}
 
+		// Decode JSON message and save it in global map jsonProperties
+		// for further investigation
 		parseErr := json.Unmarshal(body, &jsonProperties)
 		if parseErr != nil {
 			http.Error(writer, fmt.Sprintf("unable to parse JSON due to invalid syntax: %s", parseErr), http.StatusBadRequest)
 			return
 		}
 
+		// Check if all JSON properties required by the API are set
 		propErr := checkRequiredPropertiesSet()
 		if propErr != nil {
 			http.Error(writer, fmt.Sprintf("missing required properties in JSON: %s", propErr), http.StatusBadRequest)
 			return
 		}
 
+		// Check if no additional JSON properties are defined
 		propErr = checkAdditionalPropertiesSet()
 		if propErr != nil {
 			http.Error(writer, fmt.Sprintf("too many JSON properties given: %s", propErr), http.StatusBadRequest)
 			return
 		}
 
+		// If all required properties are given, check further if
+		// the properties are of the correct data types
 		typeErr := checkCorrectPropertyTypes()
 		if typeErr != nil {
 			http.Error(writer, fmt.Sprintf("properties have invalid data types: %s", typeErr), http.StatusBadRequest)
 			return
 		}
 
-		// Extract mail from JSON body
+		// Populate the mail struct with the previously parsed JSON properties
 		mail := structs.Mail{
 			Email:   jsonProperties["email"].(string),
 			Subject: jsonProperties["subject"].(string),
 			Message: jsonProperties["message"].(string),
 		}
 
+		// Validate the email address syntax using the above regular expression
+		if !validEmailAddress(mail.Email) {
+			http.Error(writer, fmt.Sprintf("invalid email address given: '%s'", mail.Email), http.StatusBadRequest)
+			return
+		}
+
+		// Container for the created or updated ticket
 		var createdTicket structs.Ticket
 
+		// Flag indicating that an incoming request belongs to an answer
 		isAnswerMail := false
 
+		// Determine if the email's subject is compliant to the answer
+		// regular expression
 		if ticketId, matchesAnswerRegex := matchSubject(mail.Subject); matchesAnswerRegex {
+
+			// If so lookup the subject's ticket id in the ticket storage
+			// and check if this ticket exists
 			if existingTicket, ticketExists := globals.Tickets[ticketId]; ticketExists {
 				isAnswerMail = true
 
+				// If the ticket status was already closed, open it again
 				if existingTicket.Status == structs.CLOSED {
 					existingTicket.Status = structs.OPEN
 				}
 
+				// Update the ticket with a new comment consisting of the
+				// email address and message from the mail
 				log.Printf(`"Attaching new answer from '%s' to ticket '%s' (id "%s")`+"\n",
 					mail.Email, existingTicket.Subject, existingTicket.Id)
 				createdTicket = ticket.UpdateTicket(convertStatusToString(existingTicket.Status),
 					mail.Email, mail.Message, "extern", existingTicket)
 			} else {
+				// The subject is formatted like an answering mail, but the
+				// ticket id does not exist
 				log.Printf("WARNING: ticket id '%s' does not belong to an existing ticket, creating "+
 					"new ticket out of mail\n", ticketId)
 			}
 		}
 
+		// If the mail is not an answer create a new ticket in every other case
 		if !isAnswerMail {
 			createdTicket = ticket.CreateTicket(mail.Email, mail.Subject, mail.Message)
 		}
 
+		// Push the created or updated ticket to the ticket storage and write
+		// it into its own file
 		globals.Tickets[createdTicket.Id] = createdTicket
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &createdTicket)
 
+		// The request was processed successfully
 		writer.Write([]byte(buildJSONResponseStatus(http.StatusOK, "OK") + "\n"))
 		return
 	}
 
+	// The handler does not accept any other method than POST
 	http.Error(writer, buildJSONResponseStatus(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED"), http.StatusMethodNotAllowed)
 }
 
@@ -166,6 +200,10 @@ func matchSubject(subject string) (string, bool) {
 	}
 
 	return "", false
+}
+
+func validEmailAddress(email string) bool {
+	return emailRegex.Match([]byte(email))
 }
 
 type propertyNotDefinedError struct {
@@ -273,8 +311,4 @@ func (slice stringList) contains(value string) bool {
 
 func buildJSONResponseStatus(statusCode int, message string) string {
 	return fmt.Sprintf(`{"status":%d,"message":"%s"}`, statusCode, message)
-}
-
-func checkEmailSyntax(email string) error {
-	return nil
 }
