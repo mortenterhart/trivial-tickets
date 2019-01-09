@@ -22,13 +22,6 @@ type Config struct {
 	Web     string
 }
 
-// CLIConfig is a struct to hold the CLIs config parameters provided on startup
-type CLIConfig struct {
-	IPAddr string
-	Port   uint16
-	Cert   string
-}
-
 // Session is a struct that holds session variables for a certain user
 type Session struct {
 	User       User
