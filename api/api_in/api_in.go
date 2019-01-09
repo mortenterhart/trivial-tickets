@@ -6,7 +6,6 @@ import (
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -113,7 +112,11 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		// Extract mail from JSON body
-		mail, _ := extractMail(request)
+		mail := structs.Mail{
+			Email:   jsonProperties["email"].(string),
+			Subject: jsonProperties["subject"].(string),
+			Message: jsonProperties["message"].(string),
+		}
 
 		var createdTicket structs.Ticket
 
@@ -163,17 +166,6 @@ func matchSubject(subject string) (string, bool) {
 	}
 
 	return "", false
-}
-
-func extractMail(request *http.Request) (structs.Mail, error) {
-	var mail structs.Mail
-	err := parseJSONMail(request.Body, &mail)
-
-	return mail, err
-}
-
-func parseJSONMail(reader io.Reader, mailContainer *structs.Mail) error {
-	return json.NewDecoder(reader).Decode(mailContainer)
 }
 
 type propertyNotDefinedError struct {
