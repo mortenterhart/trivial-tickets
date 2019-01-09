@@ -1,13 +1,14 @@
 package api_in
 
 import (
-	"fmt"
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
@@ -27,8 +28,50 @@ const invalidJson = `{"email":"admin@example.com","subject":"Subject line","mess
 
 const validJson = `{"email":"admin@example.com","subject":"Subject line","message":"Message line"}`
 
+type serverSetupHandler struct {
+	callUnderlying http.HandlerFunc
+}
+
+func newSetupHandler(wrappedHandler http.HandlerFunc) serverSetupHandler {
+	return serverSetupHandler{wrappedHandler}
+}
+
+func (handler serverSetupHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	config := testServerConfig()
+	globals.ServerConfig = &config
+
+	handler.callUnderlying(writer, request)
+
+	cleanupTestTickets()
+}
+
+func testServerConfig() structs.Config {
+	return structs.Config{
+		Port:    443,
+		Tickets: "../../files/testtickets",
+		Users:   "../../files/users/users.json",
+		Cert:    "../../ssl/server.cert",
+		Key:     "../../ssl/server.key",
+		Web:     "../../www",
+	}
+}
+
+func cleanupTestTickets() {
+	os.RemoveAll(globals.ServerConfig.Tickets)
+}
+
+func createTestServer(handler http.Handler) *httptest.Server {
+	return httptest.NewServer(handler)
+}
+
+func createReader(str string) io.Reader {
+	return strings.NewReader(str)
+}
+
 func TestReceiveMailRejectsGET(t *testing.T) {
-	testServer := createTestServer(ReceiveMail)
+	setupHandler := newSetupHandler(ReceiveMail)
+
+	testServer := createTestServer(setupHandler)
 	defer testServer.Close()
 
 	response, err := http.Get(testServer.URL)
@@ -46,7 +89,9 @@ func TestReceiveMailRejectsGET(t *testing.T) {
 }
 
 func TestReceiveMailAcceptsPOST(t *testing.T) {
-	testServer := createTestServer(ReceiveMail)
+	setupHandler := newSetupHandler(ReceiveMail)
+
+	testServer := createTestServer(setupHandler)
 	defer testServer.Close()
 
 	response, err := http.Post(testServer.URL, jsonContentType, createReader(validJson))
@@ -63,11 +108,7 @@ func TestReceiveMailAcceptsPOST(t *testing.T) {
 		"response should be JSON with status OK")
 }
 
-func createTestServer(handler http.HandlerFunc) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(handler))
-}
-
-func TestParseJSONMailWithEmptyBody(t *testing.T) {
+/*func TestParseJSONMailWithEmptyBody(t *testing.T) {
 	var parsedMail structs.Mail
 	err := parseJSONMail(createReader(""), &parsedMail)
 
@@ -99,10 +140,6 @@ func TestParseJSONMailWithValidJSON(t *testing.T) {
 	assert.Equal(t, "Message line", parsedMail.Message, "message field should be equal to JSON")
 }
 
-func createReader(str string) io.Reader {
-	return strings.NewReader(str)
-}
-
 func TestExtractMailWithInvalidJSON(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/api/submit_mail", createReader(invalidJson))
 
@@ -127,10 +164,12 @@ func TestExtractMailWithValidJSON(t *testing.T) {
 }
 
 func TestCheckRequiredPropertiesSetWithInvalidJSON(t *testing.T) {
-	testServer := createTestServer(ReceiveMail)
+	setupHandler := newSetupHandler(ReceiveMail)
+
+	testServer := createTestServer(setupHandler)
 	defer testServer.Close()
 
 	response, _ := http.Post(testServer.URL, jsonContentType, createReader(`{"email":500,"subject":"Subject","message":""}`))
 	body, _ := ioutil.ReadAll(response.Body)
 	fmt.Println(string(body))
-}
+}*/

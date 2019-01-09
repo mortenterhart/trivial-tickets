@@ -51,7 +51,7 @@ func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.T
 			FormattedDate: time.Now().Format(time.ANSIC),
 			User:          mail,
 			Text:          reply,
-			ReplyType:     replyType,
+			Reply_Type:    replyType,
 		}
 
 		entries := currentTicket.Entries

@@ -86,7 +86,7 @@ type Entry struct {
 	FormattedDate string
 	User          string
 	Text          string
-	ReplyType     string
+	Reply_Type    string
 }
 
 // State is an enum to represent the current status of a ticket
