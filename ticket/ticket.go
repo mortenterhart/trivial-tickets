@@ -1,7 +1,7 @@
 package ticket
 
 import (
-	"math/rand"
+	"github.com/mortenterhart/trivial-tickets/util/random"
 	"sort"
 	"strconv"
 	"time"
@@ -25,7 +25,7 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 
 	// Construct the ticket
 	return structs.Ticket{
-		Id:       createTicketId(10),
+		Id:       random.CreateRandomId(10),
 		Subject:  subject,
 		Status:   structs.OPEN,
 		User:     structs.User{},
@@ -109,23 +109,3 @@ func UnassignTicket(currentTicket structs.Ticket) structs.Ticket {
 	return currentTicket
 }
 
-// letters are the valid characters for the ticket id
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-// createTicketId generates a pseudo random id for the tickets
-// Tweaked example from https://stackoverflow.com/a/22892986
-func createTicketId(n int) string {
-
-	// Seed the random function to make it more random
-	rand.Seed(time.Now().UnixNano())
-
-	// Create a slice, big enough to hold the id
-	b := make([]rune, n)
-
-	// Randomly choose a letter from the letters rune
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-
-	return string(b)
-}

@@ -249,7 +249,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Publish mail if the reply was selected for external
 		if reply_type == "extern" {
-			api_out.SendMail(updatedTicket.Customer, updatedTicket.Subject, reply)
+			api_out.CacheMailToSend(updatedTicket.Customer, updatedTicket.Subject, reply)
 		}
 
 		// Redirect to the ticket again, now with updated Values
@@ -285,7 +285,7 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 			log.Println("Unable to get session")
 		}
 
-		// Make sure, the requesting user owns the ticket
+		// Make sure the requesting user owns the ticket
 		if currentSession.User.Id == currentTicket.User.Id {
 
 			// Replace the assigned user with nobody
