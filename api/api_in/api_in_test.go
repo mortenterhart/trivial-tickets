@@ -1,6 +1,7 @@
 package api_in
 
 import (
+	"fmt"
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
@@ -161,7 +162,7 @@ func TestExtractMailWithValidJSON(t *testing.T) {
 	assert.Equal(t, "admin@example.com", mail.Email, "email field should be equal to JSON")
 	assert.Equal(t, "Subject line", mail.Subject, "subject field should be equal to JSON")
 	assert.Equal(t, "Message line", mail.Message, "message field should be equal to JSON")
-}
+}*/
 
 func TestCheckRequiredPropertiesSetWithInvalidJSON(t *testing.T) {
 	setupHandler := newSetupHandler(ReceiveMail)
@@ -169,7 +170,7 @@ func TestCheckRequiredPropertiesSetWithInvalidJSON(t *testing.T) {
 	testServer := createTestServer(setupHandler)
 	defer testServer.Close()
 
-	response, _ := http.Post(testServer.URL, jsonContentType, createReader(`{"email":500,"subject":"Subject","message":""}`))
+	response, _ := http.Post(testServer.URL, jsonContentType, createReader(`{"email":"invalid@address.com","subject":"Subject","message":""}`))
 	body, _ := ioutil.ReadAll(response.Body)
 	fmt.Println(string(body))
-}*/
+}
