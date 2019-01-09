@@ -63,7 +63,7 @@ func TestMergeTickets(t *testing.T) {
 
 	assert.NotNil(t, ticketMergeFromAfterMerge, "No ticket was returned")
 	assert.NotNil(t, ticketMergeToAfterMerge, "No ticket was returned")
-	assert.True(t, (len(ticketMergeToAfterMerge.Entries) == 6), "The entries have not been added to the ticket")
+	assert.True(t, len(ticketMergeToAfterMerge.Entries) == 6, "The entries have not been added to the ticket")
 	assert.Equal(t, "abcdef123", ticketMergeFromAfterMerge.MergeTo, "Merge to id does not match")
 }
 
@@ -84,12 +84,4 @@ func TestAssignAndUnassignTicket(t *testing.T) {
 	updatedTicket2 := UnassignTicket(updatedTicket)
 
 	assert.Equal(t, structs.OPEN, updatedTicket2.Status, "Status of unassigned ticket is not OPEN")
-}
-
-// TestCreateTicketId makes sure the created ticket id is in line with the specification
-func TestCreateTicketId(t *testing.T) {
-
-	ticketId := createTicketId(10)
-
-	assert.True(t, (len(ticketId) == 10), "Ticket id has the wrong length")
 }

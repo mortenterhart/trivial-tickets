@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,9 +15,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/pkg/errors"
 )
 
 /*
@@ -63,6 +62,21 @@ import (
  * 			to tickets? Emails need to be forwarded to the mail api and make
  *          an API call with mail contents in the correct JSON format.
  */
+
+
+ /*
+  * Vorschläge/Umsetzung:
+  * - verifyMail API bekommt Id zum Bestätigen des Versendens
+  *     wenn Mail Id existiert, wird die Mail gelöscht
+  *     wenn Mail Id nicht existiert, wird ein Fehler zurückgegeben
+  * - Eingabefeld auf Startseite, um direkt mittels Redirect in JavaScript zu einem Ticket zu kommen
+  *     Es muss die genaue Id eingegeben werden, dann wird man auf localhost:<Port>/ticket?id=<id> weitergeleitet
+  * - Sortierfunktion in Ticketliste implementieren
+  * - Bash-Skript zum Benchmark des Zeitpunktes des Ticketschreibens in ReceiveMail API
+  *   mit 2 gleichzeitigen curl-Aufrufen
+  *
+  *       curl ... & curl ... # einmal im Vordergrund und einmal im Hintergrund ein Job mittels '&'
+  */
 
 type jsonMap map[string]interface{}
 

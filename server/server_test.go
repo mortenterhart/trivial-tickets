@@ -105,7 +105,7 @@ func TestStartServerNoTicketsPath(t *testing.T) {
 func mockConfig() structs.Config {
 
 	return structs.Config{
-		Port:    443,
+		Port:    8443,
 		Tickets: "../files/tickets",
 		Users:   "../files/users/users.json",
 		Cert:    "../ssl/server.cert",

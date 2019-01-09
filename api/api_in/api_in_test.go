@@ -48,7 +48,7 @@ func (handler serverSetupHandler) ServeHTTP(writer http.ResponseWriter, request 
 
 func testServerConfig() structs.Config {
 	return structs.Config{
-		Port:    443,
+		Port:    8443,
 		Tickets: "../../files/testtickets",
 		Users:   "../../files/users/users.json",
 		Cert:    "../../ssl/server.cert",
