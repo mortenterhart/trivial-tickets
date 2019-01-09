@@ -65,6 +65,8 @@ type Data struct {
 type DataSingleTicket struct {
 	Session Session
 	Ticket  Ticket
+	Tickets map[string]Ticket
+	Users   map[string]User
 }
 
 // Ticket represents a ticket

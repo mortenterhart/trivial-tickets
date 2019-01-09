@@ -31,7 +31,6 @@ header > .headers {
 header > .login {
   display: inline-block;
   margin-top: 1.5%;
-  /*margin-right: 5%;*/
   color: white;
 }
 

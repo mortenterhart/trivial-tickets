@@ -18,6 +18,15 @@ const ALL_TICKETS   = document.querySelector("#all_tickets");
  * @param {} ALL_TICKETS The given a element from the navigation
  */
 function toggle(a) {
+
+	let ticket = document.querySelector("#ticket");
+
+	if(ticket) {
+		ticket.style.display = "none";
+		window.history.replaceState({}, document.title, "/" + "");
+	}
+		
+
     switch(document.querySelector(a.href.substring(a.href.indexOf('#')))){
 
         case DASHBOARD: 
@@ -40,6 +49,10 @@ function toggle(a) {
     }
 }
 
+/**
+ * unassignTicket removes the ticket from a user
+ * @param {*} btn Specific button tied to a ticket
+ */
 function unassignTicket(btn) {
 
     let id = btn.replace("btn_", "");
@@ -57,6 +70,11 @@ function unassignTicket(btn) {
 	req.send(null);
 }
 
+/**
+ * assignTicket assigns the ticket in the UI and blocks the ticket it from further manipulation
+ * by disabling the button
+ * @param {*} btn Given button to specific ticket
+ */
 function assignTicket(btn) {
 
 	let id = btn.replace("btn_", "");

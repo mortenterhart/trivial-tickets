@@ -8,6 +8,7 @@ import (
 
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/session"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
@@ -25,7 +26,11 @@ import (
 // handleIndex handles the traffic for the index.html
 func handleIndex(w http.ResponseWriter, r *http.Request) {
 
-	session := checkForSession(w, r)
+	session, errCheckForSession := session.CheckForSession(w, r)
+
+	if errCheckForSession != nil {
+		log.Print("Unable to create session")
+	}
 
 	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: globals.Tickets, Users: users})
 }
@@ -35,57 +40,52 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	// Get session id
-	sessionId := getSessionId(r)
+	sessionId := session.GetSessionId(r)
 
 	// Only handle POST-Requests
 	if r.Method == "POST" {
 
-		// Get submitted form values
+		// Get submitted username
 		username := template.HTMLEscapeString(r.FormValue("username"))
-		password := template.HTMLEscapeString(r.FormValue("password"))
 
 		// Get the user with the given username from the hashmap
 		// Check if the given username and password are correct
 		if user, errUser := users[username]; errUser {
-			if username == user.Username && hashing.CheckPassword(user.Hash, password) {
+			if username == user.Username && hashing.CheckPassword(user.Hash, template.HTMLEscapeString(r.FormValue("password"))) {
 
 				// Create a session to update the current one
-				session, _ := GetSession(sessionId)
-				session.User = user
-				session.IsLoggedIn = true
-				session.CreateTime = time.Now()
+				currentSession, _ := session.GetSession(sessionId)
+				currentSession.User = user
+				currentSession.IsLoggedIn = true
+				currentSession.CreateTime = time.Now()
 
 				// Update the session with the one just created
-				UpdateSession(sessionId, session)
-			} else {
-				// TODO: Provide error of wrong login credentials
+				session.UpdateSession(sessionId, currentSession)
 			}
-		} else {
-			// TODO: Provide error of wrong login credentials
 		}
 	}
 
 	// Redirect the user to the index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleLogout logs the user out and clears their session
 func handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	// Get session id
-	sessionId := getSessionId(r)
+	sessionId := session.GetSessionId(r)
 
 	if r.Method == "POST" {
 
 		// Remove the session of the user
-		delete(sessions, sessionId)
+		delete(globals.Sessions, sessionId)
 
 		// Delete the session cookie
-		http.SetCookie(w, deleteSessionCookie())
+		http.SetCookie(w, session.DeleteSessionCookie())
 	}
 
 	// Redirect the user to the index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleCreateTicket creates a new ticket struct and saves it
@@ -109,47 +109,47 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &newTicket)
 
 		// Redirect the user to the ticket page
-		http.Redirect(w, r, "/ticket?id="+newTicket.Id, 302)
+		http.Redirect(w, r, "/ticket?id="+newTicket.Id, http.StatusFound)
 	}
 
 	// If there is any other request, just redirect to index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleHoliday activates / deactivates the holiday mode for a given user
 func handleHoliday(w http.ResponseWriter, r *http.Request) {
 
 	// Get session id
-	sessionId := getSessionId(r)
+	sessionId := session.GetSessionId(r)
 
 	// Make sure user is logged in
-	if sessions[sessionId].Session.IsLoggedIn {
+	if globals.Sessions[sessionId].Session.IsLoggedIn {
 
 		// Create a session to update the current one
-		session, _ := GetSession(sessionId)
+		currentSession, _ := session.GetSession(sessionId)
 
 		// Get the current user
-		user := users[session.User.Username]
+		user := users[currentSession.User.Username]
 
 		// Toggle IsOnHoliday
-		if session.User.IsOnHoliday {
-			session.User.IsOnHoliday, user.IsOnHoliday = false, false
+		if currentSession.User.IsOnHoliday {
+			currentSession.User.IsOnHoliday, user.IsOnHoliday = false, false
 		} else {
-			session.User.IsOnHoliday, user.IsOnHoliday = true, true
+			currentSession.User.IsOnHoliday, user.IsOnHoliday = true, true
 		}
 
 		// Update the session with the one just created
-		UpdateSession(sessionId, session)
+		session.UpdateSession(sessionId, currentSession)
 
 		// Update the users hash map
-		users[session.User.Username] = user
+		users[currentSession.User.Username] = user
 
 		// Persist the changes to the file system
 		filehandler.WriteUserFile(globals.ServerConfig.Users, &users)
 	}
 
 	// Redirect the user to the index
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleTicket gets the requested ticket via the url GET parameters and serves it to the template
@@ -169,14 +169,25 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 		id := param[0]
 		ticket := globals.Tickets[id]
 
+		// If it is a merged ticket, redirect to the merged one
+		if ticket.MergeTo != "" {
+			ticket = globals.Tickets[ticket.MergeTo]
+		}
+
 		// Create or get the users session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
+
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
 
 		// Serve the template to show a single ticket
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticket})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: currentSession, Ticket: ticket, Tickets: globals.Tickets, Users: users})
+
+		return
 	}
 
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleUpdateTicket gets the requested ticket via the url GET parameters and serves it to the template
@@ -186,37 +197,68 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 
 		// Get the session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
+
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
 
 		// Get form values
 		ticketId := template.HTMLEscapeString(r.FormValue("ticket"))
 		status := template.HTMLEscapeString(r.FormValue("status"))
 		mail := template.HTMLEscapeString(r.FormValue("mail"))
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
-		replyType := template.HTMLEscapeString(r.FormValue("replyType"))
+		reply_type := template.HTMLEscapeString(r.FormValue("reply_type"))
+		merge := template.HTMLEscapeString(r.FormValue("merge"))
 
 		// Get the ticket which was edited
 		currentTicket := globals.Tickets[ticketId]
 
 		// Update the current ticket
-		updatedTicket := ticket.UpdateTicket(status, mail, reply, replyType, currentTicket)
+		updatedTicket := ticket.UpdateTicket(status, mail, reply, reply_type, currentTicket)
 
-		// Assign the updated ticket to the ticket map in memory
-		globals.Tickets[ticketId] = updatedTicket
+		if merge != "" {
+			// Get the ticket to merge from the tickets map
+			ticketFrom := globals.Tickets[merge]
 
-		// Persist the updated ticket to the file system
-		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
+			// Only if they have the same assigned user
+			if ticketFrom.User == currentSession.User && updatedTicket.User == currentSession.User {
+
+				// Merge structs.Ticket
+				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(updatedTicket, ticketFrom)
+
+				// Write both tickets to memory
+				globals.Tickets[ticketMergedTo.Id] = ticketMergedTo
+				globals.Tickets[ticketMergedFrom.Id] = ticketMergedFrom
+
+				// Persist both tickets to file system
+				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedTo)
+				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedFrom)
+
+				// Update to the merged ticket so serve to client
+				updatedTicket = globals.Tickets[ticketMergedTo.Id]
+			}
+		} else {
+
+			// Assign the updated ticket to the ticket map in memory
+			globals.Tickets[ticketId] = updatedTicket
+
+			// Persist the updated ticket to the file system
+			filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
+		}
 
 		// Publish mail if the reply was selected for external
-		if replyType == "extern" {
-			api_out.SendMail(mail, updatedTicket.Subject, reply)
+		if reply_type == "extern" {
+			api_out.SendMail(updatedTicket.Customer, updatedTicket.Subject, reply)
 		}
 
 		// Redirect to the ticket again, now with updated Values
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: updatedTicket})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: currentSession, Ticket: updatedTicket, Tickets: globals.Tickets})
+
+		return
 	}
 
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // handleUnassignTicket unassigns a ticket from a certain user, only if the actual user makes the request.
@@ -237,10 +279,14 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 		currentTicket := globals.Tickets[ticketId]
 
 		// Get the session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
+
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
 
 		// Make sure, the requesting user owns the ticket
-		if session.User.Id == currentTicket.User.Id {
+		if currentSession.User.Id == currentTicket.User.Id {
 
 			// Replace the assigned user with nobody
 			updatedTicket := ticket.UnassignTicket(currentTicket)
@@ -266,9 +312,13 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 
 		// Get the session
-		session := checkForSession(w, r)
+		currentSession, errCheckForSession := session.CheckForSession(w, r)
 
-		if session.IsLoggedIn {
+		if errCheckForSession != nil {
+			log.Println("Unable to get session")
+		}
+
+		if currentSession.IsLoggedIn {
 
 			// Extract the GET request parameters
 			params := r.URL.Query()
@@ -294,107 +344,4 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(response))
 		}
 	}
-}
-
-// handleMergeTickets merges two tickets, writes them to memory and persist them.
-// Then, the newly merged ticket is returned to the view
-func handleMergeTickets(w http.ResponseWriter, r *http.Request) {
-
-	// Only support POST
-	if r.Method == "POST" {
-
-		// Create or get the users session
-		session := checkForSession(w, r)
-
-		// Make sure user is logged in
-		if session.IsLoggedIn {
-
-			// Get both ticket ids
-			ticketIdMergeTo := globals.Tickets[template.HTMLEscapeString(r.FormValue("merge_to"))]
-			ticketIdMergeFrom := globals.Tickets[template.HTMLEscapeString(r.FormValue("merge_from"))]
-
-			// Only if they have the same assigned user
-			if ticketIdMergeFrom.User == session.User && ticketIdMergeTo.User == session.User {
-
-				// Merge structs.Ticket
-				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(ticketIdMergeTo, ticketIdMergeFrom)
-
-				// Write both tickets to memory
-				globals.Tickets[ticketMergedTo.Id] = ticketMergedTo
-				globals.Tickets[ticketMergedFrom.Id] = ticketMergedFrom
-
-				// Persist both tickets to file system
-				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedTo)
-				filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &ticketMergedFrom)
-
-				// Serve the template to show a single ticket
-				tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: session, Ticket: ticketMergedTo})
-			}
-		}
-	}
-
-	http.Redirect(w, r, "/", 302)
-}
-
-// createSessionCookie returns a http cookie to hold the session
-// id for the user
-func createSessionCookie() (*http.Cookie, string) {
-
-	sessionId := CreateSessionId()
-
-	return &http.Cookie{
-		Name:     "session",
-		Value:    sessionId,
-		HttpOnly: false,
-		Expires:  time.Now().Add(2 * time.Hour)}, sessionId
-}
-
-// deleteSessionCookie returns a http cookie which will overwrite the
-// existing session cookie in order to nulify it
-func deleteSessionCookie() *http.Cookie {
-
-	return &http.Cookie{
-		Name:     "session",
-		Value:    "",
-		HttpOnly: false,
-		Expires:  time.Now().Add(-100 * time.Hour)}
-}
-
-// getSessionId retrieves the session id from the cookie of the user
-func getSessionId(r *http.Request) string {
-
-	// Get the cookie with the session id
-	userCookie, errUserCookie := r.Cookie("session")
-
-	if errUserCookie != nil {
-		log.Print(errUserCookie)
-		return errUserCookie.Error()
-	}
-
-	return userCookie.Value
-}
-
-// checkForSession either returns a new session or the existing session of a user.
-func checkForSession(w http.ResponseWriter, r *http.Request) structs.Session {
-
-	var session structs.Session
-
-	// Check if the user already has a session
-	// If not, create one
-	// Otherwise read the session id and load the index with his session
-	if _, err := r.Cookie("session"); err != nil {
-
-		cookie, sessionId := createSessionCookie()
-		http.SetCookie(w, cookie)
-		sessions[sessionId] = CreateSession(sessionId)
-
-		session = sessions[sessionId].Session
-
-	} else {
-		sessionId := getSessionId(r)
-
-		session = sessions[sessionId].Session
-	}
-
-	return session
 }

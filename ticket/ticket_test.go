@@ -17,8 +17,8 @@ func TestCreateTicket(t *testing.T) {
 	ticket := CreateTicket(MAIL, SUBJECT, ENTRY)
 
 	assert.NotNil(t, ticket, "No ticket was returned")
-	assert.Equal(t, ticket.Customer, MAIL, "Email in created ticket did not match")
-	assert.Equal(t, ticket.Subject, SUBJECT)
+	assert.Equal(t, MAIL, ticket.Customer, "Mail in created ticket did not match")
+	assert.Equal(t, SUBJECT, ticket.Subject, "Subject does not match")
 }
 
 func TestUpdateTicket(t *testing.T) {
@@ -26,11 +26,12 @@ func TestUpdateTicket(t *testing.T) {
 	const STATUS = "2"
 	const TICKET_ID = "abcdef12345"
 	const MAIL = "text@exmaple.com"
+	const REPLY_TYPE = ""
 
-	ticket := UpdateTicket(STATUS, TICKET_ID, MAIL, structs.Ticket{})
+	ticket := UpdateTicket(STATUS, TICKET_ID, MAIL, REPLY_TYPE, structs.Ticket{})
 
 	assert.NotNil(t, ticket, "No ticket was returned")
-	assert.Equal(t, ticket.Status, structs.CLOSED)
+	assert.Equal(t, structs.CLOSED, ticket.Status, "Status does not match")
 }
 
 // TestMergeTickets makes sure that the entries of merged tickets are combined and that the
@@ -63,7 +64,7 @@ func TestMergeTickets(t *testing.T) {
 	assert.NotNil(t, ticketMergeFromAfterMerge, "No ticket was returned")
 	assert.NotNil(t, ticketMergeToAfterMerge, "No ticket was returned")
 	assert.True(t, (len(ticketMergeToAfterMerge.Entries) == 6), "The entries have not been added to the ticket")
-	assert.Equal(t, "abcdef123", ticketMergeFromAfterMerge.MergeTo, "")
+	assert.Equal(t, "abcdef123", ticketMergeFromAfterMerge.MergeTo, "Merge to id does not match")
 }
 
 // TestAssignAndUnassignTicket tests that assign and unassigning a ticket works properly
