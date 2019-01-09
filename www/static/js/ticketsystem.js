@@ -53,7 +53,7 @@ function unassignTicket(btn) {
 		if(req.readyState == 4 && req.status == 200){
 			document.querySelector("#" + btn.replace("btn_", "ticket_")).innerHTML = req.responseText;
 		}
-	}
+    };
 	req.send(null);
 }
 
@@ -74,7 +74,7 @@ function assignTicket(btn) {
 			document.querySelector("#" + btn).style.opacity = 0.25;
 			document.querySelector("#" + btn.replace("btn_", "td_status_")).innerHTML = "In Bearbeitung";
 		}
-	}
+    };
 	req.send(null);
 }
 

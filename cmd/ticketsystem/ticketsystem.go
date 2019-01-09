@@ -57,8 +57,8 @@ func initConfig() (structs.Config, error) {
 	flag.Parse()
 
 	// If the port is not within boundaries, return an error
-	if !isPortInBoundaries(port) {
-		return structs.Config{}, errors.New("Port is not a correct port number")
+	if !isPortInBoundaries(*port) {
+		return structs.Config{}, errors.New("port is not a correct port number")
 	}
 
 	// Populate and return the struct
@@ -75,6 +75,6 @@ func initConfig() (structs.Config, error) {
 // is within the boundaries of a 16 bit integer, false
 // otherwise. Since the port numbers only go up to a 16
 // bit integer
-func isPortInBoundaries(port *int) bool {
-	return *port <= math.MaxInt16
+func isPortInBoundaries(port int) bool {
+	return port <= math.MaxInt16
 }

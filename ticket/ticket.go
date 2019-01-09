@@ -36,7 +36,7 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 
 // UpdateTicket gets update parameters as well as the ticket to be updated
 // and returns it with the values overwritten
-func UpdateTicket(status, mail, reply, reply_type string, currentTicket structs.Ticket) structs.Ticket {
+func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.Ticket) structs.Ticket {
 
 	// Set the status to the one provided by the form
 	statusValue, _ := strconv.Atoi(status)
@@ -50,7 +50,7 @@ func UpdateTicket(status, mail, reply, reply_type string, currentTicket structs.
 			FormattedDate: time.Now().Format(time.ANSIC),
 			User:          mail,
 			Text:          reply,
-			Reply_Type:    reply_type,
+			ReplyType:     replyType,
 		}
 
 		entries := currentTicket.Entries

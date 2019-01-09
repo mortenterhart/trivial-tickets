@@ -42,7 +42,7 @@ type User struct {
 	Id          string `json:"Id"`
 	Name        string `json:"Name"`
 	Username    string `json:"Username"`
-	Mail        string `json:"Mail"`
+	Mail        string `json:"Email"`
 	Hash        string `json:"Hash"`
 	IsOnHoliday bool   `json:"IsOnHoliday"`
 }
@@ -77,7 +77,7 @@ type Entry struct {
 	FormattedDate string
 	User          string
 	Text          string
-	Reply_Type    string
+	ReplyType     string
 }
 
 // State is an enum to represent the current status of a ticket
@@ -89,7 +89,7 @@ const (
 	CLOSED
 )
 
-// Mail struct holds the information for a received email in order
+// Email struct holds the information for a received email in order
 // to create new tickets or answers
 type Mail struct {
 	Email   string `json:"email"`
