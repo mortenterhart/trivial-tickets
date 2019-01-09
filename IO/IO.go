@@ -5,16 +5,21 @@ import (
 	"errors"
 	"fmt"
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/cliUtils"
 	"io"
 	"os"
-	"regexp"
 	"strconv"
 )
 
 var reader = io.Reader(os.Stdin)
 var writer = io.Writer(os.Stdout)
+var readCom = readCommand
+var output = OutputMessageToCommandLine
+var verifyEmailAddress = cliUtils.CheckEmailAddress
+var readString = getString
+var readEmailAddress = getEmailAddress
 
-func GetNextCommand() (structs.Command, error) {
+func readCommand() (structs.Command, error) {
 	bufReader := bufio.NewReader(reader)
 	var ret structs.Command
 	var asInt int
@@ -36,37 +41,25 @@ func GetNextCommand() (structs.Command, error) {
 	return ret, err
 }
 
-func OutputStringToCommandLine(output string) {
-	fmt.Fprintf(writer, "%s", output)
+func OutputMessageToCommandLine(output structs.Message) {
+	fmt.Fprintf(writer, "%s", string(output))
 }
 
-func PrintEmail(mail structs.Mail) error {
-	_, err := fmt.Fprintf(writer, "Email Addresse: %s\n\n"+
-		"Betreff: %s\n\n"+
+func PrintEmail(mail structs.Mail) {
+	fmt.Fprintf(writer, "Receiver: %s\n\n"+
+		"Subject: %s\n\n"+
 		"%s", mail.Email, mail.Subject, mail.Message)
-	return err
 }
 
-func GetEmailAddress() (result string, err error) {
-	bufReader := bufio.NewReader(reader)
-	input, err := bufReader.ReadString('\n')
-	// gets rid of the delimiter if there was no error
-	if err == nil {
-		input = input[:(len(input) - 1)]
-	} else if err == io.EOF {
-		err = nil
-	} else {
-		return
-	}
-	r, _ := regexp.Compile("^(\\w*|\\.*)+@(\\w*)(\\.\\w+)+$")
-	result = r.FindString(input)
-	if result == "" {
-		err = errors.New("not a valid email address")
+func getEmailAddress() (addr string, err error) {
+	addr, err = readString()
+	if !verifyEmailAddress(addr) {
+		err = errors.New(string(structs.InvalidEmail))
 	}
 	return
 }
 
-func GetString() (result string, err error) {
+func getString() (result string, err error) {
 	bufReader := bufio.NewReader(reader)
 	result, err = bufReader.ReadString('\n')
 	// gets rid of the delimiter if there was no error
@@ -78,7 +71,72 @@ func GetString() (result string, err error) {
 		return
 	}
 	if result == "" {
-		err = errors.New("string empty")
+		err = errors.New(string(structs.EmptyString))
 	}
 	return
+}
+
+func NextCommand() (com structs.Command, err error) {
+	counter := 0
+	for {
+		output(structs.RequestCommandInput)
+		if counter > 10 {
+			return 0, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+		}
+		command, err := readCom()
+		if err == nil {
+			return command, err
+		}
+		output(structs.CommandNotAccepted + structs.Message(err.Error()))
+		counter++
+	}
+	return
+}
+
+func GetEmail() (structs.Mail, error) {
+	counter := 0
+	output(structs.RequestEmailAddress)
+	emailAddress, err := readEmailAddress()
+	for err != nil {
+		if counter > 10 {
+			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+		}
+		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestEmailAddress)
+		emailAddress, err = readEmailAddress()
+		counter++
+	}
+	counter = 0
+	output(structs.RequestTicketID)
+	ticketID, err := readString()
+	for err != nil && err.Error() != string(structs.EmptyString) {
+		if counter > 10 {
+			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+		}
+		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestTicketID)
+		ticketID, err = readString()
+		counter++
+	}
+	counter = 0
+	output(structs.RequestSubject)
+	subject, err := readString()
+	for err != nil {
+		if counter > 10 {
+			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+		}
+		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestSubject)
+		subject, err = readString()
+		counter++
+	}
+	counter = 0
+	output(structs.RequestMessage)
+	message, err := readString()
+	for err != nil {
+		if counter > 10 {
+			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+		}
+		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestMessage)
+		message, err = readString()
+		counter++
+	}
+	return cliUtils.CreateMail(emailAddress, subject, ticketID, message), nil
 }
