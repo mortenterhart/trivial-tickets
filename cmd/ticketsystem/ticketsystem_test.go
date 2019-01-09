@@ -34,8 +34,8 @@ func TestIsPortInBoundaries(t *testing.T) {
 	portInBoundaries := 80
 	portOutsideBoundaries := 67534
 
-	is80InBoundaries := isPortInBoundaries(&portInBoundaries)
-	is67534InBoundaries := isPortInBoundaries(&portOutsideBoundaries)
+	is80InBoundaries := isPortInBoundaries(portInBoundaries)
+	is67534InBoundaries := isPortInBoundaries(portOutsideBoundaries)
 
 	assert.Equal(t, true, is80InBoundaries, "Port 80 is not accepted, but it should be")
 	assert.Equal(t, false, is67534InBoundaries, "Port 67534 is accepted. Should not happen.")
