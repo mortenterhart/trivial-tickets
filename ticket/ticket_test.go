@@ -17,7 +17,7 @@ func TestCreateTicket(t *testing.T) {
 	ticket := CreateTicket(MAIL, SUBJECT, ENTRY)
 
 	assert.NotNil(t, ticket, "No ticket was returned")
-	assert.Equal(t, ticket.Customer, MAIL, "Mail in created ticket did not match")
+	assert.Equal(t, ticket.Customer, MAIL, "Email in created ticket did not match")
 	assert.Equal(t, ticket.Subject, SUBJECT)
 }
 

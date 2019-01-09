@@ -193,13 +193,13 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		status := template.HTMLEscapeString(r.FormValue("status"))
 		mail := template.HTMLEscapeString(r.FormValue("mail"))
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
-		reply_type := template.HTMLEscapeString(r.FormValue("reply_type"))
+		replyType := template.HTMLEscapeString(r.FormValue("replyType"))
 
 		// Get the ticket which was edited
 		currentTicket := globals.Tickets[ticketId]
 
 		// Update the current ticket
-		updatedTicket := ticket.UpdateTicket(status, mail, reply, reply_type, currentTicket)
+		updatedTicket := ticket.UpdateTicket(status, mail, reply, replyType, currentTicket)
 
 		// Assign the updated ticket to the ticket map in memory
 		globals.Tickets[ticketId] = updatedTicket
@@ -208,7 +208,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
 
 		// Publish mail if the reply was selected for external
-		if reply_type == "extern" {
+		if replyType == "extern" {
 			api_out.SendMail(mail, updatedTicket.Subject, reply)
 		}
 
