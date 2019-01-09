@@ -19,3 +19,6 @@ var Tickets = make(map[string]structs.Ticket)
 
 // Holds the given config for access to the backend systems
 var ServerConfig *structs.Config
+
+// Holds all the sessions for the users
+var Sessions = make(map[string]structs.SessionManager)
