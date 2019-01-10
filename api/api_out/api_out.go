@@ -1,9 +1,11 @@
 package api_out
 
-func SendMail() {
+import "net/http"
+
+func SendMail(mail, subject, message string) {
 
 }
 
-func GetAllMailsToSend() {
+func GetAllMailsToSend(writer http.ResponseWriter, req *http.Request) {
 
 }

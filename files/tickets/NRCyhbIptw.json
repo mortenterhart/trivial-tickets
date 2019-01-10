@@ -1,0 +1,24 @@
+{
+   "Id": "NRCyhbIptw",
+   "Subject": "hallo mein pc ist kaputt",
+   "Status": 1,
+   "User": {
+      "Id": "CLwt_Y27ktggbjaNzn5U2fpCM6Az1ktAKo46n0mLP6A=",
+      "Name": "Boris Floricic",
+      "Username": "tron",
+      "Mail": "boris.floricic@example.com",
+      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+      "IsOnHoliday": false
+   },
+   "Customer": "helpmepls@mail.de",
+   "Entries": [
+      {
+         "Date": "2018-11-12T14:14:51.595674+01:00",
+         "FormattedDate": "Mon Nov 12 14:14:51 2018",
+         "User": "helpmepls@mail.de",
+         "Text": "computer sagt nein =(",
+         "Reply_Type": ""
+      }
+   ],
+   "MergeTo": ""
+}

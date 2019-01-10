@@ -21,7 +21,7 @@ func CheckPassword(hash string, password string) bool {
 
 // GenerateHash returns a bcrypt hash for the given password
 // Bcrypt is a very secure hashing algorithm for passwords, which
-// also spares the developer of having to generate a salt on his/her own
+// also spares the developer from having to generate a salt on his/her own
 func GenerateHash(password string) (string, error) {
 	hash, error := bcrypt.GenerateFromPassword([]byte(password), 12)
 	return string(hash), error

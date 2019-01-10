@@ -6,7 +6,10 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/mortenterhart/trivial-tickets/api/api_in"
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 )
@@ -23,50 +26,38 @@ import (
 // the templates once on startup, instead of on every GET - request to index.
 var tmpl *template.Template
 
-// Holds all the sessions for the users
-var sessions = make(map[string]structs.SessionManager)
-
 // Holds all the users
 var users = make(map[string]structs.User)
-
-// Holds all the tickets
-var Tickets = make(map[string]structs.Ticket)
-
-// Holds the given config for access to the backend systems
-var ServerConfig *structs.Config
 
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
 
 	// Assign given config to the global variable
-	ServerConfig = config
+	globals.ServerConfig = config
 
 	// Read in the users
-	errReadUserFile := filehandler.ReadUserFile(ServerConfig.Users, &users)
+	errReadUserFile := filehandler.ReadUserFile(globals.ServerConfig.Users, &users)
 
 	if errReadUserFile == nil {
 		// Read in the tickets
-		errReadTicketFiles := filehandler.ReadTicketFiles(ServerConfig.Tickets, &Tickets)
+		errReadTicketFiles := filehandler.ReadTicketFiles(globals.ServerConfig.Tickets, &globals.Tickets)
 
 		if errReadTicketFiles == nil {
 			// Read in the templates
-			tmpl = GetTemplates(ServerConfig.Web)
+			tmpl = GetTemplates(globals.ServerConfig.Web)
 
-			if tmpl != nil {
-				// Register the handlers
-				errStartHandlers := startHandlers(ServerConfig.Web)
+			// Register the handlers
+			errStartHandlers := startHandlers(globals.ServerConfig.Web)
 
-				if errStartHandlers != nil {
-					return errors.New("Unable to register handlers")
-				} else {
-					// Start a GoRoutine to redirect http requests to https
-					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+			if tmpl != nil || errStartHandlers == nil {
 
-					// Start the server according to config
-					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", ServerConfig.Port), ServerConfig.Cert, ServerConfig.Key, nil)
-				}
+				// Start a GoRoutine to redirect http requests to https
+				go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+
+				// Start the server according to config
+				return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
 			} else {
-				return errors.New("Unable to load templates")
+				return errors.New("Unable to load templates / register handlers")
 			}
 		} else {
 			return errors.New("Unable to load ticket files")
@@ -96,7 +87,7 @@ func GetTemplates(path string) *template.Template {
 // Taken from https://gist.github.com/d-schmidt/587ceec34ce1334a5e60
 func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 
-	target := "https://" + req.Host + req.URL.Path
+	target := "https://" + req.Host + fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port)
 
 	if len(req.URL.RawQuery) > 0 {
 		target += "?" + req.URL.RawQuery
@@ -108,7 +99,9 @@ func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 // startHandlers maps all the various handles to the url patterns.
 func startHandlers(path string) error {
 
-	if len(path) < 1 {
+	// Check if the path exists
+	// Taken from https://gist.github.com/mattes/d13e273314c3b3ade33f
+	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return errors.New("No path given for web folders")
 	}
 
@@ -121,7 +114,7 @@ func startHandlers(path string) error {
 	http.HandleFunc("/updateTicket", handleUpdateTicket)
 	http.HandleFunc("/unassignTicket", handleUnassignTicket)
 	http.HandleFunc("/assignTicket", handleAssignTicket)
-	http.HandleFunc("/merge", handleMergeTickets)
+	http.HandleFunc("/api/receive", api_in.ReceiveMail)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
