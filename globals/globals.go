@@ -1,7 +1,7 @@
 package globals
 
 import (
-    "github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -16,6 +16,9 @@ import (
 
 // Holds all the tickets
 var Tickets = make(map[string]structs.Ticket)
+
+// Holds all currently cached mails
+var Mails = make(map[string]structs.Mail)
 
 // Holds the given config for access to the backend systems
 var ServerConfig *structs.Config
