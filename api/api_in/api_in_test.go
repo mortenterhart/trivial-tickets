@@ -1,18 +1,18 @@
 package api_in
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"strings"
-	"testing"
+    "fmt"
+    "io"
+    "io/ioutil"
+    "net/http"
+    "net/http/httptest"
+    "os"
+    "strings"
+    "testing"
 
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
+    "github.com/mortenterhart/trivial-tickets/globals"
+    "github.com/mortenterhart/trivial-tickets/structs"
+    "github.com/stretchr/testify/assert"
 )
 
 /*
@@ -31,84 +31,84 @@ const invalidJson = `{"email":"admin@example.com","subject":"Subject line","mess
 const validJson = `{"email":"admin@example.com","subject":"Subject line","message":"Message line"}`
 
 type serverSetupHandler struct {
-	callUnderlying http.HandlerFunc
+    callUnderlying http.HandlerFunc
 }
 
 func newSetupHandler(wrappedHandler http.HandlerFunc) serverSetupHandler {
-	return serverSetupHandler{wrappedHandler}
+    return serverSetupHandler{wrappedHandler}
 }
 
 func (handler serverSetupHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	config := testServerConfig()
-	globals.ServerConfig = &config
+    config := testServerConfig()
+    globals.ServerConfig = &config
 
-	handler.callUnderlying(writer, request)
+    handler.callUnderlying(writer, request)
 
-	cleanupTestTickets()
+    cleanupTestTickets()
 }
 
 func testServerConfig() structs.Config {
-	return structs.Config{
-		Port:    8443,
-		Tickets: "../../files/testtickets",
-		Users:   "../../files/users/users.json",
-		Mails:   "../../files/mails",
-		Cert:    "../../ssl/server.cert",
-		Key:     "../../ssl/server.key",
-		Web:     "../../www",
-	}
+    return structs.Config{
+        Port:    8443,
+        Tickets: "../../files/testtickets",
+        Users:   "../../files/users/users.json",
+        Mails:   "../../files/mails",
+        Cert:    "../../ssl/server.cert",
+        Key:     "../../ssl/server.key",
+        Web:     "../../www",
+    }
 }
 
 func cleanupTestTickets() {
-	os.RemoveAll(globals.ServerConfig.Tickets)
+    os.RemoveAll(globals.ServerConfig.Tickets)
 }
 
 func createTestServer(handler http.Handler) *httptest.Server {
-	return httptest.NewServer(handler)
+    return httptest.NewServer(handler)
 }
 
 func createReader(str string) io.Reader {
-	return strings.NewReader(str)
+    return strings.NewReader(str)
 }
 
 func TestReceiveMailRejectsGET(t *testing.T) {
-	setupHandler := newSetupHandler(ReceiveMail)
+    setupHandler := newSetupHandler(ReceiveMail)
 
-	testServer := createTestServer(setupHandler)
-	defer testServer.Close()
+    testServer := createTestServer(setupHandler)
+    defer testServer.Close()
 
-	response, err := http.Get(testServer.URL)
+    response, err := http.Get(testServer.URL)
 
-	assert.NoError(t, err, "GET request should be successful")
-	assert.Equal(t, http.StatusMethodNotAllowed, response.StatusCode,
-		"status code should be 405 Method Not Allowed")
+    assert.NoError(t, err, "GET request should be successful")
+    assert.Equal(t, http.StatusMethodNotAllowed, response.StatusCode,
+        "status code should be 405 Method Not Allowed")
 
-	body, readErr := ioutil.ReadAll(response.Body)
+    body, readErr := ioutil.ReadAll(response.Body)
 
-	assert.NoError(t, readErr, "reading response body should return no error")
-	expectedJSON := buildJSONResponseStatus(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED")
-	assert.Equal(t, expectedJSON+"\n", string(body),
-		"response should be JSON with error message METHOD_NOT_ALLOWED")
+    assert.NoError(t, readErr, "reading response body should return no error")
+    expectedJSON := buildJSONResponseStatus(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED")
+    assert.Equal(t, expectedJSON+"\n", string(body),
+        "response should be JSON with error message METHOD_NOT_ALLOWED")
 }
 
 func TestReceiveMailAcceptsPOST(t *testing.T) {
-	setupHandler := newSetupHandler(ReceiveMail)
+    setupHandler := newSetupHandler(ReceiveMail)
 
-	testServer := createTestServer(setupHandler)
-	defer testServer.Close()
+    testServer := createTestServer(setupHandler)
+    defer testServer.Close()
 
-	response, err := http.Post(testServer.URL, jsonContentType, createReader(validJson))
+    response, err := http.Post(testServer.URL, jsonContentType, createReader(validJson))
 
-	assert.NoError(t, err, "POST requests should be accepted by the mail API")
-	assert.Equal(t, 200, response.StatusCode,
-		"status code of POST request should be 200 OK")
+    assert.NoError(t, err, "POST requests should be accepted by the mail API")
+    assert.Equal(t, 200, response.StatusCode,
+        "status code of POST request should be 200 OK")
 
-	body, readErr := ioutil.ReadAll(response.Body)
+    body, readErr := ioutil.ReadAll(response.Body)
 
-	assert.NoError(t, readErr, "reading response body should return no error")
-	expectedJSON := buildJSONResponseStatus(http.StatusOK, "OK")
-	assert.Equal(t, expectedJSON+"\n", string(body),
-		"response should be JSON with status OK")
+    assert.NoError(t, readErr, "reading response body should return no error")
+    expectedJSON := buildJSONResponseStatus(http.StatusOK, "OK")
+    assert.Equal(t, expectedJSON+"\n", string(body),
+        "response should be JSON with status OK")
 }
 
 /*func TestParseJSONMailWithEmptyBody(t *testing.T) {
@@ -167,12 +167,12 @@ func TestExtractMailWithValidJSON(t *testing.T) {
 }*/
 
 func TestCheckRequiredPropertiesSetWithInvalidJSON(t *testing.T) {
-	setupHandler := newSetupHandler(ReceiveMail)
+    setupHandler := newSetupHandler(ReceiveMail)
 
-	testServer := createTestServer(setupHandler)
-	defer testServer.Close()
+    testServer := createTestServer(setupHandler)
+    defer testServer.Close()
 
-	response, _ := http.Post(testServer.URL, jsonContentType, createReader(`{"email":"invalid@address.com","subject":"Subject","message":""}`))
-	body, _ := ioutil.ReadAll(response.Body)
-	fmt.Println(string(body))
+    response, _ := http.Post(testServer.URL, jsonContentType, createReader(`{"email":"invalid@address.com","subject":"Subject","message":""}`))
+    body, _ := ioutil.ReadAll(response.Body)
+    fmt.Println(string(body))
 }

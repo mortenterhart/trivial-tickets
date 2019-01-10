@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/mortenterhart/trivial-tickets/logic"
+    "github.com/mortenterhart/trivial-tickets/logic"
 )
 
 func main() {
-	logic.MainLoop()
+    logic.MainLoop()
 }
 
 // Here's how it should behave:

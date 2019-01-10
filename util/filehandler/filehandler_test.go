@@ -1,13 +1,13 @@
 package filehandler
 
 import (
-	"os"
-	"testing"
-	"time"
+    "os"
+    "testing"
+    "time"
 
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/mortenterhart/trivial-tickets/util/hashing"
-	"github.com/stretchr/testify/assert"
+    "github.com/mortenterhart/trivial-tickets/structs"
+    "github.com/mortenterhart/trivial-tickets/util/hashing"
+    "github.com/stretchr/testify/assert"
 )
 
 /*
@@ -22,156 +22,156 @@ import (
 // mock data can be used for both
 func TestWriteReadUserFile(t *testing.T) {
 
-	// File name for test
-	const file = "testUsers.json"
+    // File name for test
+    const file = "testUsers.json"
 
-	// Create hashmap for users
-	var users = make(map[string]structs.User)
+    // Create hashmap for users
+    var users = make(map[string]structs.User)
 
-	// Hash their passwords
-	a, _ := hashing.GenerateHash("thisisatestPw12!!")
+    // Hash their passwords
+    a, _ := hashing.GenerateHash("thisisatestPw12!!")
 
-	// Mock two users and add them to the map
-	u := structs.User{
-		Id:          "abc123",
-		Name:        "Admin",
-		Username:    "admin",
-		Mail:        "admin@example.com",
-		Hash:        a,
-		IsOnHoliday: false,
-	}
+    // Mock two users and add them to the map
+    u := structs.User{
+        Id:          "abc123",
+        Name:        "Admin",
+        Username:    "admin",
+        Mail:        "admin@example.com",
+        Hash:        a,
+        IsOnHoliday: false,
+    }
 
-	u1 := structs.User{
-		Id:          "def456",
-		Name:        "Max Mustermann",
-		Username:    "max4711",
-		Mail:        "max.mustermann@example.com",
-		Hash:        a,
-		IsOnHoliday: true,
-	}
+    u1 := structs.User{
+        Id:          "def456",
+        Name:        "Max Mustermann",
+        Username:    "max4711",
+        Mail:        "max.mustermann@example.com",
+        Hash:        a,
+        IsOnHoliday: true,
+    }
 
-	users[u.Username] = u
-	users[u1.Username] = u1
+    users[u.Username] = u
+    users[u1.Username] = u1
 
-	// Write json to file
-	errWriteFile := WriteUserFile(file, &users)
-	assert.Nil(t, errWriteFile, "Error writing file")
+    // Write json to file
+    errWriteFile := WriteUserFile(file, &users)
+    assert.Nil(t, errWriteFile, "Error writing file")
 
-	// Create hashmap to store the read json
-	var readUsers = make(map[string]structs.User)
+    // Create hashmap to store the read json
+    var readUsers = make(map[string]structs.User)
 
-	// Read the file from disk and unmarshal into the hashmap
-	errReadUserFile := ReadUserFile(file, &readUsers)
-	assert.Nil(t, errReadUserFile, "There was an error reading the file")
+    // Read the file from disk and unmarshal into the hashmap
+    errReadUserFile := ReadUserFile(file, &readUsers)
+    assert.Nil(t, errReadUserFile, "There was an error reading the file")
 
-	// Delete the test file
-	errDeleteFile := os.Remove(file)
-	assert.Nil(t, errDeleteFile, "Error deleting file")
+    // Delete the test file
+    errDeleteFile := os.Remove(file)
+    assert.Nil(t, errDeleteFile, "Error deleting file")
 
-	// Make sure the struct before writing to disk and after reading from disk is the same
-	assert.Equal(t, users, readUsers, "User structs do not match")
+    // Make sure the struct before writing to disk and after reading from disk is the same
+    assert.Equal(t, users, readUsers, "User structs do not match")
 
-	errReadUserFile2 := ReadUserFile("bla.json", &readUsers)
-	assert.NotNil(t, errReadUserFile2, "No error was returned")
+    errReadUserFile2 := ReadUserFile("bla.json", &readUsers)
+    assert.NotNil(t, errReadUserFile2, "No error was returned")
 }
 
 func TestWriteTicketFile(t *testing.T) {
 
-	// Path to ticket files
-	const usersFile = "testFiles/testTickets"
+    // Path to ticket files
+    const usersFile = "testFiles/testTickets"
 
-	ticket := mockTicket()
+    ticket := mockTicket()
 
-	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
+    errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
 
-	os.RemoveAll("testFiles/")
+    os.RemoveAll("testFiles/")
 
-	assert.Nil(t, errWriteTicketFile, "Error creating the File")
+    assert.Nil(t, errWriteTicketFile, "Error creating the File")
 }
 
 // TestWriteTicketFileError produces an error on creating a directory
 func TestWriteTicketFileError(t *testing.T) {
 
-	// Invalid Path
-	const usersFile = "//bla"
+    // Invalid Path
+    const usersFile = "//bla"
 
-	ticket := mockTicket()
+    ticket := mockTicket()
 
-	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
+    errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
 
-	assert.NotNil(t, errWriteTicketFile, "Error creating the File")
+    assert.NotNil(t, errWriteTicketFile, "Error creating the File")
 }
 
 func TestCreateFolder(t *testing.T) {
 
-	// Test folders
-	const ticketsFolder = "testFolder/tests"
+    // Test folders
+    const ticketsFolder = "testFolder/tests"
 
-	// Create the given folders
-	errCreateFolder := CreateFolders(ticketsFolder)
+    // Create the given folders
+    errCreateFolder := CreateFolders(ticketsFolder)
 
-	// Remove them
-	os.RemoveAll("testFolder/")
+    // Remove them
+    os.RemoveAll("testFolder/")
 
-	// Check that there was no error
-	assert.Nil(t, errCreateFolder, "Error creating the folder(s)")
+    // Check that there was no error
+    assert.Nil(t, errCreateFolder, "Error creating the folder(s)")
 }
 
 // TestReadTicketFiles checks if the ticket files a read correctly and if errors are returned when expected
 func TestReadTicketFiles(t *testing.T) {
 
-	var tickets = make(map[string]structs.Ticket)
+    var tickets = make(map[string]structs.Ticket)
 
-	// Path does not exist
-	errReadTicketFiles := ReadTicketFiles("abc", &tickets)
-	assert.NotNil(t, errReadTicketFiles, "No error was returned, although the path does not exist")
+    // Path does not exist
+    errReadTicketFiles := ReadTicketFiles("abc", &tickets)
+    assert.NotNil(t, errReadTicketFiles, "No error was returned, although the path does not exist")
 
-	// Goes to html files, no json
-	errReadTicketFiles2 := ReadTicketFiles("../../www/templates", &tickets)
-	assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket files do not exist")
+    // Goes to html files, no json
+    errReadTicketFiles2 := ReadTicketFiles("../../www/templates", &tickets)
+    assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket files do not exist")
 
-	const correctTicketPath = "../../files/ticketstest"
-	ticket := mockTicket()
-	WriteTicketFile(correctTicketPath, &ticket)
+    const correctTicketPath = "../../files/ticketstest"
+    ticket := mockTicket()
+    WriteTicketFile(correctTicketPath, &ticket)
 
-	// Correct path to ticket files
-	errReadTicketFiles3 := ReadTicketFiles(correctTicketPath, &tickets)
-	assert.Nil(t, errReadTicketFiles3, "An erorr was returned, although the path is correct")
+    // Correct path to ticket files
+    errReadTicketFiles3 := ReadTicketFiles(correctTicketPath, &tickets)
+    assert.Nil(t, errReadTicketFiles3, "An erorr was returned, although the path is correct")
 
-	os.RemoveAll(correctTicketPath + "/")
+    os.RemoveAll(correctTicketPath + "/")
 }
 
 // mockTicket is a helper function to create a dummy ticket for the tests
 func mockTicket() structs.Ticket {
 
-	e1 := structs.Entry{
-		Date: time.Now(),
-		User: "customer@example.com",
-		Text: "bla bla",
-	}
+    e1 := structs.Entry{
+        Date: time.Now(),
+        User: "customer@example.com",
+        Text: "bla bla",
+    }
 
-	e2 := structs.Entry{
-		Date: time.Now(),
-		User: "max.mustermann@example.com",
-		Text: "ok ok",
-	}
+    e2 := structs.Entry{
+        Date: time.Now(),
+        User: "max.mustermann@example.com",
+        Text: "ok ok",
+    }
 
-	entries := []structs.Entry{e1, e2}
+    entries := []structs.Entry{e1, e2}
 
-	user := structs.User{
-		Id:          "12",
-		Name:        "Max Mustermann",
-		Mail:        "max.mustermann@example.com",
-		Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",
-		IsOnHoliday: false,
-	}
+    user := structs.User{
+        Id:          "12",
+        Name:        "Max Mustermann",
+        Mail:        "max.mustermann@example.com",
+        Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",
+        IsOnHoliday: false,
+    }
 
-	return structs.Ticket{
-		Id:       "test123",
-		Subject:  "Help",
-		Status:   0,
-		User:     user,
-		Customer: "customer@example.com",
-		Entries:  entries,
-	}
+    return structs.Ticket{
+        Id:       "test123",
+        Subject:  "Help",
+        Status:   0,
+        User:     user,
+        Customer: "customer@example.com",
+        Entries:  entries,
+    }
 }
