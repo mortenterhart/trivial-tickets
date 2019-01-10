@@ -1,7 +1,7 @@
 package globals
 
 import (
-	"github.com/mortenterhart/trivial-tickets/structs"
+    "github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*

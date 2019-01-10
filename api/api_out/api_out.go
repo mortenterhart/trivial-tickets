@@ -1,17 +1,17 @@
 package api_out
 
 import (
-	"net/http"
+    "net/http"
 )
 
 // Construct a mail and save it to cache
 func SendMail(email, subject, message string) {
-	/*mail := structs.Mail{
-	    Id:      random.CreateRandomId(10),
-	    Email:   email,
-	    Subject: subject,
-	    Message: message,
-	}*/
+    /*mail := structs.Mail{
+        Id:      random.CreateRandomId(10),
+        Email:   email,
+        Subject: subject,
+        Message: message,
+    }*/
 
 }
 
