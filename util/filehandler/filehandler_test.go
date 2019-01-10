@@ -69,7 +69,7 @@ func TestWriteReadUserFile(t *testing.T) {
 	assert.Nil(t, errDeleteFile, "Error deleting file")
 
 	// Make sure the struct before writing to disk and after reading from disk is the same
-	assert.Equal(t, users, readUsers)
+	assert.Equal(t, users, readUsers, "User structs do not match")
 
 	errReadUserFile2 := ReadUserFile("bla.json", &readUsers)
 	assert.NotNil(t, errReadUserFile2, "No error was returned")
@@ -77,45 +77,29 @@ func TestWriteReadUserFile(t *testing.T) {
 
 func TestWriteTicketFile(t *testing.T) {
 
-	e1 := structs.Entry{
-		Date: time.Now(),
-		User: "customer@example.com",
-		Text: "bla bla",
-	}
-
-	e2 := structs.Entry{
-		Date: time.Now(),
-		User: "max.mustermann@example.com",
-		Text: "ok ok",
-	}
-
-	entries := []structs.Entry{e1, e2}
-
-	user := structs.User{
-		Id:          "12",
-		Name:        "Max Mustermann",
-		Mail:        "max.mustermann@example.com",
-		Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",
-		IsOnHoliday: false,
-	}
-
-	ticket := structs.Ticket{
-		Id:       "test123",
-		Subject:  "Help",
-		Status:   0,
-		User:     user,
-		Customer: "customer@example.com",
-		Entries:  entries,
-	}
-
 	// Path to ticket files
 	const usersFile = "testFiles/testTickets"
+
+	ticket := mockTicket()
 
 	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
 
 	os.RemoveAll("testFiles/")
 
 	assert.Nil(t, errWriteTicketFile, "Error creating the File")
+}
+
+// TestWriteTicketFileError produces an error on creating a directory
+func TestWriteTicketFileError(t *testing.T) {
+
+	// Invalid Path
+	const usersFile = "//bla"
+
+	ticket := mockTicket()
+
+	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
+
+	assert.NotNil(t, errWriteTicketFile, "Error creating the File")
 }
 
 func TestCreateFolder(t *testing.T) {
@@ -146,7 +130,48 @@ func TestReadTicketFiles(t *testing.T) {
 	errReadTicketFiles2 := ReadTicketFiles("../../www/templates", &tickets)
 	assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket files do not exist")
 
+	const correctTicketPath = "../../files/ticketstest"
+	ticket := mockTicket()
+	WriteTicketFile(correctTicketPath, &ticket)
+
 	// Correct path to ticket files
-	errReadTicketFiles3 := ReadTicketFiles("../../files/tickets", &tickets)
+	errReadTicketFiles3 := ReadTicketFiles(correctTicketPath, &tickets)
 	assert.Nil(t, errReadTicketFiles3, "An erorr was returned, although the path is correct")
+
+	os.RemoveAll(correctTicketPath + "/")
+}
+
+// mockTicket is a helper function to create a dummy ticket for the tests
+func mockTicket() structs.Ticket {
+
+	e1 := structs.Entry{
+		Date: time.Now(),
+		User: "customer@example.com",
+		Text: "bla bla",
+	}
+
+	e2 := structs.Entry{
+		Date: time.Now(),
+		User: "max.mustermann@example.com",
+		Text: "ok ok",
+	}
+
+	entries := []structs.Entry{e1, e2}
+
+	user := structs.User{
+		Id:          "12",
+		Name:        "Max Mustermann",
+		Mail:        "max.mustermann@example.com",
+		Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",
+		IsOnHoliday: false,
+	}
+
+	return structs.Ticket{
+		Id:       "test123",
+		Subject:  "Help",
+		Status:   0,
+		User:     user,
+		Customer: "customer@example.com",
+		Entries:  entries,
+	}
 }

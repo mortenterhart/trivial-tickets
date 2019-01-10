@@ -22,13 +22,6 @@ type Config struct {
 	Web     string
 }
 
-// CLIConfig is a struct to hold the CLIs config parameters provided on startup
-type CLIConfig struct {
-	IPAddr string
-	Port   uint16
-	Cert   string
-}
-
 // Session is a struct that holds session variables for a certain user
 type Session struct {
 	User       User
@@ -49,7 +42,7 @@ type User struct {
 	Id          string `json:"Id"`
 	Name        string `json:"Name"`
 	Username    string `json:"Username"`
-	Mail        string `json:"Mail"`
+	Mail        string `json:"Email"`
 	Hash        string `json:"Hash"`
 	IsOnHoliday bool   `json:"IsOnHoliday"`
 }
@@ -65,6 +58,8 @@ type Data struct {
 type DataSingleTicket struct {
 	Session Session
 	Ticket  Ticket
+	Tickets map[string]Ticket
+	Users   map[string]User
 }
 
 // Ticket represents a ticket
@@ -84,6 +79,7 @@ type Entry struct {
 	FormattedDate string
 	User          string
 	Text          string
+	Reply_Type    string
 }
 
 // State is an enum to represent the current status of a ticket
@@ -95,7 +91,7 @@ const (
 	CLOSED
 )
 
-// Mail struct holds the information for a received email in order
+// Email struct holds the information for a received email in order
 // to create new tickets or answers
 type Mail struct {
 	Email   string `json:"email"`

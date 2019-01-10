@@ -2,6 +2,7 @@ package ticket
 
 import (
 	"math/rand"
+	"sort"
 	"strconv"
 	"time"
 
@@ -36,7 +37,7 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 
 // UpdateTicket gets update parameters as well as the ticket to be updated
 // and returns it with the values overwritten
-func UpdateTicket(status, mail, reply string, currentTicket structs.Ticket) structs.Ticket {
+func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.Ticket) structs.Ticket {
 
 	// Set the status to the one provided by the form
 	statusValue, _ := strconv.Atoi(status)
@@ -50,10 +51,12 @@ func UpdateTicket(status, mail, reply string, currentTicket structs.Ticket) stru
 			FormattedDate: time.Now().Format(time.ANSIC),
 			User:          mail,
 			Text:          reply,
+			Reply_Type:    replyType,
 		}
 
 		entries := currentTicket.Entries
 		entries = append(entries, newEntry)
+
 		currentTicket.Entries = entries
 	}
 
@@ -67,11 +70,18 @@ func MergeTickets(mergeToTicket, mergeFromTicket structs.Ticket) (structs.Ticket
 		// Get and merge the entries
 		entriesMerged := append(mergeFromTicket.Entries, mergeToTicket.Entries...)
 
+		// Sort the merged entries by date from earliest to latest
+		sort.Slice(entriesMerged, func(i, j int) bool {
+			return entriesMerged[i].Date.Before(entriesMerged[j].Date)
+		})
+
 		// Assign the merged entries
 		mergeToTicket.Entries = entriesMerged
 
 		// Point to the newly merged ticket
 		mergeFromTicket.MergeTo = mergeToTicket.Id
+		mergeFromTicket.Status = structs.CLOSED
+		mergeFromTicket.User = structs.User{}
 	}
 
 	return mergeToTicket, mergeFromTicket

@@ -25,14 +25,6 @@ func main() {
 		log.Fatal(errConfig)
 	}
 
-	// TODO:
-	//
-	//	    - Create a way so that the server can start up and use
-	//		  files that are already there without having to provide the config again.
-	//		  (Maybe some kind of config.ini stored on file system)
-	//        On a special flag or as default, use the config in that file
-	//
-
 	errServer := server.StartServer(&config)
 
 	if errServer != nil {
@@ -46,7 +38,7 @@ func main() {
 func initConfig() (structs.Config, error) {
 
 	// Get the command line arguments
-	port := flag.Int("port", 443, "Port on which the web server will run")
+	port := flag.Int("port", 8443, "Port on which the web server will run")
 	tickets := flag.String("tickets", "../../files/tickets", "Folder in which the tickets will be stored")
 	users := flag.String("users", "../../files/users/users.json", "Path where the users file is stored")
 	cert := flag.String("cert", "../../ssl/server.cert", "Location of the ssl certificate")
@@ -57,8 +49,8 @@ func initConfig() (structs.Config, error) {
 	flag.Parse()
 
 	// If the port is not within boundaries, return an error
-	if !isPortInBoundaries(port) {
-		return structs.Config{}, errors.New("Port is not a correct port number")
+	if !isPortInBoundaries(*port) {
+		return structs.Config{}, errors.New("port is not a correct port number")
 	}
 
 	// Populate and return the struct
@@ -75,6 +67,6 @@ func initConfig() (structs.Config, error) {
 // is within the boundaries of a 16 bit integer, false
 // otherwise. Since the port numbers only go up to a 16
 // bit integer
-func isPortInBoundaries(port *int) bool {
-	return *port <= math.MaxInt16
+func isPortInBoundaries(port int) bool {
+	return port <= math.MaxInt16
 }
