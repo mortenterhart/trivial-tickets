@@ -1,11 +1,12 @@
 package IO
 
 import (
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"strconv"
 	"testing"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/stretchr/testify/assert"
 )
 
 type TestWriter struct {

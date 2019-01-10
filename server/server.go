@@ -3,13 +3,13 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/mortenterhart/trivial-tickets/api/api_in"
+	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"

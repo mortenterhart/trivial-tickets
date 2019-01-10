@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/structs"
 	"io"
 	"os"
 	"regexp"
 	"strconv"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 var reader = io.Reader(os.Stdin)

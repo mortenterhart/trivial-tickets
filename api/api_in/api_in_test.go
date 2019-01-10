@@ -2,9 +2,6 @@ package api_in
 
 import (
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +9,10 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/stretchr/testify/assert"
 )
 
 /*
@@ -51,6 +52,7 @@ func testServerConfig() structs.Config {
 		Port:    8443,
 		Tickets: "../../files/testtickets",
 		Users:   "../../files/users/users.json",
+		Mails:   "../../files/mails",
 		Cert:    "../../ssl/server.cert",
 		Key:     "../../ssl/server.key",
 		Web:     "../../www",
