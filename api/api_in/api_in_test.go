@@ -2,6 +2,7 @@ package api_in
 
 import (
     "fmt"
+    "github.com/mortenterhart/trivial-tickets/util/jsontools"
     "io"
     "io/ioutil"
     "net/http"
@@ -86,8 +87,12 @@ func TestReceiveMailRejectsGET(t *testing.T) {
     body, readErr := ioutil.ReadAll(response.Body)
 
     assert.NoError(t, readErr, "reading response body should return no error")
-    expectedJSON := buildJSONResponseStatus(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED")
-    assert.Equal(t, expectedJSON+"\n", string(body),
+
+    expectedJSON, _ := jsontools.MapToJson(map[string]interface{}{
+        "status":  http.StatusMethodNotAllowed,
+        "message": "METHOD_NOT_ALLOWED (GET)",
+    })
+    assert.Equal(t, append(expectedJSON, '\n'), body,
         "response should be JSON with error message METHOD_NOT_ALLOWED")
 }
 
@@ -106,8 +111,11 @@ func TestReceiveMailAcceptsPOST(t *testing.T) {
     body, readErr := ioutil.ReadAll(response.Body)
 
     assert.NoError(t, readErr, "reading response body should return no error")
-    expectedJSON := buildJSONResponseStatus(http.StatusOK, "OK")
-    assert.Equal(t, expectedJSON+"\n", string(body),
+    expectedJSON, _ := jsontools.MapToJson(map[string]interface{}{
+        "status": http.StatusOK,
+        "message": "OK",
+    })
+    assert.Equal(t, append(expectedJSON, '\n'), body,
         "response should be JSON with status OK")
 }
 
