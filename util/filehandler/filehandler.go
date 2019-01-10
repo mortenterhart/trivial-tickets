@@ -2,11 +2,14 @@ package filehandler
 
 import (
     "encoding/json"
+    "fmt"
     "io/ioutil"
     "log"
     "os"
+    "path"
 
     "github.com/mortenterhart/trivial-tickets/structs"
+    "github.com/pkg/errors"
 )
 
 /*
@@ -26,7 +29,7 @@ func ReadUserFile(src string, users *map[string]structs.User) error {
     fileContent, errReadFile := ioutil.ReadFile(src)
 
     if errReadFile != nil {
-        log.Print(errReadFile)
+        log.Println(errReadFile)
         return errReadFile
     }
 
@@ -34,7 +37,7 @@ func ReadUserFile(src string, users *map[string]structs.User) error {
     errUnmarshal := json.Unmarshal(fileContent, users)
 
     if errUnmarshal != nil {
-        log.Print(errUnmarshal)
+        log.Println(errUnmarshal)
         return errUnmarshal
     }
 
@@ -61,7 +64,7 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 
         errCreateFolders := CreateFolders(path)
         if errCreateFolders != nil {
-            log.Print(errCreateFolders)
+            log.Println(errCreateFolders)
             return errCreateFolders
         }
     }
@@ -70,7 +73,7 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
     marshalTicket, errMarshalTicket := json.MarshalIndent(ticket, "", "   ")
 
     if errMarshalTicket != nil {
-        log.Print(errMarshalTicket)
+        log.Println(errMarshalTicket)
         return errMarshalTicket
     }
 
@@ -79,6 +82,65 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 
     // Write the file to the given path
     return ioutil.WriteFile(finalPath, marshalTicket, 0644)
+}
+
+// WriteMailFile takes a mail and converts it into the JSON format to
+// write it into its own file. The directory parameter is a path to
+// a directory in which the new file is saved. If it does not exist yet
+// it will be created.
+func WriteMailFile(directory string, mail *structs.Mail) error {
+
+    if _, existsErr := os.Stat(directory); os.IsNotExist(existsErr) {
+
+        createFoldersErr := CreateFolders(directory)
+        if createFoldersErr != nil {
+            return wrapAndLogError(createFoldersErr, fmt.Sprintf("could not create directory '%s'", directory))
+        }
+    }
+
+    marshaledMail, marshalErr := json.MarshalIndent(mail, "", "   ")
+    if marshalErr != nil {
+        return wrapAndLogError(marshalErr, "could not convert mail to JSON")
+    }
+
+    mailFilePath := path.Join(directory, mail.Id+".json")
+
+    writeErr := ioutil.WriteFile(mailFilePath, marshaledMail, 0644)
+    if writeErr != nil {
+        return wrapAndLogError(writeErr, fmt.Sprintf("error while writing file '%s'", mailFilePath))
+    }
+
+    return nil
+}
+
+func ReadMailFiles(directory string) (*[]structs.Mail, error) {
+    mailFiles, readErr := ioutil.ReadDir(directory)
+    if readErr != nil {
+        return nil, wrapAndLogError(readErr, "error while reading mail files")
+    }
+
+    mails := []structs.Mail{}
+    for _, file := range mailFiles {
+        jsonMail, readErr := ioutil.ReadFile(path.Join(directory, file.Name()))
+        if readErr != nil {
+            return nil, wrapAndLogError(readErr, "error while reading mail files")
+        }
+
+        var parsedMail structs.Mail
+        if parseErr := json.Unmarshal(jsonMail, &parsedMail); parseErr != nil {
+            return nil, wrapAndLogError(parseErr, "could not convert JSON mail")
+        }
+
+        mails = append(mails, parsedMail)
+    }
+
+    return &mails, nil
+}
+
+func wrapAndLogError(err error, wrapErrorMessage string) error {
+    wrappedError := errors.Wrap(err, wrapErrorMessage)
+    log.Println(wrappedError)
+    return wrappedError
 }
 
 // CreateFolders creates the folders specified in the parameter
@@ -92,7 +154,7 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
     // Get all the files in given directory
     files, err := ioutil.ReadDir(path)
     if err != nil {
-        log.Print(err)
+        log.Println(err)
         return err
     }
 
@@ -103,7 +165,7 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
         fileContent, errReadFile := ioutil.ReadFile(path + "/" + f.Name())
 
         if errReadFile != nil {
-            log.Print(errReadFile)
+            log.Println(errReadFile)
             return errReadFile
         } else {
             // Create a ticket struct to hold the file contents
@@ -113,7 +175,7 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
             errUnmarshal := json.Unmarshal(fileContent, &ticket)
 
             if errUnmarshal != nil {
-                log.Print(errUnmarshal)
+                log.Println(errUnmarshal)
                 return errUnmarshal
             } else {
                 // Store the ticket in the tickets hashmap

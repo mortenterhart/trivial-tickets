@@ -3,6 +3,7 @@ package api_in
 import (
     "encoding/json"
     "fmt"
+    "github.com/mortenterhart/trivial-tickets/util/httptools"
     "io/ioutil"
     "log"
     "net/http"
@@ -102,7 +103,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
         // Read the request body
         body, readErr := ioutil.ReadAll(request.Body)
         if readErr != nil {
-            http.Error(writer, fmt.Sprintf("unable to read request body: %s", readErr), http.StatusInternalServerError)
+            httptools.StatusCodeError(writer, fmt.Sprintf("unable to read request body: %s", readErr), http.StatusInternalServerError)
             return
         }
 
@@ -110,21 +111,21 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
         // for further investigation
         parseErr := json.Unmarshal(body, &jsonProperties)
         if parseErr != nil {
-            http.Error(writer, fmt.Sprintf("unable to parse JSON due to invalid syntax: %s", parseErr), http.StatusBadRequest)
+            httptools.StatusCodeError(writer, fmt.Sprintf("unable to parse JSON due to invalid syntax: %s", parseErr), http.StatusBadRequest)
             return
         }
 
         // Check if all JSON properties required by the API are set
         propErr := checkRequiredPropertiesSet()
         if propErr != nil {
-            http.Error(writer, fmt.Sprintf("missing required properties in JSON: %s", propErr), http.StatusBadRequest)
+            httptools.StatusCodeError(writer, fmt.Sprintf("missing required properties in JSON: %s", propErr.Error()), http.StatusBadRequest)
             return
         }
 
         // Check if no additional JSON properties are defined
         propErr = checkAdditionalPropertiesSet()
         if propErr != nil {
-            http.Error(writer, fmt.Sprintf("too many JSON properties given: %s", propErr), http.StatusBadRequest)
+            httptools.StatusCodeError(writer, fmt.Sprintf("too many JSON properties given: %s", propErr), http.StatusBadRequest)
             return
         }
 
@@ -132,7 +133,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
         // the properties are of the correct data types
         typeErr := checkCorrectPropertyTypes()
         if typeErr != nil {
-            http.Error(writer, fmt.Sprintf("properties have invalid data types: %s", typeErr), http.StatusBadRequest)
+            httptools.StatusCodeError(writer, fmt.Sprintf("properties have invalid data types: %s", typeErr), http.StatusBadRequest)
             return
         }
 
@@ -145,7 +146,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
         // Validate the email address syntax using the above regular expression
         if !validEmailAddress(mail.Email) {
-            http.Error(writer, fmt.Sprintf("invalid email address given: '%s'", mail.Email), http.StatusBadRequest)
+            httptools.StatusCodeError(writer, fmt.Sprintf("invalid email address given: '%s'", mail.Email), http.StatusBadRequest)
             return
         }
 
@@ -193,13 +194,20 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
         globals.Tickets[createdTicket.Id] = createdTicket
         filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &createdTicket)
 
-        // The request was processed successfully
-        writer.Write([]byte(buildJSONResponseStatus(http.StatusOK, "OK") + "\n"))
+        // Construct a JSON response with successful status and message
+        // and write it into the response writer
+        httptools.JsonResponse(writer, map[string]interface{}{
+            "status": http.StatusOK,
+            "message": http.StatusText(http.StatusOK),
+        })
         return
     }
 
     // The handler does not accept any other method than POST
-    http.Error(writer, buildJSONResponseStatus(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED"), http.StatusMethodNotAllowed)
+    httptools.JsonError(writer, map[string]interface{}{
+        "status": http.StatusMethodNotAllowed,
+        "message": fmt.Sprintf("METHOD_NOT_ALLOWED (%s)", request.Method),
+    }, http.StatusMethodNotAllowed)
 }
 
 func convertStatusToString(status structs.State) string {

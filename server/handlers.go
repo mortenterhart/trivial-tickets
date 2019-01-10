@@ -210,7 +210,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
         status := template.HTMLEscapeString(r.FormValue("status"))
         mail := template.HTMLEscapeString(r.FormValue("mail"))
         reply := template.HTMLEscapeString(r.FormValue("reply"))
-        replyType := template.HTMLEscapeString(r.FormValue("replyType"))
+        replyType := template.HTMLEscapeString(r.FormValue("reply_type"))
         merge := template.HTMLEscapeString(r.FormValue("merge"))
 
         // Get the ticket which was edited
