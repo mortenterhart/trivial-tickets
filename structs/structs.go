@@ -17,6 +17,7 @@ type Config struct {
 	Port    int16
 	Tickets string
 	Users   string
+	Mails   string
 	Cert    string
 	Key     string
 	Web     string
@@ -42,7 +43,7 @@ type User struct {
 	Id          string `json:"Id"`
 	Name        string `json:"Name"`
 	Username    string `json:"Username"`
-	Mail        string `json:"Email"`
+	Mail        string `json:"Mail"`
 	Hash        string `json:"Hash"`
 	IsOnHoliday bool   `json:"IsOnHoliday"`
 }
@@ -91,9 +92,10 @@ const (
 	CLOSED
 )
 
-// Email struct holds the information for a received email in order
+// Mail struct holds the information for a received email in order
 // to create new tickets or answers
 type Mail struct {
+	Id      string `json:"id"`
 	Email   string `json:"email"`
 	Subject string `json:"subject"`
 	Message string `json:"message"`

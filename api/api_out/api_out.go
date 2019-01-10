@@ -5,13 +5,13 @@ import (
 )
 
 // Construct a mail and save it to cache
-func CacheMailToSend(email, subject, message string) {
+func SendMail(email, subject, message string) {
 	/*mail := structs.Mail{
-		Email:   email,
-		Subject: subject,
-		Message: message,
+	    Id:      random.CreateRandomId(10),
+	    Email:   email,
+	    Subject: subject,
+	    Message: message,
 	}*/
-
 
 }
 

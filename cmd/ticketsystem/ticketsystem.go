@@ -41,6 +41,7 @@ func initConfig() (structs.Config, error) {
 	port := flag.Int("port", 8443, "Port on which the web server will run")
 	tickets := flag.String("tickets", "../../files/tickets", "Folder in which the tickets will be stored")
 	users := flag.String("users", "../../files/users/users.json", "Path where the users file is stored")
+	mails := flag.String("mails", "../../files/mails", "Directory in which the mails will be cached")
 	cert := flag.String("cert", "../../ssl/server.cert", "Location of the ssl certificate")
 	key := flag.String("key", "../../ssl/server.key", "Location of the ssl key file")
 	web := flag.String("web", "../../www", "Location of the www folder")
@@ -58,6 +59,7 @@ func initConfig() (structs.Config, error) {
 		Port:    int16(*port),
 		Tickets: *tickets,
 		Users:   *users,
+		Mails:   *mails,
 		Cert:    *cert,
 		Key:     *key,
 		Web:     *web}, nil

@@ -1,12 +1,12 @@
 package ticket
 
 import (
-	"github.com/mortenterhart/trivial-tickets/util/random"
 	"sort"
 	"strconv"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/random"
 )
 
 // CreateTicket takes the arguments from either web or the mail api and returns a populated ticket
@@ -108,4 +108,3 @@ func UnassignTicket(currentTicket structs.Ticket) structs.Ticket {
 
 	return currentTicket
 }
-

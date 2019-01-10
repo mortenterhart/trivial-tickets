@@ -110,6 +110,8 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Redirect the user to the ticket page
 		http.Redirect(w, r, "/ticket?id="+newTicket.Id, http.StatusFound)
+
+		return
 	}
 
 	// If there is any other request, just redirect to index
@@ -208,14 +210,14 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		status := template.HTMLEscapeString(r.FormValue("status"))
 		mail := template.HTMLEscapeString(r.FormValue("mail"))
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
-		reply_type := template.HTMLEscapeString(r.FormValue("reply_type"))
+		replyType := template.HTMLEscapeString(r.FormValue("replyType"))
 		merge := template.HTMLEscapeString(r.FormValue("merge"))
 
 		// Get the ticket which was edited
 		currentTicket := globals.Tickets[ticketId]
 
 		// Update the current ticket
-		updatedTicket := ticket.UpdateTicket(status, mail, reply, reply_type, currentTicket)
+		updatedTicket := ticket.UpdateTicket(status, mail, reply, replyType, currentTicket)
 
 		if merge != "" {
 			// Get the ticket to merge from the tickets map
@@ -248,8 +250,8 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Publish mail if the reply was selected for external
-		if reply_type == "extern" {
-			api_out.CacheMailToSend(updatedTicket.Customer, updatedTicket.Subject, reply)
+		if replyType == "extern" {
+			api_out.SendMail(updatedTicket.Customer, updatedTicket.Subject, reply)
 		}
 
 		// Redirect to the ticket again, now with updated Values
