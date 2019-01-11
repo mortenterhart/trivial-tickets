@@ -24,13 +24,13 @@ var get = makeGetRequest
 
 // FetchEmails sends a Get request to the path api/fetchMails of the server specified in the cliConfig and expects the JSON of an array of structs.Mail in the body of the response.
 // The function returns the structs.Mail it received.
-func FetchEmails() (mails []structs.Mail, err error) {
+func FetchEmails() (mails map[string]structs.Mail, err error) {
 	response, err := get("api/fetchMails")
 	if err != nil {
 		err = fmt.Errorf("error occured while making the get request: %v", err)
 		return
 	}
-	json.Unmarshal([]byte(response), &mails)
+	err = json.Unmarshal([]byte(response), &mails)
 	if err != nil {
 		err = fmt.Errorf("error occured while unmarshaling the JSON: %v", err)
 		return
@@ -40,7 +40,8 @@ func FetchEmails() (mails []structs.Mail, err error) {
 
 // AcknowledgeEmailReception sends a post request with the id of the received EMail to the server.
 func AcknowledgeEmailReception(mail structs.Mail) (err error) {
-	_, err = post(mail.Id, "api/verifyMail")
+	jsonID := `{"id":"` + mail.Id + `"}`
+	_, err = post(jsonID, "api/verifyMail")
 	if err != nil {
 		err = fmt.Errorf("email acknowledgment failed: %v", err)
 	}

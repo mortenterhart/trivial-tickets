@@ -27,8 +27,8 @@ func TestFetchEmails(t *testing.T) {
 		To:      "example@gmx.com",
 		Subject: "this is a subject",
 		Message: "The message"}
-	testMails := make([]structs.Mail, 0)
-	testMails = append(testMails, testMail, testMail)
+	testMails := make(map[string]structs.Mail)
+	testMails[testMail.Id] = testMail
 	jsonMail, _ := json.MarshalIndent(&testMails, "", "	")
 	outputResponse = string(jsonMail)
 	outputErr = nil
@@ -225,7 +225,7 @@ func TestAcknowledgeEmailReception(t *testing.T) {
 	}
 	acknowledgementError := AcknowledgeEmailReception(testMail)
 
-	assert.Equal(t, testMail.Id, inputPayload)
+	assert.Equal(t, `{"id":"`+testMail.Id+`"}`, inputPayload)
 	assert.NoError(t, acknowledgementError)
 	assert.Equal(t, "api/verifyMail", inputPath)
 }
