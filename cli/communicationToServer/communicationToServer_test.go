@@ -39,7 +39,7 @@ func TestFetchEmails(t *testing.T) {
 
 }
 
-func TestMakeGetRequest(t *testing.T) {
+func TestRequests(t *testing.T) {
 	clientConfigured = false
 	conf := structs.CLIConfig{
 		IPAddr: "localhost",
@@ -64,48 +64,107 @@ func TestMakeGetRequest(t *testing.T) {
 		responseWriter.Write([]byte(responseMessage))
 	})
 
-	t.Run("verifyInputs", func(t *testing.T) {
-		inputPath := "the/path"
-		responseCode = 200
-		makeGetRequest(inputPath)
+	t.Run("TestMakeGetRequest", func(t *testing.T) {
 
-		assert.Equal(t, "GET", requestMethod)
-		assert.Equal(t, "", requestPayload)
-		assert.Contains(t, requestURI, inputPath)
+		t.Run("verifyInputs", func(t *testing.T) {
+			inputPath := "the/path"
+			responseCode = 200
+			makeGetRequest(inputPath)
+
+			assert.Equal(t, "GET", requestMethod)
+			assert.Equal(t, "", requestPayload)
+			assert.Contains(t, requestURI, inputPath)
+		})
+
+		t.Run("verifyOutputs", func(t *testing.T) {
+			responseCode = 200
+			responseMessage = "theResponse"
+			response, getRequestError := makeGetRequest("")
+
+			assert.NoError(t, getRequestError)
+			assert.Equal(t, responseMessage, response)
+		})
+
+		t.Run("verifyServerError", func(t *testing.T) {
+			responseCode = 500
+			response, getRequestError := makeGetRequest("")
+
+			errorOccured := getRequestError != nil
+			assert.True(t, errorOccured)
+			if errorOccured {
+				assert.Contains(t, getRequestError.Error(), "received error status code:")
+			}
+			assert.Equal(t, "", response)
+		})
+
+		t.Run("verifyRequestError", func(t *testing.T) {
+			conf.IPAddr = "notAnIPAddress"
+			SetServerConfig(conf)
+			response, getRequestError := makeGetRequest("")
+
+			errorOccured := getRequestError != nil
+			assert.True(t, errorOccured)
+			if errorOccured {
+				assert.Contains(t, getRequestError.Error(), "error sending get request:")
+			}
+			assert.Equal(t, "", response)
+		})
+
 	})
 
-	t.Run("verifyOutputs", func(t *testing.T) {
-		responseCode = 200
-		responseMessage = "theResponse"
-		response, getRequestError := makeGetRequest("")
+	t.Run("TestMakePostRequest", func(t *testing.T) {
 
-		assert.NoError(t, getRequestError)
-		assert.Equal(t, responseMessage, response)
-	})
-
-	t.Run("verifyServerError", func(t *testing.T) {
-		responseCode = 500
-		response, getRequestError := makeGetRequest("")
-
-		errorOccured := getRequestError != nil
-		assert.True(t, errorOccured)
-		if errorOccured {
-			assert.Contains(t, getRequestError.Error(), "received error status code:")
-		}
-		assert.Equal(t, "", response)
-	})
-
-	t.Run("verifyRequestError", func(t *testing.T) {
-		conf.IPAddr = "notAnIPAddress"
+		conf := structs.CLIConfig{
+			IPAddr: "localhost",
+			Port:   4443,
+			Cert:   "../../ssl/server.cert"}
 		SetServerConfig(conf)
-		response, getRequestError := makeGetRequest("")
 
-		errorOccured := getRequestError != nil
-		assert.True(t, errorOccured)
-		if errorOccured {
-			assert.Contains(t, getRequestError.Error(), "error sending get request:")
-		}
-		assert.Equal(t, "", response)
+		t.Run("verifyInputs", func(t *testing.T) {
+			requestMessage := "someString"
+			requestPath := "somePath"
+			responseCode = 200
+			_, sendError := makePostRequest(requestMessage, requestPath)
+
+			assert.NoError(t, sendError)
+			assert.Equal(t, requestMessage, requestPayload)
+			assert.Contains(t, requestURI, requestPath)
+
+		})
+
+		t.Run("verifyOutputs", func(t *testing.T) {
+			responseMessage = "theResponse"
+			responseCode = 200
+			response, sendError := makePostRequest("", "")
+
+			assert.Equal(t, responseMessage, response)
+			assert.NoError(t, sendError)
+		})
+
+		t.Run("verifyServerError", func(t *testing.T) {
+			responseCode = 404
+			response, sendError := makePostRequest("", "")
+
+			errorOccured := sendError != nil
+			assert.True(t, errorOccured)
+			if errorOccured {
+				assert.Contains(t, sendError.Error(), "error with https request. Status code:")
+			}
+			assert.Equal(t, "", response)
+
+		})
+
+		t.Run("verifyPostError", func(t *testing.T) {
+			conf.IPAddr = "notAnIPAddress"
+			SetServerConfig(conf)
+			response, sendError := makePostRequest("", "")
+			assert.Equal(t, "", response)
+			errorOccurred := sendError != nil
+			assert.True(t, errorOccurred)
+			if errorOccurred {
+				assert.Contains(t, sendError.Error(), "error sending post request: ")
+			}
+		})
 	})
 }
 
@@ -149,74 +208,6 @@ func TestInitializeClient(t *testing.T) {
 	assert.True(t, clientConfigured)
 	assert.Equal(t, 5*time.Second, client.Timeout)
 	assert.NotEqual(t, http.Transport{}, client.Transport)
-}
-
-func TestMakePostRequest(t *testing.T) {
-	clientConfigured = false
-	conf := structs.CLIConfig{
-		IPAddr: "localhost",
-		Port:   4443,
-		Cert:   "../../ssl/server.cert"}
-	SetServerConfig(conf)
-	var requestURI string
-	var requestPayload string
-	var responseMessage string
-	var responseCode int
-	go http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", conf.Port), "../../ssl/server.cert", "../../ssl/server.key", nil)
-	http.HandleFunc("/", func(responseWriter http.ResponseWriter, request *http.Request) {
-		requestURI = request.RequestURI
-		data, err := ioutil.ReadAll(request.Body)
-		if err != nil {
-			responseCode = 500
-		}
-		requestPayload = string(data)
-		responseWriter.WriteHeader(responseCode)
-		responseWriter.Write([]byte(responseMessage))
-	})
-	t.Run("verifyInputs", func(t *testing.T) {
-		requestMessage := "someString"
-		requestPath := "somePath"
-		responseCode = 200
-		_, sendError := makePostRequest(requestMessage, requestPath)
-
-		assert.NoError(t, sendError)
-		assert.Equal(t, requestMessage, requestPayload)
-		assert.Contains(t, requestURI, requestPath)
-	})
-
-	t.Run("verifyOutputs", func(t *testing.T) {
-		responseMessage = "theResponse"
-		responseCode = 200
-		response, sendError := makePostRequest("", "")
-
-		assert.Equal(t, responseMessage, response)
-		assert.NoError(t, sendError)
-	})
-
-	t.Run("verifyServerError", func(t *testing.T) {
-		responseCode = 404
-		response, sendError := makePostRequest("", "")
-
-		errorOccured := sendError != nil
-		assert.True(t, errorOccured)
-		if errorOccured {
-			assert.Contains(t, sendError.Error(), "error with https request. Status code:")
-		}
-		assert.Equal(t, "", response)
-
-	})
-
-	t.Run("verifyPostError", func(t *testing.T) {
-		conf.IPAddr = "notAnIPAddress"
-		SetServerConfig(conf)
-		response, sendError := makePostRequest("", "")
-		assert.Equal(t, "", response)
-		errorOccurred := sendError != nil
-		assert.True(t, errorOccurred)
-		if errorOccurred {
-			assert.Contains(t, sendError.Error(), "error sending post request: ")
-		}
-	})
 }
 
 func TestAcknowledgeEmailReception(t *testing.T) {

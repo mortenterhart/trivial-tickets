@@ -1,7 +1,6 @@
 package communicationToServer
 
 import (
-	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -13,6 +12,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -82,12 +82,12 @@ func makePostRequest(payload string, path string) (response string, err error) {
 	if !clientConfigured {
 		initializeClient()
 	}
-	buffer := bytes.NewBufferString(payload)
+	reader := strings.NewReader(payload)
 	url := "https://" + serverConfig.IPAddr + ":" + strconv.Itoa(int(serverConfig.Port)) + "/" + path
 	//if url[len(url)-1] != '/' {
 	//	url += "/"
 	//}
-	resp, err := client.Post(url, "application/json", buffer)
+	resp, err := client.Post(url, "application/json", reader)
 	if err != nil {
 		return "", fmt.Errorf("error sending post request: %v", err)
 	}
