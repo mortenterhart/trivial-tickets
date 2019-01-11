@@ -14,6 +14,8 @@ func main() {
 
 	conf, fetch, submit, mail := getConfig()
 	communicationToServer.SetServerConfig(conf)
+
+	//based on the flags submit and fetch either start the commandLoop or directly invoke FetchEmail / SubmitEmail
 	switch {
 	case !submit && !fetch:
 		commandLoop()
@@ -44,9 +46,11 @@ func main() {
 // Based on these parameters the IP address of the server and its port should be selected.
 // The Parameters should also offer a way to directly invoke the send / fetch mail commands.
 
+// getConfig parses the command line flags. It returns a CLIConfig struct, a mail struct and the fetch and submit flags as boolean.
+// The port number is checked to be valid. There are no checks performed on the validity of the created Mail struct.
 func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail structs.Mail) {
 	IPAddr := flag.String("ip", "localhost", "IP address of the server")
-	port := flag.Uint("port", 443, "Port the server listens to")
+	port := flag.Uint("port", 8443, "Port the server listens to")
 	cert := flag.String("cert", "./ssl/server.cert", "Location of the ssl certificate")
 	f := flag.Bool("f", false, "fetch (fetch): If set, the application will fetch all messages from the server.")
 	s := flag.Bool("s", false, "Use to submit a message to the server. Requires -email, -subject, -message. The use of -tID is optional.")
@@ -72,6 +76,8 @@ func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail structs.
 	return
 }
 
+// commandLoop is called when neither the fetch nor the submit flag are set. It guides the User through the operation of the CLI.
+// commandLoop returns when either the user selects an exit command, when the user fails to input a valid command N times in a row, or when FetchEmails / SubmitEmail returns an error
 func commandLoop() {
 	ok := true
 	for ok {
