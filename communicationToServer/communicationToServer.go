@@ -35,16 +35,16 @@ func FetchEmails() (mails []structs.Mail, err error) {
 
 // AcknowledgeEmailReception sends a post request with the id of the received EMail to the server.
 func AcknowledgeEmailReception(mail structs.Mail) (err error) {
+	_, err = send(mail.Id, "api/verifyMail")
+	if err != nil {
+		err = fmt.Errorf("email acknowledgment failed: %v", err)
+	}
 	return
 }
 
 // SubmitEmail takes a structs.Mail and sens it to the server as JSON per post request.
-func SubmitEmail(mail structs.Mail) (err error) {
-	jsonMail, err := json.Marshal(&mail)
-	if err != nil {
-		return
-	}
-	resp, err := send(string(jsonMail), "api/receive")
+func SubmitEmail(mail string) (err error) {
+	resp, err := send(mail, "api/receive")
 	println(resp)
 	return
 }

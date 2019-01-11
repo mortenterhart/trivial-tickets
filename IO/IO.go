@@ -48,7 +48,7 @@ func OutputMessageToCommandLine(output structs.Message) {
 func PrintEmail(mail structs.Mail) {
 	fmt.Fprintf(writer, "Receiver: %s\n\n"+
 		"Subject: %s\n\n"+
-		"%s", mail.Email, mail.Subject, mail.Message)
+		"%s", mail.To, mail.Subject, mail.Message)
 }
 
 func getEmailAddress() (addr string, err error) {
@@ -92,13 +92,13 @@ func NextCommand() (com structs.Command, err error) {
 	}
 }
 
-func GetEmail() (structs.Mail, error) {
+func GetEmail() (jsonMail string, err error) {
 	counter := 0
 	output(structs.RequestEmailAddress)
 	emailAddress, err := readEmailAddress()
 	for err != nil {
 		if counter > 10 {
-			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
 		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestEmailAddress)
 		emailAddress, err = readEmailAddress()
@@ -109,7 +109,7 @@ func GetEmail() (structs.Mail, error) {
 	ticketID, err := readString()
 	for err != nil && err.Error() != string(structs.EmptyString) {
 		if counter > 10 {
-			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
 		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestTicketID)
 		ticketID, err = readString()
@@ -120,7 +120,7 @@ func GetEmail() (structs.Mail, error) {
 	subject, err := readString()
 	for err != nil {
 		if counter > 10 {
-			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
 		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestSubject)
 		subject, err = readString()
@@ -131,7 +131,7 @@ func GetEmail() (structs.Mail, error) {
 	message, err := readString()
 	for err != nil {
 		if counter > 10 {
-			return structs.Mail{}, errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
+			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
 		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestMessage)
 		message, err = readString()

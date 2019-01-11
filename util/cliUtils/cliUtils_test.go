@@ -1,7 +1,6 @@
 package cliUtils
 
 import (
-	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -10,7 +9,7 @@ func TestCreateSubjectLine(t *testing.T) {
 	subjectline := createSubjectLine("abcd", "")
 	assert.Equal(t, "abcd", subjectline)
 	subjectline = createSubjectLine("abcd", "3FM")
-	assert.Equal(t, "[Ticket \"3FM\"] abcd", subjectline)
+	assert.Equal(t, "[Ticket \\\"3FM\\\"] abcd", subjectline)
 }
 
 func TestCreateMail(t *testing.T) {
@@ -18,10 +17,7 @@ func TestCreateMail(t *testing.T) {
 	subj := "Search field broken"
 	tID := "12ab3"
 	mes := "a message"
-	expected := structs.Mail{
-		Email:   eMailAddr,
-		Subject: "[Ticket \"" + tID + "\"] " + subj,
-		Message: mes}
+	expected := `{"from":"john.doe@example.com", "subject":"[Ticket \"12ab3\"] Search field broken", "message": "a message"}`
 	actual := CreateMail(eMailAddr, subj, tID, mes)
 	assert.Equal(t, expected, actual)
 }

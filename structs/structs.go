@@ -101,7 +101,9 @@ const (
 // Email struct holds the information for a received email in order
 // to create new tickets or answers
 type Mail struct {
-	Email   string `json:"email"`
+	Id      string `json:"id"`
+	From    string `json:"from"`
+	To      string `json:"to"`
 	Subject string `json:"subject"`
 	Message string `json:"message"`
 }

@@ -1,7 +1,6 @@
 package cliUtils
 
 import (
-	"github.com/mortenterhart/trivial-tickets/structs"
 	"regexp"
 )
 
@@ -9,7 +8,7 @@ import (
 // The ticketID in the subjectLine is used by the API to assign the message to an already existing ticket.
 func createSubjectLine(subject string, ticketID string) (subjectLine string) {
 	if ticketID != "" {
-		subjectLine = "[Ticket \"" + ticketID + "\"] "
+		subjectLine = "[Ticket \\\"" + ticketID + "\\\"] "
 	}
 	subjectLine += subject
 	return
@@ -18,12 +17,9 @@ func createSubjectLine(subject string, ticketID string) (subjectLine string) {
 // CreateMail returns a structs.Mail created with the input parameters.
 // It expects the input parameters to be valid, no checks are being done on them.
 // Internally it relies on the createSubjectLine function.
-func CreateMail(eMailAddress string, subject string, ticketID string, message string) structs.Mail {
-	mail := structs.Mail{
-		Email:   eMailAddress,
-		Subject: createSubjectLine(subject, ticketID),
-		Message: message}
-	return mail
+func CreateMail(eMailAddress string, subject string, ticketID string, message string) (mailJson string) {
+	mailJson = `{"from":"` + eMailAddress + `", "subject":"` + createSubjectLine(subject, ticketID) + `", "message": "` + message + `"}`
+	return
 }
 
 // CheckEmailAddress returns true if the input string is a syntactically correct email address.
