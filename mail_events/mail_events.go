@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net/url"
 	"strings"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
@@ -33,7 +34,10 @@ func NewMailBody(event Event, ticket structs.Ticket) string {
 	var eventMessage string
 	switch event {
 	case NewTicket:
-		eventMessage = "Ihr Ticket '{{.ticketId}}' ist erfolgreich erstellt worden:\n"
+		eventMessage = "Ihr Ticket '{{.ticketId}}' ist erfolgreich erstellt worden.\n" +
+			fmt.Sprintf("Wenn Sie eine neuen Kommentar zu diesem Ticket schreiben wollen, nutzen Sie bitte "+
+				"den folgenden Link: mailto:support@trivial-tickets.com?subject=%s",
+				url.PathEscape(fmt.Sprintf(`[Ticket "%s"] %s`, ticket.Id, ticket.Subject)))
 
 	case NewAnswer:
 		displayLatestAnswer = true
