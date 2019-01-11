@@ -3,11 +3,11 @@ package api_out
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/mail_events"
 	"log"
 	"net/http"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/mail_events"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 	"github.com/mortenterhart/trivial-tickets/util/httptools"
@@ -15,7 +15,7 @@ import (
 	"github.com/mortenterhart/trivial-tickets/util/random"
 )
 
-// Construct a mail_events and save it to cache
+// Construct a mail and save it to cache
 func SendMail(mailEvent mail_events.Event, ticket structs.Ticket) {
 	newMail := structs.Mail{
 		Id:      random.CreateRandomId(10),
@@ -29,7 +29,7 @@ func SendMail(mailEvent mail_events.Event, ticket structs.Ticket) {
 
 	writeErr := filehandler.WriteMailFile(globals.ServerConfig.Mails, &newMail)
 	if writeErr != nil {
-		log.Printf("unable to send newMail to '%s': %s\n", ticket.Customer, writeErr)
+		log.Printf("unable to send mail to '%s': %s\n", ticket.Customer, writeErr)
 	}
 }
 
@@ -57,8 +57,8 @@ func FetchMails(writer http.ResponseWriter, request *http.Request) {
 }
 
 // Input: JSON {"id":"<mail_id>"}
-// Output: JSON {"sent":true/false,"message":"mail_events id does not exist"}
-// VerifyMailSent gets a mail_events id and verifies the mail_events with the id is cached
+// Output: JSON {"sent":true/false,"message":"mail id does not exist"}
+// VerifyMailSent gets a mail id and verifies the mail with the id is cached
 // and exists, then deletes it because the sending is verified, otherwise sending
 // is retried on next call to FetchMails
 func VerifyMailSent(writer http.ResponseWriter, request *http.Request) {
@@ -95,7 +95,7 @@ func VerifyMailSent(writer http.ResponseWriter, request *http.Request) {
 		if _, mailExists := globals.Mails[mailId]; !mailExists {
 			httptools.JsonResponse(writer, structs.JsonMap{
 				"verified": false,
-				"message":  fmt.Sprintf("mail_events '%s' does not exist or has already been deleted", mailId),
+				"message":  fmt.Sprintf("mail '%s' does not exist or has already been deleted", mailId),
 			})
 			return
 		}
@@ -103,14 +103,14 @@ func VerifyMailSent(writer http.ResponseWriter, request *http.Request) {
 		delete(globals.Mails, mailId)
 
 		if removeErr := filehandler.RemoveMailFile(mailId); removeErr != nil {
-			httptools.StatusCodeError(writer, fmt.Sprintf("error while trying to remove mail_events: %s", removeErr),
+			httptools.StatusCodeError(writer, fmt.Sprintf("error while trying to remove mail: %s", removeErr),
 				http.StatusInternalServerError)
 			return
 		}
 
 		httptools.JsonResponse(writer, structs.JsonMap{
 			"verified": true,
-			"message":  fmt.Sprintf("mail_events '%s' was successfully sent and deleted from server cache", mailId),
+			"message":  fmt.Sprintf("mail '%s' was successfully sent and deleted from server cache", mailId),
 		})
 		return
 	}
