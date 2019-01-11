@@ -3,9 +3,8 @@ package api_in
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/ticket"
-	"github.com/mortenterhart/trivial-tickets/util/filehandler"
+	"github.com/mortenterhart/trivial-tickets/api/api_out"
+	"github.com/mortenterhart/trivial-tickets/mail_events"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -14,7 +13,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/ticket"
+	"github.com/mortenterhart/trivial-tickets/util/filehandler"
+	"github.com/mortenterhart/trivial-tickets/util/httptools"
 	"github.com/pkg/errors"
 )
 
@@ -64,21 +67,31 @@ import (
  *          an API call with mail contents in the correct JSON format.
  */
 
-type jsonMap map[string]interface{}
+/*
+ * Vorschläge/Umsetzung:
+ * - verifyMail API bekommt Id zum Bestätigen des Versendens
+ *     wenn Mail Id existiert, wird die Mail gelöscht
+ *     wenn Mail Id nicht existiert, wird ein Fehler zurückgegeben
+ * - Eingabefeld auf Startseite, um direkt mittels Redirect in JavaScript zu einem Ticket zu kommen
+ *     Es muss die genaue Id eingegeben werden, dann wird man auf localhost:<Port>/ticket?id=<id> weitergeleitet
+ * - Sortierfunktion in Ticketliste implementieren
+ * - Bash-Skript zum Benchmark des Zeitpunktes des Ticketschreibens in ReceiveMail API
+ *   mit 2 gleichzeitigen curl-Aufrufen
+ *
+ *       curl ... & curl ... # einmal im Vordergrund und einmal im Hintergrund ein Job mittels '&'
+ */
 
-var answerSubjectRegex = regexp.MustCompile(`\[Ticket "([A-Za-z0-9]+)"\]\s*[A-Za-z0-9_\s"'\.,+=\[\]()@/&$§!#-]*`)
+var answerSubjectRegex = regexp.MustCompile(`\[Ticket "([A-Za-z0-9]+)"\].*`)
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
 
 var stringType = reflect.TypeOf("")
 
 var apiParameters = map[string]reflect.Type{
-	"email":   stringType,
+	"from":    stringType,
 	"subject": stringType,
 	"message": stringType,
 }
-
-var jsonProperties = make(jsonMap)
 
 func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
@@ -88,50 +101,53 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 		// Read the request body
 		body, readErr := ioutil.ReadAll(request.Body)
 		if readErr != nil {
-			http.Error(writer, fmt.Sprintf("unable to read request body: %s", readErr), http.StatusInternalServerError)
+			httptools.StatusCodeError(writer, fmt.Sprintf("unable to read request body: %s", readErr),
+				http.StatusInternalServerError)
 			return
 		}
 
-		// Decode JSON message and save it in global map jsonProperties
+		// Decode JSON message and save it in jsonProperties map
 		// for further investigation
-		parseErr := json.Unmarshal(body, &jsonProperties)
-		if parseErr != nil {
-			http.Error(writer, fmt.Sprintf("unable to parse JSON due to invalid syntax: %s", parseErr), http.StatusBadRequest)
+		var jsonProperties structs.JsonMap
+		if parseErr := json.Unmarshal(body, &jsonProperties); parseErr != nil {
+			httptools.StatusCodeError(writer, fmt.Sprintf("unable to parse JSON due to invalid syntax: %s", parseErr),
+				http.StatusBadRequest)
 			return
 		}
 
 		// Check if all JSON properties required by the API are set
-		propErr := checkRequiredPropertiesSet()
-		if propErr != nil {
-			http.Error(writer, fmt.Sprintf("missing required properties in JSON: %s", propErr), http.StatusBadRequest)
+		if propErr := checkRequiredPropertiesSet(jsonProperties); propErr != nil {
+			httptools.StatusCodeError(writer, fmt.Sprintf("missing required properties in JSON: %s", propErr.Error()),
+				http.StatusBadRequest)
 			return
 		}
 
 		// Check if no additional JSON properties are defined
-		propErr = checkAdditionalPropertiesSet()
-		if propErr != nil {
-			http.Error(writer, fmt.Sprintf("too many JSON properties given: %s", propErr), http.StatusBadRequest)
+		if propErr := checkAdditionalPropertiesSet(jsonProperties); propErr != nil {
+			httptools.StatusCodeError(writer, fmt.Sprintf("too many JSON properties given: %s", propErr),
+				http.StatusBadRequest)
 			return
 		}
 
 		// If all required properties are given, check further if
 		// the properties are of the correct data types
-		typeErr := checkCorrectPropertyTypes()
-		if typeErr != nil {
-			http.Error(writer, fmt.Sprintf("properties have invalid data types: %s", typeErr), http.StatusBadRequest)
+		if typeErr := checkCorrectPropertyTypes(jsonProperties); typeErr != nil {
+			httptools.StatusCodeError(writer, fmt.Sprintf("properties have invalid data types: %s", typeErr),
+				http.StatusBadRequest)
 			return
 		}
 
 		// Populate the mail struct with the previously parsed JSON properties
 		mail := structs.Mail{
-			Email:   jsonProperties["email"].(string),
+			To:      jsonProperties["from"].(string),
 			Subject: jsonProperties["subject"].(string),
 			Message: jsonProperties["message"].(string),
 		}
 
 		// Validate the email address syntax using the above regular expression
-		if !validEmailAddress(mail.Email) {
-			http.Error(writer, fmt.Sprintf("invalid email address given: '%s'", mail.Email), http.StatusBadRequest)
+		if !validEmailAddress(mail.From) {
+			httptools.StatusCodeError(writer, fmt.Sprintf("invalid email address given: '%s'", mail.From),
+				http.StatusBadRequest)
 			return
 		}
 
@@ -157,10 +173,12 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 				// Update the ticket with a new comment consisting of the
 				// email address and message from the mail
-				log.Printf(`"Attaching new answer from '%s' to ticket '%s' (id "%s")`+"\n",
-					mail.Email, existingTicket.Subject, existingTicket.Id)
+				log.Printf(`Attaching new answer from '%s' to ticket '%s' (id "%s")`+"\n",
+					mail.From, existingTicket.Subject, existingTicket.Id)
 				createdTicket = ticket.UpdateTicket(convertStatusToString(existingTicket.Status),
-					mail.Email, mail.Message, "extern", existingTicket)
+					mail.From, mail.Message, "extern", existingTicket)
+
+				api_out.SendMail(mail_events.NewAnswer, createdTicket)
 			} else {
 				// The subject is formatted like an answering mail, but the
 				// ticket id does not exist
@@ -171,7 +189,9 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 		// If the mail is not an answer create a new ticket in every other case
 		if !isAnswerMail {
-			createdTicket = ticket.CreateTicket(mail.Email, mail.Subject, mail.Message)
+			createdTicket = ticket.CreateTicket(mail.From, mail.Subject, mail.Message)
+
+			api_out.SendMail(mail_events.NewTicket, createdTicket)
 		}
 
 		// Push the created or updated ticket to the ticket storage and write
@@ -179,23 +199,30 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 		globals.Tickets[createdTicket.Id] = createdTicket
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &createdTicket)
 
-		// The request was processed successfully
-		writer.Write([]byte(buildJSONResponseStatus(http.StatusOK, "OK") + "\n"))
+		// Construct a JSON response with successful status and message
+		// and write it into the response writer
+		httptools.JsonResponse(writer, structs.JsonMap{
+			"status":  http.StatusOK,
+			"message": http.StatusText(http.StatusOK),
+		})
 		return
 	}
 
 	// The handler does not accept any other method than POST
-	http.Error(writer, buildJSONResponseStatus(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED"), http.StatusMethodNotAllowed)
+	httptools.JsonError(writer, structs.JsonMap{
+		"status":  http.StatusMethodNotAllowed,
+		"message": fmt.Sprintf("METHOD_NOT_ALLOWED (%s)", request.Method),
+	}, http.StatusMethodNotAllowed)
 }
 
-func convertStatusToString(status structs.State) string {
+func convertStatusToString(status structs.Status) string {
 	return strconv.Itoa(int(status))
 }
 
 func matchSubject(subject string) (string, bool) {
 	if answerSubjectRegex.Match([]byte(subject)) {
 		ticketIdMatches := answerSubjectRegex.FindStringSubmatch(subject)
-		ticketId := ticketIdMatches[0]
+		ticketId := ticketIdMatches[1]
 		return ticketId, true
 	}
 
@@ -218,7 +245,7 @@ func newPropertyNotDefinedError(propertyName string) propertyNotDefinedError {
 	return propertyNotDefinedError{propertyName}
 }
 
-func checkRequiredPropertiesSet() (returnErr error) {
+func checkRequiredPropertiesSet(jsonProperties structs.JsonMap) (returnErr error) {
 	defer func() {
 		propError := recover()
 		if errValue, isPropError := propError.(propertyNotDefinedError); isPropError {
@@ -226,7 +253,7 @@ func checkRequiredPropertiesSet() (returnErr error) {
 		}
 	}()
 
-	propsSet := checkPropertySet(jsonProperties, "email")
+	propsSet := checkPropertySet(jsonProperties, "from")
 	propsSet = propsSet && checkPropertySet(jsonProperties, "subject")
 	propsSet = propsSet && checkPropertySet(jsonProperties, "message")
 
@@ -237,7 +264,7 @@ func checkRequiredPropertiesSet() (returnErr error) {
 	return errors.New("missing properties in JSON body")
 }
 
-func checkPropertySet(props jsonMap, propName string) bool {
+func checkPropertySet(props structs.JsonMap, propName string) bool {
 	if _, defined := props[propName]; defined {
 		return true
 	}
@@ -245,8 +272,8 @@ func checkPropertySet(props jsonMap, propName string) bool {
 	panic(newPropertyNotDefinedError(propName))
 }
 
-func checkAdditionalPropertiesSet() error {
-	permittedKeys := newStringList("email", "subject", "message")
+func checkAdditionalPropertiesSet(jsonProperties structs.JsonMap) error {
+	permittedKeys := newStringList("from", "subject", "message")
 	for key := range jsonProperties {
 		if !permittedKeys.contains(key) {
 			return fmt.Errorf("JSON contains illegal additional property: '%s'", key)
@@ -256,7 +283,7 @@ func checkAdditionalPropertiesSet() error {
 	return nil
 }
 
-func checkCorrectPropertyTypes() error {
+func checkCorrectPropertyTypes(jsonProperties structs.JsonMap) error {
 	for parameter, parameterType := range apiParameters {
 		if property, propertyGiven := jsonProperties[parameter]; reflect.TypeOf(property) != parameterType {
 			if !propertyGiven {
@@ -264,7 +291,7 @@ func checkCorrectPropertyTypes() error {
 			}
 
 			return fmt.Errorf("type mismatch in property '%s': expected %s, instead got %T "+
-				`(located in %s)`,
+				"(located in %s)",
 				parameter, parameterType.Name(), property, writeJSONProperty(parameter, property))
 		}
 	}

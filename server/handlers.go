@@ -8,6 +8,7 @@ import (
 
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/mail_events"
 	"github.com/mortenterhart/trivial-tickets/session"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
@@ -108,8 +109,13 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 		// Persist the ticket to the file system
 		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &newTicket)
 
+		// Send notification mail on create ticket event
+		api_out.SendMail(mail_events.NewTicket, newTicket)
+
 		// Redirect the user to the ticket page
 		http.Redirect(w, r, "/ticket?id="+newTicket.Id, http.StatusFound)
+
+		return
 	}
 
 	// If there is any other request, just redirect to index
@@ -208,14 +214,14 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		status := template.HTMLEscapeString(r.FormValue("status"))
 		mail := template.HTMLEscapeString(r.FormValue("mail"))
 		reply := template.HTMLEscapeString(r.FormValue("reply"))
-		reply_type := template.HTMLEscapeString(r.FormValue("reply_type"))
+		replyType := template.HTMLEscapeString(r.FormValue("reply_type"))
 		merge := template.HTMLEscapeString(r.FormValue("merge"))
 
 		// Get the ticket which was edited
 		currentTicket := globals.Tickets[ticketId]
 
 		// Update the current ticket
-		updatedTicket := ticket.UpdateTicket(status, mail, reply, reply_type, currentTicket)
+		updatedTicket := ticket.UpdateTicket(status, mail, reply, replyType, currentTicket)
 
 		if merge != "" {
 			// Get the ticket to merge from the tickets map
@@ -247,9 +253,18 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 			filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &updatedTicket)
 		}
 
+		if !currentSession.IsLoggedIn {
+			replyType = "extern"
+		}
+
 		// Publish mail if the reply was selected for external
-		if reply_type == "extern" {
-			api_out.SendMail(updatedTicket.Customer, updatedTicket.Subject, reply)
+		if replyType == "extern" {
+			mailEvent := mail_events.UpdatedTicket
+			if reply != "" {
+				mailEvent = mail_events.NewAnswer
+			}
+
+			api_out.SendMail(mailEvent, updatedTicket)
 		}
 
 		// Redirect to the ticket again, now with updated Values
@@ -285,7 +300,7 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 			log.Println("Unable to get session")
 		}
 
-		// Make sure, the requesting user owns the ticket
+		// Make sure the requesting user owns the ticket
 		if currentSession.User.Id == currentTicket.User.Id {
 
 			// Replace the assigned user with nobody
@@ -301,6 +316,8 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 			response := "Das Ticket wurde erfolgreich freigegeben"
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(response))
+
+			api_out.SendMail(mail_events.UnassignedTicket, currentTicket)
 		}
 	}
 }
@@ -342,6 +359,8 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 			response := updatedTicket.User.Username
 			w.Header().Set("Content-Type", "text/html")
 			w.Write([]byte(response))
+
+			api_out.SendMail(mail_events.AssignedTicket, updatedTicket)
 		}
 	}
 }
