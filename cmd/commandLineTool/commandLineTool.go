@@ -26,6 +26,7 @@ func main() {
 		}
 		for _, mail := range mails {
 			IO.PrintEmail(mail)
+			communicationToServer.AcknowledgeEmailReception(mail)
 		}
 	case submit && !fetch:
 		communicationToServer.SubmitEmail(mail)
@@ -93,13 +94,14 @@ func commandLoop() {
 			}
 			for _, mail := range mails {
 				IO.PrintEmail(mail)
+				communicationToServer.AcknowledgeEmailReception(mail)
 			}
 		case structs.SUBMIT:
-			mail, err := IO.GetEmail()
+			mailJson, err := IO.GetEmail()
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = communicationToServer.SubmitEmail(mail)
+			err = communicationToServer.SubmitEmail(mailJson)
 			if err != nil {
 				log.Fatal(err)
 			}
