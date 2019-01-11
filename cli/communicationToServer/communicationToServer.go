@@ -19,22 +19,28 @@ import (
 var serverConfig structs.CLIConfig
 var client http.Client
 var clientConfigured bool
-var send = sendPost
+var post = makePostRequest
+var get = makeGetRequest
 
-// FetchEmails sends a Post request to the path api/fetchMails of the server specified in the cliConfig and expects a JSON of a structs.Mail in the body of the response.
+// FetchEmails sends a Get request to the path api/fetchMails of the server specified in the cliConfig and expects the JSON of an array of structs.Mail in the body of the response.
 // The function returns the structs.Mail it received.
 func FetchEmails() (mails []structs.Mail, err error) {
-	response, err := send("", "api/fetchMails")
+	response, err := get("api/fetchMails")
 	if err != nil {
+		err = fmt.Errorf("error occured while making the get request: %v", err)
 		return
 	}
-	err = json.Unmarshal([]byte(response), &mails)
+	json.Unmarshal([]byte(response), &mails)
+	if err != nil {
+		err = fmt.Errorf("error occured while unmarshaling the JSON: %v", err)
+		return
+	}
 	return
 }
 
 // AcknowledgeEmailReception sends a post request with the id of the received EMail to the server.
 func AcknowledgeEmailReception(mail structs.Mail) (err error) {
-	_, err = send(mail.Id, "api/verifyMail")
+	_, err = post(mail.Id, "api/verifyMail")
 	if err != nil {
 		err = fmt.Errorf("email acknowledgment failed: %v", err)
 	}
@@ -43,13 +49,35 @@ func AcknowledgeEmailReception(mail structs.Mail) (err error) {
 
 // SubmitEmail takes a structs.Mail and sens it to the server as JSON per post request.
 func SubmitEmail(mail string) (err error) {
-	resp, err := send(mail, "api/receive")
+	resp, err := post(mail, "api/receive")
 	println(resp)
 	return
 }
 
-// sendPost takes a payload and a path string and sends a post request to the "path" on the server specified in CLIConifg with the payload as body.
-func sendPost(payload string, path string) (response string, err error) {
+func makeGetRequest(path string) (response string, err error) {
+	if !clientConfigured {
+		initializeClient()
+	}
+	url := "https://" + serverConfig.IPAddr + ":" + strconv.Itoa(int(serverConfig.Port)) + "/" + path
+	resp, err := client.Get(url)
+	if err != nil {
+		err = fmt.Errorf("error sending get request: %v", err)
+		return
+	}
+	if resp.Status[0] != '2' {
+		err = fmt.Errorf("received error status code: %v", resp.Status)
+		return
+	}
+	responseData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		err = fmt.Errorf("error occured while reading httpGet response: %v", err)
+		return
+	}
+	return string(responseData), nil
+}
+
+// makePostRequest takes a payload and a path string and sends a post request to the "path" on the server specified in CLIConifg with the payload as body.
+func makePostRequest(payload string, path string) (response string, err error) {
 	if !clientConfigured {
 		initializeClient()
 	}
