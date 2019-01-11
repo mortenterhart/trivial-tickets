@@ -36,6 +36,9 @@ func StartServer(config *structs.Config) error {
 	// Assign given config to the global variable
 	globals.ServerConfig = config
 
+	// Create the folders for tickets and mails if it does not exist
+	createResourceFolders()
+
 	// Read in the users
 	errReadUserFile := filehandler.ReadUserFile(globals.ServerConfig.Users, &users)
 
@@ -131,4 +134,18 @@ func startHandlers(path string) error {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
 
 	return nil
+}
+
+func createResourceFolders() {
+	if !filehandler.FileExists(globals.ServerConfig.Tickets) {
+		filehandler.CreateFolders(globals.ServerConfig.Tickets)
+	}
+
+	if !filehandler.FileExists(globals.ServerConfig.Mails) {
+		filehandler.CreateFolders(globals.ServerConfig.Mails)
+	}
+
+	if !filehandler.FileExists(globals.ServerConfig.Users) {
+		filehandler.CreateFolders(globals.ServerConfig.Users)
+	}
 }
