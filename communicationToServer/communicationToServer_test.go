@@ -1,7 +1,6 @@
 package communicationToServer
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/mortenterhart/trivial-tickets/structs"
@@ -26,7 +25,8 @@ func TestFetchEmails(t *testing.T) {
 		return
 	}
 	testMail := structs.Mail{
-		Email:   "example@gmx.com",
+		Id:      "1234abc",
+		To:      "example@gmx.com",
 		Subject: "this is a subject",
 		Message: "The message"}
 	testMails := make([]structs.Mail, 0)
@@ -52,14 +52,10 @@ func TestSubmitEmail(t *testing.T) {
 		err = outputErr
 		return
 	}
-	testMail := structs.Mail{
-		Email:   "example@gmx.com",
-		Subject: "this is a subject",
-		Message: "The message"}
+	testMail := `{"from":"example@gmx.com", "subject":"this is a subject", "message": "The message"}`
 	resultErr := SubmitEmail(testMail)
 	assert.NoError(t, resultErr)
-	jsonMail, _ := json.Marshal(&testMail)
-	assert.Equal(t, string(jsonMail), inputPayload)
+	assert.Equal(t, testMail, inputPayload)
 	assert.Equal(t, "api/receive", inputPath)
 
 }
@@ -152,7 +148,8 @@ func TestSendPost(t *testing.T) {
 
 func TestAcknowledgeEmailReception(t *testing.T) {
 	testMail := structs.Mail{
-		Email:   "example@gmail.com",
+		Id:      "IdString",
+		To:      "example@gmail.com",
 		Subject: "example",
 		Message: "An example message"}
 	var inputPayload string
@@ -163,10 +160,8 @@ func TestAcknowledgeEmailReception(t *testing.T) {
 		return
 	}
 	acknowledgementError := AcknowledgeEmailReception(testMail)
-	jsonMail, _ := json.Marshal(testMail)
-	expectedHash := sha256.Sum256(jsonMail)
 
-	assert.Equal(t, expectedHash, []byte(inputPayload))
+	assert.Equal(t, testMail.Id, inputPayload)
 	assert.NoError(t, acknowledgementError)
-	assert.Equal(t, "acknowledgeEmail", inputPath) // TODO: Change to actual path
+	assert.Equal(t, "api/verifyMail", inputPath)
 }

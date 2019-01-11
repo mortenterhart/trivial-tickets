@@ -48,7 +48,7 @@ func main() {
 
 // getConfig parses the command line flags. It returns a CLIConfig struct, a mail struct and the fetch and submit flags as boolean.
 // The port number is checked to be valid. There are no checks performed on the validity of the created Mail struct.
-func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail structs.Mail) {
+func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail string) {
 	IPAddr := flag.String("ip", "localhost", "IP address of the server")
 	port := flag.Uint("port", 8443, "Port the server listens to")
 	cert := flag.String("cert", "./ssl/server.cert", "Location of the ssl certificate")

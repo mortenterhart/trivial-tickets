@@ -1,6 +1,7 @@
 package IO
 
 import (
+	"errors"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -62,71 +63,170 @@ func (r *TestReader) Read(p []byte) (n int, err error) {
 	return
 }
 
-func TestGetNextCommandSuccess(t *testing.T) {
+func TestReadCommandSuccess(t *testing.T) {
 	reader = NewTestReader(strconv.Itoa(int(structs.FETCH)))
-	command, err := GetNextCommand()
+	command, err := readCommand()
 	assert.Equal(t, structs.FETCH, command, "does not return the correct number defined in structs.FETCH.")
 	assert.Equal(t, nil, err, "should run without error")
 	r, ok := reader.(ITestReader)
 	if ok {
 		r.setData(strconv.Itoa(int(structs.SUBMIT)))
-		command, _ = GetNextCommand()
+		command, _ = readCommand()
 		assert.Equal(t, structs.SUBMIT, command, "does not return the correct number defined in structs.SUBMIT.")
 		r.setData(strconv.Itoa(int(structs.EXIT)))
-		command, _ = GetNextCommand()
+		command, _ = readCommand()
 		assert.Equal(t, structs.EXIT, command, "does not return the correct number defined in structs.EXIT.")
 	}
 }
 
-func TestGetNextCommandError(t *testing.T) {
+func TestReadCommandError(t *testing.T) {
 	reader = ITestReader(NewTestReader("-1"))
-	_, err := GetNextCommand()
+	_, err := readCommand()
 	assert.Error(t, err, "-1 should not be a valid argument.")
 	r, ok := reader.(ITestReader)
 	if ok {
 		r.setData("abcd")
-		_, err = GetNextCommand()
+		_, err = readCommand()
 		assert.Error(t, err, "abcd should not be a valid argument.")
 		r.setData("")
-		_, err = GetNextCommand()
+		_, err = readCommand()
 		assert.Error(t, err, "'' should not be a valid argument.")
 	}
 }
 
-func TestOutputStringToCommandLine(t *testing.T) {
+func TestNextCommand(t *testing.T) {
+	var inputCommand structs.Command
+	var inputError error
+	readCom = func() (structs.Command, error) {
+		return inputCommand, inputError
+	}
+	inputCommand = structs.SUBMIT
+	inputError = nil
+	outputCommand, outputError := NextCommand()
+	assert.Equal(t, inputCommand, outputCommand)
+	assert.Equal(t, inputError, outputError)
+	inputError = errors.New(string(structs.NoValidOption))
+	outputCommand, outputError = NextCommand()
+	assert.EqualError(t, outputError, string(structs.AbortExecutionDueToManyWrongUserInputs))
+}
+
+func TestOutputMessageToCommandLine(t *testing.T) {
 	var output string
 	writer = NewTestWriter(&output)
-	testString := "a String!!"
-	OutputStringToCommandLine(testString)
-	assert.Equal(t, testString, output, "string output failed.")
+	testMessage := structs.RequestTicketID
+	OutputMessageToCommandLine(testMessage)
+	assert.Equal(t, string(testMessage), output, "string output failed.")
 }
 
 func TestGetEmailAddress(t *testing.T) {
-	correctEmailAddress := "john.doe@example.com"
-	reader = NewTestReader(correctEmailAddress)
-	emailAddress, err := GetEmailAddress()
+	addressIsCorrect := true
+	verifyEmailAddress = func(emailAddress string) bool {
+		return addressIsCorrect
+	}
+	emailAddress := "john.doe@example.com"
+	reader = NewTestReader(emailAddress)
+	outputEmailAddress, err := getEmailAddress()
 	assert.True(t, err == nil, "unexpected error with correct email address.")
-	assert.Equal(t, correctEmailAddress, emailAddress, "Eamil address was distorted during reading.")
-	r, ok := reader.(ITestReader)
-	if ok {
-		r.setData("name@notARealDomain")
-		_, err = GetEmailAddress()
-		assert.Error(t, err, "function should not accept a syntactically wrong domain")
-		r.setData("notARealEmailAddress")
-		assert.Error(t, err, "function should not accept a string without an @ in it")
+	assert.Equal(t, emailAddress, outputEmailAddress, "Eamil address was distorted during reading.")
+	emailAddress = ""
+	if r, ok := reader.(ITestReader); ok {
+		r.setData(emailAddress)
+		_, err = getEmailAddress()
+		assert.EqualError(t, err, string(structs.EmptyString))
+		r.setData("notEmpty")
+		addressIsCorrect = false
+		_, err = getEmailAddress()
+		assert.EqualError(t, err, string(structs.InvalidEmail))
 	}
 }
 
 func TestGetString(t *testing.T) {
 	testString := "abcd"
 	reader = NewTestReader(testString)
-	outputString, err := GetString()
+	outputString, err := getString()
 	assert.Equal(t, testString, outputString, "string was distorted during reading.")
 	assert.Equal(t, nil, err, "function should not throw an error with a normal string.")
 	r, ok := reader.(ITestReader)
 	if ok {
 		r.setData("")
-		_, err = GetString()
-		assert.Errorf(t, err, "string empty", "getting empty strings is not very useful.")
+		_, err = getString()
+		assert.EqualError(t, err, string(structs.EmptyString), "getting empty strings is not very useful.")
 	}
+}
+
+func TestGetEmail(t *testing.T) {
+	var inputStrings []string
+	var inputErrors []error
+	var index int
+	readEmailAddress = func() (emailAddr string, err error) {
+		emailAddr, err = inputStrings[index], inputErrors[index]
+		index++
+		return
+	}
+	readString = func() (result string, err error) {
+		result, err = inputStrings[index], inputErrors[index]
+		index++
+		return
+	}
+
+	//First test case: every field is filled, all is well
+
+	inputStrings = make([]string, 0)
+	inputStrings = append(inputStrings, "emailAddress", "ticketID", "subject", "and a message")
+	inputErrors = make([]error, 4)
+	outputJson, outputError := GetEmail()
+	assert.NoError(t, outputError)
+	//expectedMail := structs.Mail{
+	//	Email:   "emailAddress",
+	//	Subject: `[Ticket "ticketID"] subject`,
+	//	Message: "and a message"}
+	expectedJson := `{"from":"emailAddress", "subject":"[Ticket \"ticketID\"] subject", "message": "and a message"}`
+	assert.Equal(t, expectedJson, outputJson)
+
+	//Second test case: the ticketID is empty. This is still allowed.
+
+	inputStrings = make([]string, 0)
+	inputStrings = append(inputStrings, "emailAddress", "", "subject", "and a message")
+	inputErrors[1] = errors.New(string(structs.EmptyString))
+	index = 0
+	outputJson, outputError = GetEmail()
+	assert.NoError(t, outputError)
+	expectedJson = `{"from":"emailAddress", "subject":"subject", "message": "and a message"}`
+	assert.Equal(t, expectedJson, outputJson)
+
+	//Third test case: an unexpected empty input. Throws an error after continuously receiving invalid user input.
+
+	index = 0
+	readString = func() (result string, err error) {
+		return "", errors.New(string(structs.EmptyString))
+	}
+	_, outputError = GetEmail()
+	assert.EqualError(t, outputError, string(structs.AbortExecutionDueToManyWrongUserInputs))
+
+	//Fourth test case: the email is invalid. Throws an error after continuously receiving invalid user input.
+
+	index = 0
+	readEmailAddress = func() (result string, err error) {
+		return "noValidAddress", errors.New(string(structs.InvalidEmail))
+	}
+	_, outputError = GetEmail()
+	assert.EqualError(t, outputError, string(structs.AbortExecutionDueToManyWrongUserInputs))
+}
+
+func TestPrintEmail(t *testing.T) {
+	var output string
+	writer = NewTestWriter(&output)
+	emailAddress := "emailAddress"
+	subject := "subjectline"
+	message := "message"
+	mail := structs.Mail{
+		Id:      "AnID",
+		To:      emailAddress,
+		Subject: subject,
+		Message: message}
+	PrintEmail(mail)
+	expectedOutput := string(structs.Receiver) + emailAddress + "\n\n" +
+		string(structs.Subject) + subject + "\n\n" +
+		message
+	assert.Equal(t, expectedOutput, output)
 }
