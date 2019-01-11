@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"github.com/mortenterhart/trivial-tickets/IO"
-	"github.com/mortenterhart/trivial-tickets/communicationToServer"
+	"github.com/mortenterhart/trivial-tickets/cli/IO"
+	"github.com/mortenterhart/trivial-tickets/cli/communicationToServer"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/cliUtils"
 	"log"

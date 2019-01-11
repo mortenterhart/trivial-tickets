@@ -74,7 +74,7 @@ func TestSetServerConfig(t *testing.T) {
 }
 
 func TestInitializeClient(t *testing.T) {
-	serverConfig.Cert = "../ssl/server.cert"
+	serverConfig.Cert = "../../ssl/server.cert"
 	clientConfigured = false
 	initializeClient()
 	assert.True(t, clientConfigured)
@@ -88,13 +88,13 @@ func TestSendPost(t *testing.T) {
 	conf := structs.CLIConfig{
 		IPAddr: "localhost",
 		Port:   4443,
-		Cert:   "../ssl/server.cert"}
+		Cert:   "../../ssl/server.cert"}
 	SetServerConfig(conf)
 	var requestURI string
 	var requestPayload string
 	var responseMessage string
 	var responseCode int
-	go http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", conf.Port), "../ssl/server.cert", "../ssl/server.key", nil)
+	go http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", conf.Port), "../../ssl/server.cert", "../../ssl/server.key", nil)
 	http.HandleFunc("/", func(responseWriter http.ResponseWriter, request *http.Request) {
 		requestURI = request.RequestURI
 		data, err := ioutil.ReadAll(request.Body)
