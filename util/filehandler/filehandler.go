@@ -61,7 +61,7 @@ func WriteUserFile(dest string, users *map[string]structs.User) error {
 func WriteTicketFile(path string, ticket *structs.Ticket) error {
 
 	// Check if path exists. If not, create it
-	if _, errExists := os.Stat(path); os.IsNotExist(errExists) {
+	if !FileExists(path) {
 
 		errCreateFolders := CreateFolders(path)
 		if errCreateFolders != nil {
@@ -85,13 +85,21 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 	return ioutil.WriteFile(finalPath, marshalTicket, 0644)
 }
 
-// WriteMailFile takes a mail_events and converts it into the JSON format to
+func FileExists(path string) bool {
+	if _, notExistsErr := os.Stat(path); notExistsErr != nil && os.IsNotExist(notExistsErr) {
+		return false
+	}
+
+	return true
+}
+
+// WriteMailFile takes a mail and converts it into the JSON format to
 // write it into its own file. The directory parameter is a path to
 // a directory in which the new file is saved. If it does not exist yet
 // it will be created.
 func WriteMailFile(directory string, mail *structs.Mail) error {
 
-	if _, existsErr := os.Stat(directory); os.IsNotExist(existsErr) {
+	if !FileExists(directory) {
 
 		createFoldersErr := CreateFolders(directory)
 		if createFoldersErr != nil {
@@ -101,7 +109,7 @@ func WriteMailFile(directory string, mail *structs.Mail) error {
 
 	marshaledMail, marshalErr := json.MarshalIndent(mail, "", "   ")
 	if marshalErr != nil {
-		return wrapAndLogError(marshalErr, "could not convert mail_events to JSON")
+		return wrapAndLogError(marshalErr, "could not convert mail to JSON")
 	}
 
 	mailFilePath := path.Join(directory, mail.Id+".json")
@@ -117,18 +125,18 @@ func WriteMailFile(directory string, mail *structs.Mail) error {
 func ReadMailFiles(directory string, mails *map[string]structs.Mail) error {
 	mailFiles, readErr := ioutil.ReadDir(directory)
 	if readErr != nil {
-		return wrapAndLogError(readErr, "error while reading mail_events files")
+		return wrapAndLogError(readErr, "error while reading mail files")
 	}
 
 	for _, file := range mailFiles {
 		jsonMail, readErr := ioutil.ReadFile(path.Join(directory, file.Name()))
 		if readErr != nil {
-			return wrapAndLogError(readErr, "error while reading mail_events files")
+			return wrapAndLogError(readErr, "error while reading mail files")
 		}
 
 		var parsedMail structs.Mail
 		if parseErr := json.Unmarshal(jsonMail, &parsedMail); parseErr != nil {
-			return wrapAndLogError(parseErr, "could not convert JSON mail_events")
+			return wrapAndLogError(parseErr, "could not convert JSON mail")
 		}
 
 		(*mails)[parsedMail.Id] = parsedMail
@@ -140,7 +148,7 @@ func ReadMailFiles(directory string, mails *map[string]structs.Mail) error {
 func RemoveMailFile(mailId string) error {
 	mailPath := path.Join(globals.ServerConfig.Mails, mailId) + ".json"
 	if os.Remove(mailPath) != nil {
-		return fmt.Errorf("could not delete mail_events file with id '%s'", mailId)
+		return fmt.Errorf("could not delete mail file with id '%s'", mailId)
 	}
 
 	return nil

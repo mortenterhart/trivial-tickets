@@ -139,7 +139,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 		// Populate the mail struct with the previously parsed JSON properties
 		mail := structs.Mail{
-			To:      jsonProperties["from"].(string),
+			From:    jsonProperties["from"].(string),
 			Subject: jsonProperties["subject"].(string),
 			Message: jsonProperties["message"].(string),
 		}
@@ -159,7 +159,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 		// Determine if the email's subject is compliant to the answer
 		// regular expression
-		if ticketId, matchesAnswerRegex := matchSubject(mail.Subject); matchesAnswerRegex {
+		if ticketId, matchesAnswerRegex := matchAnswerSubject(mail.Subject); matchesAnswerRegex {
 
 			// If so lookup the subject's ticket id in the ticket storage
 			// and check if this ticket exists
@@ -219,7 +219,7 @@ func convertStatusToString(status structs.Status) string {
 	return strconv.Itoa(int(status))
 }
 
-func matchSubject(subject string) (string, bool) {
+func matchAnswerSubject(subject string) (string, bool) {
 	if answerSubjectRegex.Match([]byte(subject)) {
 		ticketIdMatches := answerSubjectRegex.FindStringSubmatch(subject)
 		ticketId := ticketIdMatches[1]
@@ -292,23 +292,23 @@ func checkCorrectPropertyTypes(jsonProperties structs.JsonMap) error {
 
 			return fmt.Errorf("type mismatch in property '%s': expected %s, instead got %T "+
 				"(located in %s)",
-				parameter, parameterType.Name(), property, writeJSONProperty(parameter, property))
+				parameter, parameterType.Name(), property, writeJsonProperty(parameter, property))
 		}
 	}
 
 	return nil
 }
 
-func writeJSONProperty(key, value interface{}) string {
+func writeJsonProperty(key, value interface{}) string {
 	var jsonBuilder strings.Builder
 	jsonBuilder.WriteString(enquote(key))
 	jsonBuilder.WriteString(":")
-	jsonBuilder.WriteString(writeJSONValue(value))
+	jsonBuilder.WriteString(writeJsonValue(value))
 
 	return jsonBuilder.String()
 }
 
-func writeJSONValue(value interface{}) string {
+func writeJsonValue(value interface{}) string {
 	if stringValue, isString := value.(string); isString {
 		return enquote(stringValue)
 	}
@@ -334,8 +334,4 @@ func (slice stringList) contains(value string) bool {
 	}
 
 	return false
-}
-
-func buildJSONResponseStatus(statusCode int, message string) string {
-	return fmt.Sprintf(`{"status":%d,"message":"%s"}`, statusCode, message)
 }

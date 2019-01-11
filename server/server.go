@@ -66,7 +66,7 @@ func StartServer(config *structs.Config) error {
 					return errors.New("unable to load templates / register handlers")
 				}
 			} else {
-				return errors.New("unable to load mail_events files")
+				return errors.New("unable to load mail files")
 			}
 		} else {
 			return errors.New("unable to load ticket files")
