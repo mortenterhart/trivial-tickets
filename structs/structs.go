@@ -67,7 +67,7 @@ type DataSingleTicket struct {
 type Ticket struct {
 	Id       string  `json:"Id"`
 	Subject  string  `json:"Subject"`
-	Status   State   `json:"Status"`
+	Status   Status  `json:"Status"`
 	User     User    `json:"User"`
 	Customer string  `json:"Customer"`
 	Entries  []Entry `json:"Entries"`
@@ -83,20 +83,36 @@ type Entry struct {
 	Reply_Type    string
 }
 
-// State is an enum to represent the current status of a ticket
-type State int
+// Status is an enum to represent the current status of a ticket
+type Status int
 
 const (
-	OPEN State = iota
+	OPEN Status = iota
 	PROCESSING
 	CLOSED
 )
+
+func (status Status) String() string {
+	switch status {
+	case OPEN:
+		return "Geöffnet"
+
+	case PROCESSING:
+		return "In Bearbeitung"
+
+	case CLOSED:
+		return "Geschlossen"
+	}
+
+	return "undefined status"
+}
 
 // Mail struct holds the information for a received email in order
 // to create new tickets or answers
 type Mail struct {
 	Id      string `json:"id"`
-	Email   string `json:"email"`
+	From    string `json:"from"`
+	To      string `json:"to"`
 	Subject string `json:"subject"`
 	Message string `json:"message"`
 }
