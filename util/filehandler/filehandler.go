@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 
-	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/pkg/errors"
 )
@@ -145,8 +144,8 @@ func ReadMailFiles(directory string, mails *map[string]structs.Mail) error {
 	return nil
 }
 
-func RemoveMailFile(mailId string) error {
-	mailPath := path.Join(globals.ServerConfig.Mails, mailId) + ".json"
+func RemoveMailFile(directory string, mailId string) error {
+	mailPath := path.Join(directory, mailId) + ".json"
 	if os.Remove(mailPath) != nil {
 		return fmt.Errorf("could not delete mail file with id '%s'", mailId)
 	}

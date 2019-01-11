@@ -1,12 +1,15 @@
 package filehandler
 
 import (
+	"github.com/pkg/errors"
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/hashing"
+	"github.com/mortenterhart/trivial-tickets/util/random"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -136,12 +139,12 @@ func TestReadTicketFiles(t *testing.T) {
 
 	// Correct path to ticket files
 	errReadTicketFiles3 := ReadTicketFiles(correctTicketPath, &tickets)
-	assert.Nil(t, errReadTicketFiles3, "An erorr was returned, although the path is correct")
+	assert.Nil(t, errReadTicketFiles3, "An error was returned, although the path is correct")
 
 	os.RemoveAll(correctTicketPath + "/")
 }
 
-//  mockTicket is a helper function to create a dummy ticket for the tests
+// mockTicket is a helper function to create a dummy ticket for the tests
 func mockTicket() structs.Ticket {
 
 	e1 := structs.Entry{
@@ -174,4 +177,114 @@ func mockTicket() structs.Ticket {
 		Customer: "customer@example.com",
 		Entries:  entries,
 	}
+}
+
+func TestFileExists(t *testing.T) {
+	t.Run("existingFile", func(t *testing.T) {
+		const existingFile = "../../files/users/users.json"
+
+		assert.True(t, FileExists(existingFile), "users.json file should always exist")
+	})
+
+	t.Run("notExistingFile", func(t *testing.T) {
+		const notExistingFile = "../../files/users/passwords.json"
+
+		assert.False(t, FileExists(notExistingFile), "nobody would store passwords in a JSON-file, so why should it exist?")
+	})
+}
+
+func mockMail() structs.Mail {
+	return structs.Mail{
+		Id:      random.CreateRandomId(10),
+		From:    "no-reply@trivial-tickets.com",
+		To:      "customer@mail.com",
+		Subject: "[trivial-tickets] My screen is always black",
+		Message: "I cannot see anything on my screen.",
+	}
+}
+
+func TestWriteReadMailFile(t *testing.T) {
+	const mailDirectory = "../../files/testmails"
+
+	testMail := mockMail()
+
+	t.Run("writeMailFile", func(t *testing.T) {
+		writeErr := WriteMailFile(mailDirectory, &testMail)
+
+		t.Run("writeError", func(t *testing.T) {
+			assert.NoError(t, writeErr, "writing mail file should not return error")
+		})
+
+		t.Run("mailDirectoryExists", func(t *testing.T) {
+			assert.True(t, FileExists(mailDirectory), "mailDirectory should exist because function creates missing folders")
+		})
+
+		t.Run("mailWritten", func(t *testing.T) {
+			dirContents, readErr := ioutil.ReadDir(mailDirectory)
+
+			assert.NoError(t, readErr, "reading contents of mail directory should not return an error")
+			assert.Equal(t, 1, len(dirContents), "mail directory should contain exactly one mail")
+		})
+	})
+
+	t.Run("readMailFiles", func(t *testing.T) {
+		mails := make(map[string]structs.Mail)
+
+		readErr := ReadMailFiles(mailDirectory, &mails)
+
+		t.Run("readError", func(t *testing.T) {
+			assert.NoError(t, readErr, "reading mail files should not return error since a mail exists")
+		})
+
+		t.Run("numberOfReadMails", func(t *testing.T) {
+			assert.Equal(t, 1, len(mails), "there should be one mail read because one mail was previously written")
+		})
+
+		t.Run("identicalMailId", func(t *testing.T) {
+			readMail, mailIdDefined := mails[testMail.Id]
+			assert.True(t, mailIdDefined, "test mail id should be defined in read mail map")
+			assert.NotNil(t, readMail, "read mail should be non-nil")
+		})
+	})
+
+	os.RemoveAll(mailDirectory)
+}
+
+func TestRemoveMailFile(t *testing.T) {
+	const mailDirectory = "../../files/testmails"
+
+	t.Run("existingMail", func(t *testing.T) {
+		// Create test ticket to be removed
+		testMail := mockMail()
+		WriteMailFile(mailDirectory, &testMail)
+
+		removeErr := RemoveMailFile(mailDirectory, testMail.Id)
+
+		assert.NoError(t, removeErr, "removing mail file should not return error since the file exists")
+	})
+
+	t.Run("notExistingMail", func(t *testing.T) {
+		notExistingMailId := "mail-id"
+
+		removeErr := RemoveMailFile(mailDirectory, notExistingMailId)
+
+		assert.Error(t, removeErr, "remove error should be non-nil because mail file does not exist")
+	})
+
+	os.RemoveAll(mailDirectory)
+}
+
+func TestWrapAndLogError(t *testing.T) {
+	readErr := errors.New("open ../../files/testmails/mail.json: no such file or directory")
+	expectedErr := errors.Wrap(readErr, "could not read mail file")
+
+	wrapErr := wrapAndLogError(readErr, "could not read mail file")
+
+	t.Run("notNil", func(t *testing.T) {
+		assert.NotNil(t, wrapErr, "wrap error should not be nil")
+	})
+
+	t.Run("equalWrappedError", func(t *testing.T) {
+		assert.Equal(t, expectedErr.Error(), wrapErr.Error(), "expected and wrapped error should be identical")
+	})
 }
