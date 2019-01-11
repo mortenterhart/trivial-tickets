@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/mortenterhart/trivial-tickets/api/api_in"
+	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
@@ -43,27 +44,35 @@ func StartServer(config *structs.Config) error {
 		errReadTicketFiles := filehandler.ReadTicketFiles(globals.ServerConfig.Tickets, &globals.Tickets)
 
 		if errReadTicketFiles == nil {
-			// Read in the templates
-			tmpl = GetTemplates(globals.ServerConfig.Web)
 
-			// Register the handlers
-			errStartHandlers := startHandlers(globals.ServerConfig.Web)
+			errReadMailFiles := filehandler.ReadMailFiles(globals.ServerConfig.Mails, &globals.Mails)
 
-			if tmpl != nil || errStartHandlers == nil {
+			if errReadMailFiles == nil {
 
-				// Start a GoRoutine to redirect http requests to https
-				go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+				// Read in the templates
+				tmpl = GetTemplates(globals.ServerConfig.Web)
 
-				// Start the server according to config
-				return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
+				// Register the handlers
+				errStartHandlers := startHandlers(globals.ServerConfig.Web)
+
+				if tmpl != nil && errStartHandlers == nil {
+
+					// Start a GoRoutine to redirect http requests to https
+					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+
+					// Start the server according to config
+					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
+				} else {
+					return errors.New("unable to load templates / register handlers")
+				}
 			} else {
-				return errors.New("Unable to load templates / register handlers")
+				return errors.New("unable to load mail_events files")
 			}
 		} else {
-			return errors.New("Unable to load ticket files")
+			return errors.New("unable to load ticket files")
 		}
 	} else {
-		return errors.New("Unable to load user file")
+		return errors.New("unable to load user file")
 	}
 }
 
@@ -75,7 +84,7 @@ func GetTemplates(path string) *template.Template {
 	t, errTemplates := template.ParseGlob(path + "/templates/*.html")
 
 	if errTemplates != nil {
-		log.Print("Unable to load the templates: ", errTemplates)
+		log.Println("Unable to load the templates: ", errTemplates)
 		return nil
 	}
 
@@ -102,7 +111,7 @@ func startHandlers(path string) error {
 	// Check if the path exists
 	// Taken from https://gist.github.com/mattes/d13e273314c3b3ade33f
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return errors.New("No path given for web folders")
+		return errors.New("no path given for web folders")
 	}
 
 	http.HandleFunc("/", handleIndex)
@@ -115,6 +124,8 @@ func startHandlers(path string) error {
 	http.HandleFunc("/unassignTicket", handleUnassignTicket)
 	http.HandleFunc("/assignTicket", handleAssignTicket)
 	http.HandleFunc("/api/receive", api_in.ReceiveMail)
+	http.HandleFunc("/api/fetchMails", api_out.FetchMails)
+	http.HandleFunc("/api/verifyMail", api_out.VerifyMailSent)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))

@@ -2,9 +2,7 @@ package api_in
 
 import (
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
+	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +10,10 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/stretchr/testify/assert"
 )
 
 /*
@@ -48,9 +50,10 @@ func (handler serverSetupHandler) ServeHTTP(writer http.ResponseWriter, request 
 
 func testServerConfig() structs.Config {
 	return structs.Config{
-		Port:    443,
+		Port:    8443,
 		Tickets: "../../files/testtickets",
 		Users:   "../../files/users/users.json",
+		Mails:   "../../files/mails",
 		Cert:    "../../ssl/server.cert",
 		Key:     "../../ssl/server.key",
 		Web:     "../../www",
@@ -84,8 +87,12 @@ func TestReceiveMailRejectsGET(t *testing.T) {
 	body, readErr := ioutil.ReadAll(response.Body)
 
 	assert.NoError(t, readErr, "reading response body should return no error")
-	expectedJSON := buildJSONResponseStatus(http.StatusMethodNotAllowed, "METHOD_NOT_ALLOWED")
-	assert.Equal(t, expectedJSON+"\n", string(body),
+
+	expectedJSON, _ := jsontools.MapToJson(structs.JsonMap{
+		"status":  http.StatusMethodNotAllowed,
+		"message": "METHOD_NOT_ALLOWED (GET)",
+	})
+	assert.Equal(t, append(expectedJSON, '\n'), body,
 		"response should be JSON with error message METHOD_NOT_ALLOWED")
 }
 
@@ -97,15 +104,18 @@ func TestReceiveMailAcceptsPOST(t *testing.T) {
 
 	response, err := http.Post(testServer.URL, jsonContentType, createReader(validJson))
 
-	assert.NoError(t, err, "POST requests should be accepted by the mail API")
+	assert.NoError(t, err, "POST requests should be accepted by the mail_events API")
 	assert.Equal(t, 200, response.StatusCode,
 		"status code of POST request should be 200 OK")
 
 	body, readErr := ioutil.ReadAll(response.Body)
 
 	assert.NoError(t, readErr, "reading response body should return no error")
-	expectedJSON := buildJSONResponseStatus(http.StatusOK, "OK")
-	assert.Equal(t, expectedJSON+"\n", string(body),
+	expectedJSON, _ := jsontools.MapToJson(structs.JsonMap{
+		"status":  http.StatusOK,
+		"message": "OK",
+	})
+	assert.Equal(t, append(expectedJSON, '\n'), body,
 		"response should be JSON with status OK")
 }
 
@@ -115,7 +125,7 @@ func TestReceiveMailAcceptsPOST(t *testing.T) {
 
 	assert.Error(t, err, "nil body is invalid and should cause error")
 	assert.Equal(t, "EOF", err.Error(), "JSON string is malformed")
-	assert.Empty(t, parsedMail.Email, "email field should be empty")
+	assert.Empty(t, parsedMail.To, "email field should be empty")
 	assert.Empty(t, parsedMail.Subject, "subject field should be empty")
 	assert.Empty(t, parsedMail.Message, "message field should be empty")
 }
@@ -126,7 +136,7 @@ func TestParseJSONMailWithInvalidJSON(t *testing.T) {
 
 	assert.Error(t, err, "JSON string is invalid and should cause error")
 	assert.Equal(t, "unexpected EOF", err.Error(), "JSON string is malformed")
-	assert.Empty(t, parsedMail.Email, "email field should be empty")
+	assert.Empty(t, parsedMail.To, "email field should be empty")
 	assert.Empty(t, parsedMail.Subject, "subject field should be empty")
 	assert.Empty(t, parsedMail.Message, "message field should be empty")
 }
@@ -136,7 +146,7 @@ func TestParseJSONMailWithValidJSON(t *testing.T) {
 	err := parseJSONMail(createReader(validJson), &parsedMail)
 
 	assert.NoError(t, err, "valid JSON should not cause error")
-	assert.Equal(t, "admin@example.com", parsedMail.Email, "email field should be equal to JSON")
+	assert.Equal(t, "admin@example.com", parsedMail.To, "email field should be equal to JSON")
 	assert.Equal(t, "Subject line", parsedMail.Subject, "subject field should be equal to JSON")
 	assert.Equal(t, "Message line", parsedMail.Message, "message field should be equal to JSON")
 }
@@ -144,24 +154,24 @@ func TestParseJSONMailWithValidJSON(t *testing.T) {
 func TestExtractMailWithInvalidJSON(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/api/submit_mail", createReader(invalidJson))
 
-	mail, err := extractMail(request)
+	mail_events, err := extractMail(request)
 
 	assert.Error(t, err, "invalid JSON should cause error while extracting")
 	assert.Equal(t, "unexpected EOF", err.Error(), "JSON string is malformed")
-	assert.Empty(t, mail.Email, "email field should be empty")
-	assert.Empty(t, mail.Subject, "subject field should be empty")
-	assert.Empty(t, mail.Message, "message field should be empty")
+	assert.Empty(t, mail_events.To, "email field should be empty")
+	assert.Empty(t, mail_events.Subject, "subject field should be empty")
+	assert.Empty(t, mail_events.Message, "message field should be empty")
 }
 
 func TestExtractMailWithValidJSON(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/api/submit_mail", createReader(validJson))
 
-	mail, err := extractMail(request)
+	mail_events, err := extractMail(request)
 
 	assert.NoError(t, err, "valid JSON string should be parsed without error")
-	assert.Equal(t, "admin@example.com", mail.Email, "email field should be equal to JSON")
-	assert.Equal(t, "Subject line", mail.Subject, "subject field should be equal to JSON")
-	assert.Equal(t, "Message line", mail.Message, "message field should be equal to JSON")
+	assert.Equal(t, "admin@example.com", mail_events.To, "email field should be equal to JSON")
+	assert.Equal(t, "Subject line", mail_events.Subject, "subject field should be equal to JSON")
+	assert.Equal(t, "Message line", mail_events.Message, "message field should be equal to JSON")
 }*/
 
 func TestCheckRequiredPropertiesSetWithInvalidJSON(t *testing.T) {

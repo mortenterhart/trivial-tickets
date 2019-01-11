@@ -1,15 +1,15 @@
 package ticket
 
 import (
-	"math/rand"
 	"sort"
 	"strconv"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/random"
 )
 
-// CreateTicket takes the arguments from either web or the mail api and returns a populated ticket
+// CreateTicket takes the arguments from either web or the mail_events api and returns a populated ticket
 func CreateTicket(mail, subject, text string) structs.Ticket {
 
 	// Create a new entry for the ticket
@@ -25,7 +25,7 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 
 	// Construct the ticket
 	return structs.Ticket{
-		Id:       createTicketId(10),
+		Id:       random.CreateRandomId(10),
 		Subject:  subject,
 		Status:   structs.OPEN,
 		User:     structs.User{},
@@ -41,7 +41,7 @@ func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.T
 
 	// Set the status to the one provided by the form
 	statusValue, _ := strconv.Atoi(status)
-	currentTicket.Status = structs.State(statusValue)
+	currentTicket.Status = structs.Status(statusValue)
 
 	// If there has been a reply, attach it to the entries slice of the ticket
 	if reply != "" {
@@ -107,25 +107,4 @@ func UnassignTicket(currentTicket structs.Ticket) structs.Ticket {
 	currentTicket.Status = structs.OPEN
 
 	return currentTicket
-}
-
-// letters are the valid characters for the ticket id
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-// createTicketId generates a pseudo random id for the tickets
-// Tweaked example from https://stackoverflow.com/a/22892986
-func createTicketId(n int) string {
-
-	// Seed the random function to make it more random
-	rand.Seed(time.Now().UnixNano())
-
-	// Create a slice, big enough to hold the id
-	b := make([]rune, n)
-
-	// Randomly choose a letter from the letters rune
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-
-	return string(b)
 }

@@ -17,6 +17,7 @@ type Config struct {
 	Port    int16
 	Tickets string
 	Users   string
+	Mails   string
 	Cert    string
 	Key     string
 	Web     string
@@ -49,7 +50,7 @@ type User struct {
 	Id          string `json:"Id"`
 	Name        string `json:"Name"`
 	Username    string `json:"Username"`
-	Mail        string `json:"Email"`
+	Mail        string `json:"Mail"`
 	Hash        string `json:"Hash"`
 	IsOnHoliday bool   `json:"IsOnHoliday"`
 }
@@ -73,7 +74,7 @@ type DataSingleTicket struct {
 type Ticket struct {
 	Id       string  `json:"Id"`
 	Subject  string  `json:"Subject"`
-	Status   State   `json:"Status"`
+	Status   Status  `json:"Status"`
 	User     User    `json:"User"`
 	Customer string  `json:"Customer"`
 	Entries  []Entry `json:"Entries"`
@@ -89,16 +90,31 @@ type Entry struct {
 	Reply_Type    string
 }
 
-// State is an enum to represent the current status of a ticket
-type State int
+// Status is an enum to represent the current status of a ticket
+type Status int
 
 const (
-	OPEN State = iota
+	OPEN Status = iota
 	PROCESSING
 	CLOSED
 )
 
-// Email struct holds the information for a received email in order
+func (status Status) String() string {
+	switch status {
+	case OPEN:
+		return "Geöffnet"
+
+	case PROCESSING:
+		return "In Bearbeitung"
+
+	case CLOSED:
+		return "Geschlossen"
+	}
+
+	return "undefined status"
+}
+
+// Mail struct holds the information for a received email in order
 // to create new tickets or answers
 type Mail struct {
 	Id      string `json:"id"`
@@ -107,6 +123,8 @@ type Mail struct {
 	Subject string `json:"subject"`
 	Message string `json:"message"`
 }
+
+type JsonMap map[string]interface{}
 
 type Command int
 
