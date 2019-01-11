@@ -151,9 +151,8 @@ func TestInitializeClient(t *testing.T) {
 	assert.NotEqual(t, http.Transport{}, client.Transport)
 }
 
-func TestSendPost(t *testing.T) {
+func TestMakePostRequest(t *testing.T) {
 	clientConfigured = false
-	post = makePostRequest
 	conf := structs.CLIConfig{
 		IPAddr: "localhost",
 		Port:   4443,
@@ -178,7 +177,7 @@ func TestSendPost(t *testing.T) {
 		requestMessage := "someString"
 		requestPath := "somePath"
 		responseCode = 200
-		_, sendError := post(requestMessage, requestPath)
+		_, sendError := makePostRequest(requestMessage, requestPath)
 
 		assert.NoError(t, sendError)
 		assert.Equal(t, requestMessage, requestPayload)
@@ -188,7 +187,7 @@ func TestSendPost(t *testing.T) {
 	t.Run("verifyOutputs", func(t *testing.T) {
 		responseMessage = "theResponse"
 		responseCode = 200
-		response, sendError := post("", "")
+		response, sendError := makePostRequest("", "")
 
 		assert.Equal(t, responseMessage, response)
 		assert.NoError(t, sendError)
@@ -196,16 +195,21 @@ func TestSendPost(t *testing.T) {
 
 	t.Run("verifyServerError", func(t *testing.T) {
 		responseCode = 404
-		response, sendError := post("", "")
+		response, sendError := makePostRequest("", "")
 
+		errorOccured := sendError != nil
+		assert.True(t, errorOccured)
+		if errorOccured {
+			assert.Contains(t, sendError.Error(), "error with https request. Status code:")
+		}
 		assert.Equal(t, "", response)
-		assert.EqualError(t, sendError, "error with https request. Status code: 404 Not Found")
+
 	})
 
 	t.Run("verifyPostError", func(t *testing.T) {
 		conf.IPAddr = "notAnIPAddress"
 		SetServerConfig(conf)
-		response, sendError := post("", "")
+		response, sendError := makePostRequest("", "")
 		assert.Equal(t, "", response)
 		errorOccurred := sendError != nil
 		assert.True(t, errorOccurred)

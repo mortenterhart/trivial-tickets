@@ -64,15 +64,16 @@ func makeGetRequest(path string) (response string, err error) {
 		err = fmt.Errorf("error sending get request: %v", err)
 		return
 	}
-	if resp.Status[0] != '2' {
-		err = fmt.Errorf("received error status code: %v", resp.Status)
-		return
-	}
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		err = fmt.Errorf("error occured while reading httpGet response: %v", err)
 		return
 	}
+	if resp.Status[0] != '2' {
+		err = fmt.Errorf("received error status code: %v %s", resp.Status, string(responseData))
+		return
+	}
+
 	return string(responseData), nil
 }
 
@@ -96,7 +97,7 @@ func makePostRequest(payload string, path string) (response string, err error) {
 	}
 	status := resp.Status
 	if status[0] != '2' {
-		return "", errors.New("error with https request. Status code: " + status)
+		return "", errors.New("error with https request. Status code: " + status + " {" + string(responseData) + "}")
 	}
 	response = string(responseData)
 	return
