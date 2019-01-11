@@ -1,0 +1,24 @@
+{
+   "Id": "6xSD9nNjAk",
+   "Subject": "blabla",
+   "Status": 0,
+   "User": {
+      "Id": "",
+      "Name": "",
+      "Username": "",
+      "Mail": "",
+      "Hash": "",
+      "IsOnHoliday": false
+   },
+   "Customer": "test@gmail.com",
+   "Entries": [
+      {
+         "Date": "2018-11-29T09:54:47.0663853+01:00",
+         "FormattedDate": "Thu Nov 29 09:54:47 2018",
+         "User": "test@gmail.com",
+         "Text": "test ticket",
+         "Reply_Type": ""
+      }
+   ],
+   "MergeTo": ""
+}
