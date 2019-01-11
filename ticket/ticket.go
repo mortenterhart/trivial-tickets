@@ -9,7 +9,7 @@ import (
 	"github.com/mortenterhart/trivial-tickets/util/random"
 )
 
-// CreateTicket takes the arguments from either web or the mail_events api and returns a populated ticket
+// CreateTicket takes the arguments from either web or the mail api and returns a populated ticket
 func CreateTicket(mail, subject, text string) structs.Ticket {
 
 	// Create a new entry for the ticket

@@ -74,7 +74,7 @@ func TestHandleLogin(t *testing.T) {
 		Id:          "1",
 		Name:        "Test",
 		Username:    "testuser",
-		Mail:        "Testuser@mail_events.com",
+		Mail:        "Testuser@mail.com",
 		Hash:        "$2a$12$rW6Ska0DaVjTX/8sQGCp/.y7kl2RvF.9936Hmm27HyI0cJ78q1UOG",
 		IsOnHoliday: false,
 	}
@@ -125,7 +125,7 @@ func TestHandleCreateTicket(t *testing.T) {
 
 	globals.ServerConfig = &config
 
-	reader := strings.NewReader("mail_events=testuser@test.com&subject=help&text=testest")
+	reader := strings.NewReader("mail=testuser@test.com&subject=help&text=testest")
 	resp, _ := http.Post(server.URL, "application/x-www-form-urlencoded", reader)
 
 	assert.Equal(t, http.StatusFound, resp.StatusCode, "Status code did not match 302")
@@ -159,7 +159,7 @@ func TestHandleHandleHoliday(t *testing.T) {
 		Id:          "1",
 		Name:        "Test",
 		Username:    "testuser",
-		Mail:        "Testuser@mail_events.com",
+		Mail:        "Testuser@mail.com",
 		Hash:        "$2a$12$rW6Ska0DaVjTX/8sQGCp/.y7kl2RvF.9936Hmm27HyI0cJ78q1UOG",
 		IsOnHoliday: false,
 	}
@@ -267,7 +267,7 @@ func TestHandleHandleUpdateTicketMerge(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	reader := strings.NewReader("ticketId=1&status=0&mail_events=bla@example.com&reply=hallo&reply_type=intern&merge=2")
+	reader := strings.NewReader("ticketId=1&status=0&mail=bla@example.com&reply=hallo&reply_type=intern&merge=2")
 
 	resp, err := http.Post(server.URL, "application/x-www-form-urlencoded", reader)
 
@@ -289,7 +289,7 @@ func TestHandleHandleUpdateTicketExtern(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	reader := strings.NewReader("ticketId=1&status=0&mail_events=bla@example.com&reply=hallo&reply_type=extern")
+	reader := strings.NewReader("ticketId=1&status=0&mail=bla@example.com&reply=hallo&reply_type=extern")
 
 	resp, err := http.Post(server.URL, "application/x-www-form-urlencoded", reader)
 
@@ -359,7 +359,7 @@ func TestHandleHandleAssignTicket(t *testing.T) {
 		Id:          "1",
 		Name:        "Test",
 		Username:    "testuser",
-		Mail:        "Testuser@mail_events.com",
+		Mail:        "Testuser@mail.com",
 		Hash:        "$2a$12$rW6Ska0DaVjTX/8sQGCp/.y7kl2RvF.9936Hmm27HyI0cJ78q1UOG",
 		IsOnHoliday: false,
 	}
