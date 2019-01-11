@@ -76,7 +76,7 @@ Bitte antworten Sie nicht auf diese E-Mail.`
 
 	parsedTemplate, parseErr := mailTemplate.Parse(mailBuilder.String())
 	if parseErr != nil {
-		log.Println("internal error: could not build mail_events message from template:", parseErr)
+		log.Println("internal error: could not build mail message from template:", parseErr)
 		return ""
 	}
 
@@ -99,7 +99,7 @@ Bitte antworten Sie nicht auf diese E-Mail.`
 	})
 
 	if executeErr != nil {
-		log.Println("internal error: could not fill mail_events template with ticket information:", executeErr)
+		log.Println("internal error: could not fill mail template with ticket information:", executeErr)
 		return ""
 	}
 
@@ -115,6 +115,10 @@ func getAssignedUser(user structs.User) (string, string) {
 }
 
 func getMessage(ticketEntries []structs.Entry, displayLatestMessage bool) (string, string) {
+	if len(ticketEntries) == 0 {
+		return "kein Eintrag vorhanden", ""
+	}
+
 	if displayLatestMessage {
 		latestEntry := ticketEntries[len(ticketEntries)-1]
 		return latestEntry.Text, latestEntry.User
