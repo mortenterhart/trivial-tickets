@@ -29,7 +29,6 @@ func FetchEmails() (mails []structs.Mail, err error) {
 		return
 	}
 	err = json.Unmarshal([]byte(response), &mails)
-	// TODO implement call to api acknowledging every mail successfully received. Doesn't have to be implemented in this function.
 	return
 }
 
