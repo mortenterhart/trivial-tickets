@@ -41,7 +41,7 @@ func readCommand() (structs.Command, error) {
 	return ret, err
 }
 
-func OutputMessageToCommandLine(output structs.Message) {
+func OutputMessageToCommandLine(output structs.CliMessage) {
 	fmt.Fprintf(writer, "%s", string(output))
 }
 
@@ -87,7 +87,7 @@ func NextCommand() (com structs.Command, err error) {
 		if err == nil {
 			return command, err
 		}
-		output(structs.CommandNotAccepted + structs.Message(err.Error()))
+		output(structs.CommandNotAccepted + structs.CliMessage(err.Error()))
 		counter++
 	}
 }
@@ -100,7 +100,7 @@ func GetEmail() (jsonMail string, err error) {
 		if counter > 10 {
 			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
-		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestEmailAddress)
+		output(structs.CommandNotAccepted + structs.CliMessage(err.Error()) + "\n" + structs.RequestEmailAddress)
 		emailAddress, err = readEmailAddress()
 		counter++
 	}
@@ -111,7 +111,7 @@ func GetEmail() (jsonMail string, err error) {
 		if counter > 10 {
 			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
-		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestTicketID)
+		output(structs.CommandNotAccepted + structs.CliMessage(err.Error()) + "\n" + structs.RequestTicketID)
 		ticketID, err = readString()
 		counter++
 	}
@@ -122,7 +122,7 @@ func GetEmail() (jsonMail string, err error) {
 		if counter > 10 {
 			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
-		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestSubject)
+		output(structs.CommandNotAccepted + structs.CliMessage(err.Error()) + "\n" + structs.RequestSubject)
 		subject, err = readString()
 		counter++
 	}
@@ -133,7 +133,7 @@ func GetEmail() (jsonMail string, err error) {
 		if counter > 10 {
 			return "", errors.New(string(structs.AbortExecutionDueToManyWrongUserInputs))
 		}
-		output(structs.CommandNotAccepted + structs.Message(err.Error()) + "\n" + structs.RequestMessage)
+		output(structs.CommandNotAccepted + structs.CliMessage(err.Error()) + "\n" + structs.RequestMessage)
 		message, err = readString()
 		counter++
 	}
