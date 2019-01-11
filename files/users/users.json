@@ -21,6 +21,6 @@
       "Username": "tron",
       "Mail": "boris.floricic@example.com",
       "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
-      "IsOnHoliday": true
+      "IsOnHoliday": false
    }
 }

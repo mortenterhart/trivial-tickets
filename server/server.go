@@ -1,11 +1,16 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/mortenterhart/trivial-tickets/api/api_in"
+	"github.com/mortenterhart/trivial-tickets/api/api_out"
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 )
@@ -22,41 +27,56 @@ import (
 // the templates once on startup, instead of on every GET - request to index.
 var tmpl *template.Template
 
-// Holds all the sessions for the users
-var sessions = make(map[string]structs.SessionManager)
-
 // Holds all the users
 var users = make(map[string]structs.User)
-
-// Holds all the tickets
-var tickets = make(map[string]structs.Ticket)
-
-// Holds the given config for access to the backend systems
-var serverConfig *structs.Config
 
 // StartServer gets the parameters for the server and starts it
 func StartServer(config *structs.Config) error {
 
 	// Assign given config to the global variable
-	serverConfig = config
+	globals.ServerConfig = config
+
+	// Create the folders for tickets and mails if it does not exist
+	createResourceFolders()
 
 	// Read in the users
-	filehandler.ReadUserFile(serverConfig.Users, &users)
+	errReadUserFile := filehandler.ReadUserFile(globals.ServerConfig.Users, &users)
 
-	// Read in the tickets
-	filehandler.ReadTicketFiles(serverConfig.Tickets, &tickets)
+	if errReadUserFile == nil {
+		// Read in the tickets
+		errReadTicketFiles := filehandler.ReadTicketFiles(globals.ServerConfig.Tickets, &globals.Tickets)
 
-	// Read in the templates
-	tmpl = GetTemplates(serverConfig.Web)
+		if errReadTicketFiles == nil {
 
-	// Register the handlers
-	startHandlers(serverConfig.Web)
+			errReadMailFiles := filehandler.ReadMailFiles(globals.ServerConfig.Mails, &globals.Mails)
 
-	// Redirect http requests to https
-	go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+			if errReadMailFiles == nil {
 
-	// Start the server according to config
-	return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", serverConfig.Port), serverConfig.Cert, serverConfig.Key, nil)
+				// Read in the templates
+				tmpl = GetTemplates(globals.ServerConfig.Web)
+
+				// Register the handlers
+				errStartHandlers := startHandlers(globals.ServerConfig.Web)
+
+				if tmpl != nil && errStartHandlers == nil {
+
+					// Start a GoRoutine to redirect http requests to https
+					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+
+					// Start the server according to config
+					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
+				} else {
+					return errors.New("unable to load templates / register handlers")
+				}
+			} else {
+				return errors.New("unable to load mail files")
+			}
+		} else {
+			return errors.New("unable to load ticket files")
+		}
+	} else {
+		return errors.New("unable to load user file")
+	}
 }
 
 // GetTemplates crawls through the templates folder and reads in all
@@ -67,7 +87,8 @@ func GetTemplates(path string) *template.Template {
 	t, errTemplates := template.ParseGlob(path + "/templates/*.html")
 
 	if errTemplates != nil {
-		log.Fatal("Unable to load the templates: ", errTemplates)
+		log.Println("Unable to load the templates: ", errTemplates)
+		return nil
 	}
 
 	return t
@@ -78,7 +99,7 @@ func GetTemplates(path string) *template.Template {
 // Taken from https://gist.github.com/d-schmidt/587ceec34ce1334a5e60
 func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 
-	target := "https://" + req.Host + req.URL.Path
+	target := "https://" + req.Host + fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port)
 
 	if len(req.URL.RawQuery) > 0 {
 		target += "?" + req.URL.RawQuery
@@ -88,19 +109,43 @@ func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 }
 
 // startHandlers maps all the various handles to the url patterns.
-func startHandlers(path string) {
+func startHandlers(path string) error {
+
+	// Check if the path exists
+	// Taken from https://gist.github.com/mattes/d13e273314c3b3ade33f
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return errors.New("no path given for web folders")
+	}
 
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/logout", handleLogout)
 	http.HandleFunc("/create_ticket", handleCreateTicket)
 	http.HandleFunc("/holiday", handleHoliday)
-	http.HandleFunc("/ticketSend", handleTicketSent)
 	http.HandleFunc("/ticket", handleTicket)
 	http.HandleFunc("/updateTicket", handleUpdateTicket)
 	http.HandleFunc("/unassignTicket", handleUnassignTicket)
 	http.HandleFunc("/assignTicket", handleAssignTicket)
+	http.HandleFunc("/api/receive", api_in.ReceiveMail)
+	http.HandleFunc("/api/fetchMails", api_out.FetchMails)
+	http.HandleFunc("/api/verifyMail", api_out.VerifyMailSent)
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
+
+	return nil
+}
+
+func createResourceFolders() {
+	if !filehandler.FileExists(globals.ServerConfig.Tickets) {
+		filehandler.CreateFolders(globals.ServerConfig.Tickets)
+	}
+
+	if !filehandler.FileExists(globals.ServerConfig.Mails) {
+		filehandler.CreateFolders(globals.ServerConfig.Mails)
+	}
+
+	if !filehandler.FileExists(globals.ServerConfig.Users) {
+		filehandler.CreateFolders(globals.ServerConfig.Users)
+	}
 }

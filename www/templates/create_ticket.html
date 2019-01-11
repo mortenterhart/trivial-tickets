@@ -6,7 +6,7 @@
 {{end}}
         <h5>Neues Ticket erstellen</h5>
         <form action="/create_ticket" method="POST">
-            <input class="ticket_input" type="text" name="mail" placeholder="Ihre E-Mail" required/><br>
+            <input class="ticket_input" type="text" name="mail" placeholder="Ihre E-Mail" required pattern="^[\w.-]+@[\w-]+\.[\w.]+$"/><br>
             <input class="ticket_input" type="text" name="subject" placeholder="Betreff" required/><br>
             <textarea class="ticket_text" name="text" cols="61" rows="25" required placeholder="Beschreiben Sie ihr Problem"></textarea><br>
             <button type="submit">Ticket erstellen</button>
