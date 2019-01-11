@@ -102,7 +102,7 @@ func VerifyMailSent(writer http.ResponseWriter, request *http.Request) {
 
 		delete(globals.Mails, mailId)
 
-		if removeErr := filehandler.RemoveMailFile(mailId); removeErr != nil {
+		if removeErr := filehandler.RemoveMailFile(globals.ServerConfig.Mails, mailId); removeErr != nil {
 			httptools.StatusCodeError(writer, fmt.Sprintf("error while trying to remove mail: %s", removeErr),
 				http.StatusInternalServerError)
 			return
