@@ -18,7 +18,7 @@ func createSubjectLine(subject string, ticketID string) (subjectLine string) {
 // It expects the input parameters to be valid, no checks are being done on them.
 // Internally it relies on the createSubjectLine function.
 func CreateMail(eMailAddress string, subject string, ticketID string, message string) (mailJson string) {
-	mailJson = `{"from":"` + eMailAddress + `", "subject":"` + createSubjectLine(subject, ticketID) + `", "message": "` + message + `"}`
+	mailJson = `{"from":"` + eMailAddress + `", "subject":"` + createSubjectLine(subject, ticketID) + `", "message":"` + message + `"}`
 	return
 }
 
