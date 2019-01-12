@@ -217,16 +217,18 @@ func TestPrintEmail(t *testing.T) {
 	var output string
 	writer = NewTestWriter(&output)
 	emailAddress := "emailAddress"
+	fromAddress := "anotherEmailAddress"
 	subject := "subjectline"
 	message := "message"
 	mail := structs.Mail{
 		Id:      "AnID",
+		From:    fromAddress,
 		To:      emailAddress,
 		Subject: subject,
 		Message: message}
 	PrintEmail(mail)
-	expectedOutput := string(structs.Receiver) + emailAddress + "\n\n" +
+	expectedOutput := "From: " + fromAddress + "\n" + string(structs.To) + emailAddress + "\n\n" +
 		string(structs.Subject) + subject + "\n\n" +
-		message
+		message + "\n"
 	assert.Equal(t, expectedOutput, output)
 }
