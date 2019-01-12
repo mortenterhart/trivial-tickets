@@ -1,15 +1,28 @@
 package mail_events
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/structs"
 	"html/template"
 	"log"
 	"net/url"
-	"strings"
-
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/structs"
 )
+
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package mail_events
+ * Mail message construction using templating
+ */
 
 type Event int
 
@@ -23,10 +36,16 @@ const (
 	UnassignedTicket
 )
 
+// NewMailBody creates a message to be sent inside a mail body.
+// Depending of the mail event (e.g. ticket or answer creation)
+// different messages are written to the body and populated with
+// information from a given ticket.
 func NewMailBody(event Event, ticket structs.Ticket) string {
 	mailTemplate := template.New("mail_body")
 
-	var mailBuilder strings.Builder
+	// The string was originally built using strings.Builder, however
+	// this type was firstly introduced in Go 1.10
+	var mailBuilder bytes.Buffer
 	mailBuilder.WriteString("Sehr geehrter Kunde, sehr geehrte Kundin,\n\n")
 
 	displayLatestAnswer := false

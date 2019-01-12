@@ -4,6 +4,20 @@ import (
 	"regexp"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package cliUtils
+ * Various utilities for CLI
+ */
+
 // createSubjectLine creates a SubjectLine based on subject and ticketID. If ticketID is empty, subjectLine = subject.
 // The ticketID in the subjectLine is used by the API to assign the message to an already existing ticket.
 func createSubjectLine(subject string, ticketID string) (subjectLine string) {
