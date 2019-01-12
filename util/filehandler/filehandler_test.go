@@ -96,7 +96,7 @@ func TestWriteTicketFile(t *testing.T) {
 func TestWriteTicketFileError(t *testing.T) {
 
 	// Invalid Path
-	const usersFile = "//bla"
+	const usersFile = ""
 
 	ticket := mockTicket()
 
