@@ -90,7 +90,7 @@ func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail string) 
 
 	fetch = *f
 	submit = *s
-	mail = cliUtils.CreateMail(*email, *ticketID, *subject, *message)
+	mail = cliUtils.CreateMail(*email, *subject, *ticketID, *message)
 	return
 }
 
