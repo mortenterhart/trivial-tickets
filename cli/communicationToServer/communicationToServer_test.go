@@ -43,7 +43,7 @@ func TestRequests(t *testing.T) {
 	clientConfigured = false
 	conf := structs.CLIConfig{
 		IPAddr: "localhost",
-		Port:   4443,
+		Port:   5743,
 		Cert:   "../../ssl/server.cert"}
 	SetServerConfig(conf)
 	var requestURI string
@@ -67,6 +67,9 @@ func TestRequests(t *testing.T) {
 			println(err.Error())
 		}
 	})
+
+	//give the server enough time to start. Makes the test more reliable
+	time.Sleep(5 * time.Second)
 
 	t.Run("TestMakeGetRequest", func(t *testing.T) {
 
@@ -121,7 +124,7 @@ func TestRequests(t *testing.T) {
 
 		conf := structs.CLIConfig{
 			IPAddr: "localhost",
-			Port:   4443,
+			Port:   5743,
 			Cert:   "../../ssl/server.cert"}
 		SetServerConfig(conf)
 
