@@ -69,7 +69,7 @@ func VerifyMailSent(writer http.ResponseWriter, request *http.Request) {
 		decodeErr := json.NewDecoder(request.Body).Decode(&jsonProperties)
 		if decodeErr != nil {
 			httptools.StatusCodeError(writer, fmt.Sprintf("could not decode request body: %s", decodeErr),
-				http.StatusInternalServerError)
+				http.StatusBadRequest)
 			return
 		}
 
