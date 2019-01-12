@@ -85,8 +85,8 @@ func createTestServer(handler http.Handler) *httptest.Server {
 	return httptest.NewServer(handler)
 }
 
-func createReader(str string) io.Reader {
-	return strings.NewReader(str)
+func createReader(data string) io.Reader {
+	return strings.NewReader(data)
 }
 
 func buildExpectedJson(properties structs.JsonMap) []byte {
