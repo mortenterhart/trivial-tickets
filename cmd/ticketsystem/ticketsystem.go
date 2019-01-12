@@ -1,35 +1,42 @@
 package main
 
 import (
-    "errors"
-    "flag"
-    "log"
-    "math"
+	"errors"
+	"flag"
+	"log"
+	"math"
 
-    "github.com/mortenterhart/trivial-tickets/server"
-    "github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/server"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
-*
-* Matrikelnummern
-* 3040018
-* 6694964
-* 3478222
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package main
+ * Main package of the ticketsystem webserver
  */
+
 func main() {
 
-    config, errConfig := initConfig()
+	config, errConfig := initConfig()
 
-    if errConfig != nil {
-        log.Fatal(errConfig)
-    }
+	if errConfig != nil {
+		log.Fatal(errConfig)
+	}
 
-    errServer := server.StartServer(&config)
+	errServer := server.StartServer(&config)
 
-    if errServer != nil {
-        log.Fatal(errServer)
-    }
+	if errServer != nil {
+		log.Fatal(errServer)
+	}
 }
 
 // initConfig parses the command line arguments and
@@ -37,32 +44,32 @@ func main() {
 // It returns this struct
 func initConfig() (structs.Config, error) {
 
-    // Get the command line arguments
-    port := flag.Int("port", 8443, "Port on which the web server will run")
-    tickets := flag.String("tickets", "../../files/tickets", "Folder in which the tickets will be stored")
-    users := flag.String("users", "../../files/users/users.json", "Path where the users file is stored")
-    mails := flag.String("mails", "../../files/mails", "Directory in which the mails will be cached")
-    cert := flag.String("cert", "../../ssl/server.cert", "Location of the ssl certificate")
-    key := flag.String("key", "../../ssl/server.key", "Location of the ssl key file")
-    web := flag.String("web", "../../www", "Location of the www folder")
+	// Get the command line arguments
+	port := flag.Int("port", 8443, "Port on which the web server will run")
+	tickets := flag.String("tickets", "../../files/tickets", "Folder in which the tickets will be stored")
+	users := flag.String("users", "../../files/users/users.json", "Path where the users file is stored")
+	mails := flag.String("mails", "../../files/mails", "Directory in which the mails will be cached")
+	cert := flag.String("cert", "../../ssl/server.cert", "Location of the ssl certificate")
+	key := flag.String("key", "../../ssl/server.key", "Location of the ssl key file")
+	web := flag.String("web", "../../www", "Location of the www folder")
 
-    // Parse all arguments, e.g. populate the variables
-    flag.Parse()
+	// Parse all arguments, e.g. populate the variables
+	flag.Parse()
 
-    // If the port is not within boundaries, return an error
-    if !isPortInBoundaries(*port) {
-        return structs.Config{}, errors.New("port is not a correct port number")
-    }
+	// If the port is not within boundaries, return an error
+	if !isPortInBoundaries(*port) {
+		return structs.Config{}, errors.New("port is not a correct port number")
+	}
 
-    // Populate and return the struct
-    return structs.Config{
-        Port:    int16(*port),
-        Tickets: *tickets,
-        Users:   *users,
-        Mails:   *mails,
-        Cert:    *cert,
-        Key:     *key,
-        Web:     *web}, nil
+	// Populate and return the struct
+	return structs.Config{
+		Port:    int16(*port),
+		Tickets: *tickets,
+		Users:   *users,
+		Mails:   *mails,
+		Cert:    *cert,
+		Key:     *key,
+		Web:     *web}, nil
 }
 
 // isPortInBoundaries returns true if the provided port
@@ -70,5 +77,5 @@ func initConfig() (structs.Config, error) {
 // otherwise. Since the port numbers only go up to a 16
 // bit integer
 func isPortInBoundaries(port int) bool {
-    return port <= math.MaxInt16
+	return port <= math.MaxInt16
 }

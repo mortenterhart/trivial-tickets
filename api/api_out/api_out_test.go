@@ -20,6 +20,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package api_out [tests]
+ * Web API for outgoing mails to be fetched and verified to be sent
+ */
+
 const jsonContentType = "application/json"
 
 func testServerConfig() structs.Config {

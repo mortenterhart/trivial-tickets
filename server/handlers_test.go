@@ -14,18 +14,24 @@ import (
 )
 
 /*
-*
-* Matrikelnummern
-* 3040018
-* 6694964
-* 3478222
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package server [tests]
+ * Server handlers reacting to HTTP requests
  */
 
 /*
-* To test the handlers, the ServeHTTP function was mapped to a mock struct in
-* order to call them directly via the test server.
-*
-* Various mock structs and global variables are populated to make the tests work properly
+ * To test the handlers, the ServeHTTP function was mapped to a mock struct in
+ * order to call them directly via the test server.
+ *
+ * Various mock structs and global variables are populated to make the tests work properly
  */
 
 // index

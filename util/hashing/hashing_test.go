@@ -1,17 +1,23 @@
 package hashing
 
 import (
-    "testing"
+	"testing"
 
-    "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 /*
-*
-* Matrikelnummern
-* 3040018
-* 6694964
-* 3478222
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package hashing [tests]
+ * Hashing functions for passwords
  */
 
 // Password for test and bcrypt hash generated from that password
@@ -22,18 +28,18 @@ const hash = "$2a$12$rW6Ska0DaVjTX/8sQGCp/.y7kl2RvF.9936Hmm27HyI0cJ78q1UOG"
 // and makes sure the hashing function works properly.
 func TestCheckPassword(t *testing.T) {
 
-    isPasswordCorrect := CheckPassword(hash, password)
+	isPasswordCorrect := CheckPassword(hash, password)
 
-    assert.True(t, isPasswordCorrect, "Password was not correct")
+	assert.True(t, isPasswordCorrect, "Password was not correct")
 }
 
 // TestGenerateHash tests that a bcrypt hash is generated
 // from a given password without errors.
 func TestGenerateHash(t *testing.T) {
 
-    // It is not possible to test for the specific hash, since the salt will always be different
-    hash, err := GenerateHash(password)
+	// It is not possible to test for the specific hash, since the salt will always be different
+	hash, err := GenerateHash(password)
 
-    assert.NotNil(t, hash, "Hash is nil")
-    assert.Nil(t, err, "Hashing the password did not succeed")
+	assert.NotNil(t, hash, "Hash is nil")
+	assert.Nil(t, err, "Hashing the password did not succeed")
 }

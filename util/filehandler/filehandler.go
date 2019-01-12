@@ -13,11 +13,18 @@ import (
 )
 
 /*
-*
-* Matrikelnummern
-* 3040018
-* 6694964
-* 3478222
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package filehandler
+ * Interactions with files, writing and reading files and persisting
+ * changes to the file system
  */
 
 // ReadUserFile takes a string as parameter for the location
@@ -84,6 +91,7 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 	return ioutil.WriteFile(finalPath, marshalTicket, 0644)
 }
 
+// FileExists examines if a given path exists or not
 func FileExists(path string) bool {
 	if _, notExistsErr := os.Stat(path); notExistsErr != nil && os.IsNotExist(notExistsErr) {
 		return false
@@ -121,6 +129,9 @@ func WriteMailFile(directory string, mail *structs.Mail) error {
 	return nil
 }
 
+// ReadMailFiles lookups the files in the given directory, reads them and decodes
+// JSON files into mail structures. Those structures are added to a mail hash map
+// with its id as key.
 func ReadMailFiles(directory string, mails *map[string]structs.Mail) error {
 	mailFiles, readErr := ioutil.ReadDir(directory)
 	if readErr != nil {
@@ -144,6 +155,8 @@ func ReadMailFiles(directory string, mails *map[string]structs.Mail) error {
 	return nil
 }
 
+// RemoveMailFile attempts to remove a mail with a given id in a given directory.
+// If the file does not exist, it returns an non-nil error.
 func RemoveMailFile(directory string, mailId string) error {
 	mailPath := path.Join(directory, mailId) + ".json"
 	if os.Remove(mailPath) != nil {

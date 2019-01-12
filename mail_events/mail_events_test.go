@@ -14,6 +14,20 @@ import (
 	"github.com/mortenterhart/trivial-tickets/ticket"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package mail_events [tests]
+ * Mail message construction using templating
+ */
+
 func mockTicketWithEntry() structs.Ticket {
 	return ticket.CreateTicket("customer@mail.com", "Something is wrong", "I don't know what")
 }
