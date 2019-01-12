@@ -180,7 +180,7 @@ func TestGetEmail(t *testing.T) {
 	//	Email:   "emailAddress",
 	//	Subject: `[Ticket "ticketID"] subject`,
 	//	Message: "and a message"}
-	expectedJson := `{"from":"emailAddress", "subject":"[Ticket \"ticketID\"] subject", "message": "and a message"}`
+	expectedJson := `{"from":"emailAddress", "subject":"[Ticket \"ticketID\"] subject", "message":"and a message"}`
 	assert.Equal(t, expectedJson, outputJson)
 
 	//Second test case: the ticketID is empty. This is still allowed.
@@ -191,7 +191,7 @@ func TestGetEmail(t *testing.T) {
 	index = 0
 	outputJson, outputError = GetEmail()
 	assert.NoError(t, outputError)
-	expectedJson = `{"from":"emailAddress", "subject":"subject", "message": "and a message"}`
+	expectedJson = `{"from":"emailAddress", "subject":"subject", "message":"and a message"}`
 	assert.Equal(t, expectedJson, outputJson)
 
 	//Third test case: an unexpected empty input. Throws an error after continuously receiving invalid user input.
