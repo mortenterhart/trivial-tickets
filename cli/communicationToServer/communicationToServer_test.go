@@ -57,11 +57,15 @@ func TestRequests(t *testing.T) {
 		requestMethod = request.Method
 		data, err := ioutil.ReadAll(request.Body)
 		if err != nil {
+			println(err.Error())
 			responseCode = 500
 		}
 		requestPayload = string(data)
 		responseWriter.WriteHeader(responseCode)
-		responseWriter.Write([]byte(responseMessage))
+		_, err = responseWriter.Write([]byte(responseMessage))
+		if err != nil {
+			println(err.Error())
+		}
 	})
 
 	t.Run("TestMakeGetRequest", func(t *testing.T) {
@@ -69,8 +73,9 @@ func TestRequests(t *testing.T) {
 		t.Run("verifyInputs", func(t *testing.T) {
 			inputPath := "the/path"
 			responseCode = 200
-			makeGetRequest(inputPath)
+			_, getRequestError := makeGetRequest(inputPath)
 
+			assert.NoError(t, getRequestError)
 			assert.Equal(t, "GET", requestMethod)
 			assert.Equal(t, "", requestPayload)
 			assert.Contains(t, requestURI, inputPath)
