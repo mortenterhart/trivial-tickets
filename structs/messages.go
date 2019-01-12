@@ -11,7 +11,7 @@ const (
 	RequestSubject      CliMessage = "Please enter the subject line\n"
 	RequestMessage      CliMessage = "Please enter the body of the message.\n"
 	RequestTicketID     CliMessage = "If applicable please enter the ticket ID. If left empty, a new ticket will be created.\n"
-	Receiver            CliMessage = "Receiver: "
+	To                  CliMessage = "To: "
 	Subject             CliMessage = "Subject: "
 )
 

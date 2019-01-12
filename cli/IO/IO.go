@@ -27,6 +27,10 @@ func readCommand() (structs.Command, error) {
 	// gets rid of the delimiter if there was no error
 	if err == nil {
 		input = input[:(len(input) - 1)]
+		// if it's a windows machine remove carriage return
+		if input[len(input)-1] == '\r' {
+			input = input[:(len(input) - 1)]
+		}
 	}
 	asInt, err = strconv.Atoi(input)
 	switch structs.Command(asInt) {
@@ -46,9 +50,10 @@ func OutputMessageToCommandLine(output structs.CliMessage) {
 }
 
 func PrintEmail(mail structs.Mail) {
-	fmt.Fprintf(writer, "Receiver: %s\n\n"+
+	fmt.Fprintf(writer, "From: %s\n"+
+		"To: %s\n\n"+
 		"Subject: %s\n\n"+
-		"%s", mail.To, mail.Subject, mail.Message)
+		"%s\n", mail.From, mail.To, mail.Subject, mail.Message)
 }
 
 func getEmailAddress() (addr string, err error) {
