@@ -63,6 +63,8 @@ func StartServer(config *structs.Config) error {
 					// Start a GoRoutine to redirect http requests to https
 					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
 
+					log.Printf("server listening on https://localhost:%d\n", globals.ServerConfig.Port)
+
 					// Start the server according to config
 					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
 				} else {
