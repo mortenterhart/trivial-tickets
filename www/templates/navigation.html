@@ -1,11 +1,27 @@
+<!--
+
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ * navigation template
+ */
+
+-->
+
 {{define "navigation"}}
 <div class="sidebar">
-    {{if .IsLoggedIn}}
-        <a href="/"              onclick="toggle(this)">Dashboard</a>
-        <a href="#create_ticket" onclick="toggle(this)">Ticket erstellen</a>
-        <a href="#all_tickets"   onclick="toggle(this)">Alle Tickets</a>
-    {{else}}
-        <a href="/"              onclick="toggle(this)">Ticket erstellen</a>
-    {{end}}
+{{if .IsLoggedIn}}
+    <a href="/" onclick="toggle(this)">Dashboard</a>
+    <a href="#create_ticket" onclick="toggle(this)">Ticket erstellen</a>
+    <a href="#all_tickets" onclick="toggle(this)">Alle Tickets</a>
+{{else}}
+    <a href="/" onclick="toggle(this)">Ticket erstellen</a>
+{{end}}
 </div>
 {{end}}

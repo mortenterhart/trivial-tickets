@@ -2,13 +2,27 @@ package main
 
 import (
 	"flag"
-	"github.com/mortenterhart/trivial-tickets/cli/IO"
 	"github.com/mortenterhart/trivial-tickets/cli/communicationToServer"
+	"github.com/mortenterhart/trivial-tickets/cli/io"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/cliUtils"
 	"log"
 	"math"
 )
+
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package main
+ * Main package of the command line utility
+ */
 
 func main() {
 
@@ -25,7 +39,7 @@ func main() {
 			log.Fatal(err)
 		}
 		for _, mail := range mails {
-			IO.PrintEmail(mail)
+			io.PrintEmail(mail)
 			acknowledgementError := communicationToServer.AcknowledgeEmailReception(mail)
 			if acknowledgementError != nil {
 				println(acknowledgementError.Error())
@@ -85,7 +99,7 @@ func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail string) 
 func commandLoop() {
 	ok := true
 	for ok {
-		com, err := IO.NextCommand()
+		com, err := io.NextCommand()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -96,14 +110,14 @@ func commandLoop() {
 				log.Fatal(err)
 			}
 			for _, mail := range mails {
-				IO.PrintEmail(mail)
+				io.PrintEmail(mail)
 				acknowledgementError := communicationToServer.AcknowledgeEmailReception(mail)
 				if acknowledgementError != nil {
 					println(acknowledgementError.Error())
 				}
 			}
 		case structs.SUBMIT:
-			mailJson, err := IO.GetEmail()
+			mailJson, err := io.GetEmail()
 			if err != nil {
 				log.Fatal(err)
 			}

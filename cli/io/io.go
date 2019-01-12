@@ -1,4 +1,4 @@
-package IO
+package io
 
 import (
 	"bufio"
@@ -10,6 +10,20 @@ import (
 	"os"
 	"strconv"
 )
+
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package io
+ * I/O operations for the CLI
+ */
 
 var reader = io.Reader(os.Stdin)
 var writer = io.Writer(os.Stdout)

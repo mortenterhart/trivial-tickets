@@ -10,6 +10,20 @@ import (
 	"net/url"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package mail_events
+ * Mail message construction using templating
+ */
+
 type Event int
 
 type templateMap map[string]string
@@ -22,6 +36,10 @@ const (
 	UnassignedTicket
 )
 
+// NewMailBody creates a message to be sent inside a mail body.
+// Depending of the mail event (e.g. ticket or answer creation)
+// different messages are written to the body and populated with
+// information from a given ticket.
 func NewMailBody(event Event, ticket structs.Ticket) string {
 	mailTemplate := template.New("mail_body")
 

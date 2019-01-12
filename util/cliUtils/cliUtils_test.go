@@ -5,6 +5,20 @@ import (
 	"testing"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package cliUtils [tests]
+ * Various utilities for CLI
+ */
+
 func TestCreateSubjectLine(t *testing.T) {
 	subjectline := createSubjectLine("abcd", "")
 	assert.Equal(t, "abcd", subjectline)

@@ -5,11 +5,17 @@ import (
 )
 
 /*
-*
-* Matrikelnummern
-* 3040018
-* 6694964
-* 3478222
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package globals
+ * Global hash maps and structs
  */
 
 // Globals holds global variables for easy access and prevention of circle imports

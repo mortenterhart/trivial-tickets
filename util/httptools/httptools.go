@@ -8,6 +8,20 @@ import (
 	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package httptools
+ * Useful tools for HTTP handlers
+ */
+
 func StatusCodeError(writer http.ResponseWriter, cause string, statusCode int) {
 	http.Error(writer, fmt.Sprintf("%d %s: %s", statusCode, http.StatusText(statusCode), cause), statusCode)
 }

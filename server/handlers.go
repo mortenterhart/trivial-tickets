@@ -17,11 +17,17 @@ import (
 )
 
 /*
-*
-* Matrikelnummern
-* 3040018
-* 6694964
-* 3478222
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package server
+ * Server handlers reacting to HTTP requests
  */
 
 // handleIndex handles the traffic for the index.html
