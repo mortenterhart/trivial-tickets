@@ -84,6 +84,10 @@ func getString() (result string, err error) {
 	// gets rid of the delimiter if there was no error
 	if err == nil {
 		result = result[:(len(result) - 1)]
+		// if it's a windows machine remove carriage return
+		if result[len(result)-1] == '\r' {
+			result = result[:(len(result) - 1)]
+		}
 	} else if err == io.EOF {
 		err = nil
 	} else {
