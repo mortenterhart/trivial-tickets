@@ -1,15 +1,31 @@
+<!--
+
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ * create_ticket template
+ */
+
+-->
+
 {{define "create_ticket"}}
 {{if .IsLoggedIn}}
-    <div class="create_ticket" id="create_ticket" style="display: none;">
+<div class="create_ticket" id="create_ticket" style="display: none;">
 {{else}}
-    <div class="create_ticket" id="create_ticket">
+<div class="create_ticket" id="create_ticket">
 {{end}}
-        <h5>Neues Ticket erstellen</h5>
-        <form action="/create_ticket" method="POST">
-            <input class="ticket_input" type="text" name="mail" placeholder="Ihre E-Mail" required pattern="^[\w.-]+@[\w-]+\.[\w.]+$"/><br>
-            <input class="ticket_input" type="text" name="subject" placeholder="Betreff" required/><br>
-            <textarea class="ticket_text" name="text" cols="61" rows="25" required placeholder="Beschreiben Sie ihr Problem"></textarea><br>
-            <button type="submit">Ticket erstellen</button>
-        </form>
-    </div>
+    <h5>Neues Ticket erstellen</h5>
+    <form action="/create_ticket" method="POST">
+        <input class="ticket_input" type="text" name="mail" placeholder="Ihre E-Mail" required pattern="^[\w.-]+@[\w-]+\.[\w.]+$"/><br>
+        <input class="ticket_input" type="text" name="subject" placeholder="Betreff" required/><br>
+        <textarea class="ticket_text" name="text" cols="61" rows="25" required placeholder="Beschreiben Sie ihr Problem"></textarea><br>
+        <button type="submit">Ticket erstellen</button>
+    </form>
+</div>
 {{end}}

@@ -9,6 +9,20 @@ import (
 	"github.com/mortenterhart/trivial-tickets/util/random"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package ticket
+ * Administration of ticket actions
+ */
+
 // CreateTicket takes the arguments from either web or the mail api and returns a populated ticket
 func CreateTicket(mail, subject, text string) structs.Ticket {
 

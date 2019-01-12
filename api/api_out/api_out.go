@@ -15,7 +15,23 @@ import (
 	"github.com/mortenterhart/trivial-tickets/util/random"
 )
 
-// Construct a mail and save it to cache
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package api_out
+ * Web API for outgoing mails to be fetched and verified to be sent
+ */
+
+// SendMail takes a mail event and a specified ticket and constructs
+// a new mail which is then saved into its own file. The message of
+// the mail is wrapped inside a mail template depending on the event.
 func SendMail(mailEvent mail_events.Event, ticket structs.Ticket) {
 	newMail := structs.Mail{
 		Id:      random.CreateRandomId(10),
@@ -33,7 +49,20 @@ func SendMail(mailEvent mail_events.Event, ticket structs.Ticket) {
 	}
 }
 
-// Output all cached mails
+// FetchMail is an endpoint to the outgoing mail API and sends all
+// mails which are currently cached and ready to be sent. The response
+// is in JSON format.
+//
+//     Takes: no parameters
+//     Returns: {
+//         "<mail_id>": {
+//             "from": "",
+//             "id": "",
+//             "message": "",
+//             "subject": "",
+//             "to": ""
+//         }
+//     }
 func FetchMails(writer http.ResponseWriter, request *http.Request) {
 
 	if request.Method == "GET" {
@@ -56,11 +85,10 @@ func FetchMails(writer http.ResponseWriter, request *http.Request) {
 	}, http.StatusMethodNotAllowed)
 }
 
-// Input: JSON {"id":"<mail_id>"}
-// Output: JSON {"sent":true/false,"message":"mail id does not exist"}
-// VerifyMailSent gets a mail id and verifies the mail with the id is cached
-// and exists, then deletes it because the sending is verified, otherwise sending
-// is retried on next call to FetchMails
+// VerifyMailSent can be used by an external service to verify that a mail was sent.
+// It requests an unique mail id and checks if the corresponding mail exists inside
+// the cache. If it does, the mail can be safely deleted and the API returns a verified
+// JSON object. If the mail does not exist, the API returns an unverified object.
 func VerifyMailSent(writer http.ResponseWriter, request *http.Request) {
 
 	if request.Method == "POST" {
@@ -121,6 +149,8 @@ func VerifyMailSent(writer http.ResponseWriter, request *http.Request) {
 	}, http.StatusMethodNotAllowed)
 }
 
+// verifyMailCheckRequiredPropertiesSet takes JSON properties and checks if
+// the required property "id" is set
 func verifyMailCheckRequiredPropertiesSet(jsonProperties structs.JsonMap) error {
 	if _, idPropertySet := jsonProperties["id"]; !idPropertySet {
 		return fmt.Errorf("required JSON property '%s' not defined", "id")
@@ -129,6 +159,8 @@ func verifyMailCheckRequiredPropertiesSet(jsonProperties structs.JsonMap) error 
 	return nil
 }
 
+// verifyMailCheckAdditionalProperties checks if any other properties than "id" are
+// set within the JSON request
 func verifyMailCheckAdditionalProperties(jsonProperties structs.JsonMap) error {
 	for property := range jsonProperties {
 		if property != "id" {
@@ -139,6 +171,8 @@ func verifyMailCheckAdditionalProperties(jsonProperties structs.JsonMap) error {
 	return nil
 }
 
+// verifyMailCheckPropertyTypes examines the type of the value of the property "id"
+// and verifies its correctness
 func verifyMailCheckPropertyTypes(jsonProperties structs.JsonMap) error {
 	if idContent, idIsString := jsonProperties["id"].(string); !idIsString {
 		return fmt.Errorf("property '%s' has invalid type: expected string, "+
@@ -148,6 +182,7 @@ func verifyMailCheckPropertyTypes(jsonProperties structs.JsonMap) error {
 	return nil
 }
 
+// convertToJson converts a json map into a json string and logs an error if it failed
 func convertToJson(properties structs.JsonMap) string {
 	jsonString, decodeErr := jsontools.MapToJson(properties)
 	if decodeErr != nil {

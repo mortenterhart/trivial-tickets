@@ -16,6 +16,20 @@ import (
 	"time"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package communicationToServer
+ * Functions from the CLI calling various API endpoints from the server
+ */
+
 var serverConfig structs.CLIConfig
 var client http.Client
 var clientConfigured bool

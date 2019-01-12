@@ -1,16 +1,32 @@
+<!--
+
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ * login template
+ */
+
+-->
+
 {{define "login"}}
 <div class="login">
-    {{if .IsLoggedIn}}
-        <form method="POST" action="/logout">
-            <label>Willkommen, {{.User.Name}}</label>
-            &nbsp;&nbsp;<button type="submit">Logout</button>
-        </form>
-    {{else}}
-        <form method="POST" action="/login">
-            <input type="text"     name="username" class="login_input" placeholder="Nutzername" required />
-            <input type="password" name="password" class="login_input" placeholder="Passwort" required />
-            <button type="submit">Login</button>
-        </form>
-    {{end}}
+{{if .IsLoggedIn}}
+    <form method="POST" action="/logout">
+        <label>Willkommen, {{.User.Name}}</label>
+        &nbsp;&nbsp;<button type="submit">Logout</button>
+    </form>
+{{else}}
+    <form method="POST" action="/login">
+        <input type="text" name="username" class="login_input" placeholder="Nutzername" required />
+        <input type="password" name="password" class="login_input" placeholder="Passwort" required />
+        <button type="submit">Login</button>
+    </form>
+{{end}}
 </div>
 {{end}}

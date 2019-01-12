@@ -11,6 +11,20 @@ import (
 	"time"
 )
 
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 3040018, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package communicationToServer [tests]
+ * Functions from the CLI calling various API endpoints from the server
+ */
+
 // test that makePostRequest is called with the correct path
 func TestFetchEmails(t *testing.T) {
 	var inputPath string
