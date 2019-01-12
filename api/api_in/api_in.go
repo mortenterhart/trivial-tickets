@@ -4,21 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/mail_events"
+	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/ticket"
+	"github.com/mortenterhart/trivial-tickets/util/filehandler"
+	"github.com/mortenterhart/trivial-tickets/util/httptools"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"reflect"
 	"regexp"
 	"strconv"
-	"strings"
-
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/mortenterhart/trivial-tickets/ticket"
-	"github.com/mortenterhart/trivial-tickets/util/filehandler"
-	"github.com/mortenterhart/trivial-tickets/util/httptools"
-	"github.com/pkg/errors"
 )
 
 /*
@@ -300,12 +298,8 @@ func checkCorrectPropertyTypes(jsonProperties structs.JsonMap) error {
 }
 
 func writeJsonProperty(key, value interface{}) string {
-	var jsonBuilder strings.Builder
-	jsonBuilder.WriteString(enquote(key))
-	jsonBuilder.WriteString(":")
-	jsonBuilder.WriteString(writeJsonValue(value))
-
-	return jsonBuilder.String()
+	jsonKey := enquote(key) + ":"
+	return jsonKey + writeJsonValue(value)
 }
 
 func writeJsonValue(value interface{}) string {
