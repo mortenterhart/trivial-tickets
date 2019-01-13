@@ -2,7 +2,7 @@
 
 REM Ticketsystem Trivial Tickets
 REM
-REM Matriculation numbers: 3040018, 3040018, 3478222
+REM Matriculation numbers: 3040018, 6694964, 3478222
 REM Lecture:               Programmieren II, INF16B
 REM Lecturer:              Herr Prof. Dr. Helmut Neemann
 REM Institute:             Duale Hochschule Baden-Württemberg Mosbach
