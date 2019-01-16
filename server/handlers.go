@@ -1,3 +1,4 @@
+// Server handlers reacting to HTTP requests
 package server
 
 import (

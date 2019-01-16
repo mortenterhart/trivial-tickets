@@ -1,3 +1,4 @@
+// Web API for incoming mails to create new tickets or answers
 package api_in
 
 import (
@@ -34,18 +35,29 @@ import (
  * Web API for incoming mails to create new tickets or answers
  */
 
+// Regex defining the syntax of an answer subject
 var answerSubjectRegex = regexp.MustCompile(`\[Ticket "([A-Za-z0-9]+)"\].*`)
 
+// Regex defining the syntax of valid email addresses
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$")
 
+// Type constant for string in order to check the
+// request parameter's type for validity
 var stringType = reflect.TypeOf("")
 
+// API parameters for the handler ReceiveMail.
+// Parameter names are mapped to their expected type and are
+// used for parameter existence and type checking.
 var apiParameters = map[string]reflect.Type{
 	"from":    stringType,
 	"subject": stringType,
 	"message": stringType,
 }
 
+// ReceiveMail serves as the uniform interface for creating new tickets and answers
+// out of mails. The mail is passed as JSON to this handler and requires the exact
+// properties "from" (the sender's email address), "subject" (the ticket subject)
+// and "message" (the ticket's message body).
 func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 	// Only accept POST requests
@@ -131,6 +143,8 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 				createdTicket = ticket.UpdateTicket(convertStatusToString(existingTicket.Status),
 					mail.From, mail.Message, "extern", existingTicket)
 
+				// Send mail notification to customer that a new answer
+				// has been created
 				api_out.SendMail(mail_events.NewAnswer, createdTicket)
 			} else {
 				// The subject is formatted like an answering mail, but the
@@ -144,6 +158,8 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 		if !isAnswerMail {
 			createdTicket = ticket.CreateTicket(mail.From, mail.Subject, mail.Message)
 
+			// Send mail notification to customer that a new ticket
+			// has been created
 			api_out.SendMail(mail_events.NewTicket, createdTicket)
 		}
 
@@ -168,10 +184,20 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 	}, http.StatusMethodNotAllowed)
 }
 
+// convertStatusToString converts a status enum constant which is
+// an integer to a string considering correct string conversion.
+// Casting the integer to a string is not an option since the string
+// will consist of the character at the Unicode index that the integer
+// infers.
 func convertStatusToString(status structs.Status) string {
 	return strconv.Itoa(int(status))
 }
 
+// matchAnswerSubject matches the given subject against the syntax
+// of a subject which causes a new answer to be created instead of
+// a new ticket. If the subject is conform to this pattern, the
+// function returns the contained ticket id as string and true,
+// otherwise an empty string and false.
 func matchAnswerSubject(subject string) (string, bool) {
 	if answerSubjectRegex.Match([]byte(subject)) {
 		ticketIdMatches := answerSubjectRegex.FindStringSubmatch(subject)
@@ -182,22 +208,34 @@ func matchAnswerSubject(subject string) (string, bool) {
 	return "", false
 }
 
+// validEmailAddress checks the given email address against the email
+// regular expression and examines if the supplied email address is
+// valid or not.
 func validEmailAddress(email string) bool {
 	return emailRegex.Match([]byte(email))
 }
 
+// Error denoting a missing property in the JSON request.
+// propertyName holds the name of the missing property.
 type propertyNotDefinedError struct {
 	propertyName string
 }
 
+// Error returns a standard error message for missing required properties
+// and the property name.
 func (err propertyNotDefinedError) Error() string {
 	return fmt.Sprintf("required JSON property not defined: '%s'", err.propertyName)
 }
 
+// newPropertyNotDefinedError creates a new error object with the property
+// name that is missing in case one is missing.
 func newPropertyNotDefinedError(propertyName string) propertyNotDefinedError {
 	return propertyNotDefinedError{propertyName}
 }
 
+// checkRequiredPropertiesSet checks if the properties sent within the request contain
+// all required property names that the API expects. If all required properties are
+// defined, the result is nil, otherwise an error is returned.
 func checkRequiredPropertiesSet(jsonProperties structs.JsonMap) (returnErr error) {
 	defer func() {
 		propError := recover()
@@ -217,6 +255,11 @@ func checkRequiredPropertiesSet(jsonProperties structs.JsonMap) (returnErr error
 	return errors.New("missing properties in JSON body")
 }
 
+// checkPropertySet is a helper function of checkRequiredPropertiesSet. It checks if
+// a single property name is defined in the json properties map. The result is true,
+// if propName is defined in the map props. If it is not defined, a panic will be thrown
+// with a propertyNotDefinedError and the corresponding property name. The panic is
+// recovered in the parent function.
 func checkPropertySet(props structs.JsonMap, propName string) bool {
 	if _, defined := props[propName]; defined {
 		return true
@@ -225,6 +268,9 @@ func checkPropertySet(props structs.JsonMap, propName string) bool {
 	panic(newPropertyNotDefinedError(propName))
 }
 
+// checkAdditionalPropertiesSet checks if any other than the required properties are defined
+// in the json properties map. If there are additional properties, an error with the name
+// of that property is returned, otherwise nil.
 func checkAdditionalPropertiesSet(jsonProperties structs.JsonMap) error {
 	permittedKeys := newStringList("from", "subject", "message")
 	for key := range jsonProperties {
@@ -236,6 +282,10 @@ func checkAdditionalPropertiesSet(jsonProperties structs.JsonMap) error {
 	return nil
 }
 
+// checkCorrectPropertyTypes reports whether all given properties have the correct data type.
+// The property values are type checked using reflections and compared to the defined types
+// in the apiParameters map. If there is a type mismatch, an exhaustive error with expected
+// and given type and location is returned, otherwise nil.
 func checkCorrectPropertyTypes(jsonProperties structs.JsonMap) error {
 	for parameter, parameterType := range apiParameters {
 		if property, propertyGiven := jsonProperties[parameter]; reflect.TypeOf(property) != parameterType {
@@ -252,11 +302,15 @@ func checkCorrectPropertyTypes(jsonProperties structs.JsonMap) error {
 	return nil
 }
 
+// writeJsonProperty writes a key-value-pair in correct JSON format
+// and returns it as string
 func writeJsonProperty(key, value interface{}) string {
 	jsonKey := enquote(key) + ":"
 	return jsonKey + writeJsonValue(value)
 }
 
+// writeJsonValue writes a value in correct JSON format and returns it
+// as a string
 func writeJsonValue(value interface{}) string {
 	if stringValue, isString := value.(string); isString {
 		return enquote(stringValue)
@@ -265,16 +319,22 @@ func writeJsonValue(value interface{}) string {
 	return fmt.Sprintf("%v", value)
 }
 
+// enquote surrounds a given potion with double quotes
 func enquote(potion interface{}) string {
 	return fmt.Sprintf(`"%v"`, potion)
 }
 
+// stringList is a type for a list of strings
 type stringList []string
 
+// newStringList returns a new list of strings with
+// the given strings as initial values
 func newStringList(values ...string) stringList {
 	return stringList(values)
 }
 
+// contains searches after a value inside a string list
+// and returns true if it found, otherwise false.
 func (slice stringList) contains(value string) bool {
 	for _, element := range slice {
 		if element == value {

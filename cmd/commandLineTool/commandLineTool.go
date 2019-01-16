@@ -1,3 +1,4 @@
+// Main package of the command line utility
 package main
 
 import (
@@ -29,7 +30,7 @@ func main() {
 	conf, fetch, submit, mail := getConfig()
 	communicationToServer.SetServerConfig(conf)
 
-	//based on the flags submit and fetch either start the commandLoop or directly invoke FetchEmail / SubmitEmail
+	// based on the flags submit and fetch either start the commandLoop or directly invoke FetchEmail / SubmitEmail
 	switch {
 	case !submit && !fetch:
 		commandLoop()
@@ -72,7 +73,7 @@ func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail string) 
 	cert := flag.String("cert", "./ssl/server.cert", "Location of the ssl certificate")
 	f := flag.Bool("f", false, "fetch (fetch): If set, the application will fetch all messages from the server.")
 	s := flag.Bool("s", false, "Use to submit a message to the server. Requires -email, -subject, -message. The use of -tID is optional.")
-	email := flag.String("email", "", "The eamil address of the sender")
+	email := flag.String("email", "", "The email address of the sender")
 	ticketID := flag.String("tID", "", "ID of the related Ticket. If left empty, a new ticket is created")
 	subject := flag.String("subject", "", "The subject of the message")
 	message := flag.String("message", "", "The body of the message.")

@@ -1,3 +1,4 @@
+// Web API for incoming mails to create new tickets or answers
 package api_in
 
 import (
@@ -74,14 +75,14 @@ func testServerConfig() structs.Config {
 }
 
 func cleanupTestFiles(config structs.Config) {
-	if filehandler.FileExists(config.Tickets) {
-		if removeErr := os.RemoveAll(globals.ServerConfig.Tickets); removeErr != nil {
+	if filehandler.DirectoryExists(config.Tickets) {
+		if removeErr := os.RemoveAll(config.Tickets); removeErr != nil {
 			log.Println("test error: cannot remove test tickets:", removeErr)
 		}
 	}
 
-	if filehandler.FileExists(config.Mails) {
-		if removeErr := os.RemoveAll(globals.ServerConfig.Mails); removeErr != nil {
+	if filehandler.DirectoryExists(config.Mails) {
+		if removeErr := os.RemoveAll(config.Mails); removeErr != nil {
 			log.Println("test error: cannot remove test mails:", removeErr)
 		}
 	}

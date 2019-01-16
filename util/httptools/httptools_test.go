@@ -1,3 +1,4 @@
+// Useful tools for HTTP handlers
 package httptools
 
 import (

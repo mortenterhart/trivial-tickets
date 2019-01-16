@@ -20,8 +20,9 @@ IF EXIST "cmd\commandLineTool" (
 
     IF %ERRORLEVEL% == 0 (
 
-        call :info Starting CLI
-        go run cmd\commandLineTool\commandLineTool.go
+        call :info Starting command line interface
+        go run cmd\commandLineTool\commandLineTool.go %*
+        set exit_status=%ERRORLEVEL%
 
     )
 ) ELSE (
@@ -32,7 +33,7 @@ IF EXIST "cmd\commandLineTool" (
     exit /B 1
 )
 
-exit /B 0
+exit /B %exit_status%
 
 :info
     echo [%program_name%] INFO %*

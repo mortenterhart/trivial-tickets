@@ -1,3 +1,4 @@
+// Useful tools for encoding JSON
 package jsontools
 
 import (
@@ -20,6 +21,8 @@ import (
  * Useful tools for encoding JSON
  */
 
+// MapToJson converts a given JsonMap with defined properties
+// into a valid JSON string with four spaces of indentation.
 func MapToJson(properties structs.JsonMap) ([]byte, error) {
 	return json.MarshalIndent(properties, "", "    ")
 }

@@ -1,3 +1,4 @@
+// Main package of the ticketsystem webserver
 package main
 
 import (

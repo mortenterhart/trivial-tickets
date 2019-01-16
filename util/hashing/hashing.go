@@ -1,3 +1,4 @@
+// Hashing functions for passwords
 package hashing
 
 import (

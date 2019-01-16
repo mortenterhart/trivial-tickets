@@ -1,3 +1,4 @@
+// Various utilities for CLI
 package cliUtils
 
 import (

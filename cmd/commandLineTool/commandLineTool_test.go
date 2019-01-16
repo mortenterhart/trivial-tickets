@@ -1,3 +1,4 @@
+// Main package of the command line utility
 package main
 
 import (

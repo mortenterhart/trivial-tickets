@@ -22,7 +22,7 @@ IF EXIST "cmd\ticketsystem" (
         cd cmd\ticketsystem
 
         call :info Starting Ticketsystem webserver
-        go run ticketsystem.go
+        go run ticketsystem.go %*
 
         cd ../..
     )

@@ -1,3 +1,4 @@
+// Global hash maps and structs
 package globals
 
 import (

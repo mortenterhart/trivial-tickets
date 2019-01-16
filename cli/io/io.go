@@ -1,3 +1,4 @@
+// I/O operations for the CLI
 package io
 
 import (
@@ -42,7 +43,7 @@ func readCommand() (structs.Command, error) {
 	if err == nil {
 		input = input[:(len(input) - 1)]
 		// if it's a windows machine remove carriage return
-		if input[len(input)-1] == '\r' {
+		if len(input) > 0 && input[len(input)-1] == '\r' {
 			input = input[:(len(input) - 1)]
 		}
 	}
@@ -85,7 +86,7 @@ func getString() (result string, err error) {
 	if err == nil {
 		result = result[:(len(result) - 1)]
 		// if it's a windows machine remove carriage return
-		if result[len(result)-1] == '\r' {
+		if len(result) > 0 && result[len(result)-1] == '\r' {
 			result = result[:(len(result) - 1)]
 		}
 	} else if err == io.EOF {

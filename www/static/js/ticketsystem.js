@@ -101,20 +101,21 @@ function assignTicket(btn) {
 }
 
 /**
- * Create ajax object, supporting IE as well
+ * Create ajax object, supporting Internet Explorer as well
  */
 function ajaxObject() {
 
-    let activexmodes = ["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"];
+    let activeXModes = ["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"];
 
     if (window.ActiveXObject) {
 
-        for (var i = 0; i < activexmodes.length; i++) {
+        for (let mode in activeXModes) {
 
             try {
-                return new ActiveXObjext(activexmodes[i]);
+                return new ActiveXObjext(mode);
             }
-            catch (e) {
+            catch (error) {
+                console.log(error)
             }
         }
     }
