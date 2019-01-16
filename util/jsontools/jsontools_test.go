@@ -1,3 +1,4 @@
+// Useful tools for encoding JSON
 package jsontools
 
 import (

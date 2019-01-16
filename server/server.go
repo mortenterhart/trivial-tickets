@@ -1,18 +1,17 @@
+// Server starting and handler registration
 package server
 
 import (
-	"errors"
 	"fmt"
-	"html/template"
-	"log"
-	"net/http"
-	"os"
-
 	"github.com/mortenterhart/trivial-tickets/api/api_in"
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
+	"github.com/pkg/errors"
+	"html/template"
+	"log"
+	"net/http"
 )
 
 /*
@@ -40,52 +39,56 @@ var users = make(map[string]structs.User)
 func StartServer(config *structs.Config) error {
 
 	// Assign given config to the global variable
+	log.Println("Initializing server configuration")
+	logServerConfig(config)
 	globals.ServerConfig = config
 
-	// Create the folders for tickets and mails if it does not exist
-	createResourceFolders()
-
-	// Read in the users
-	errReadUserFile := filehandler.ReadUserFile(globals.ServerConfig.Users, &users)
-
-	if errReadUserFile == nil {
-		// Read in the tickets
-		errReadTicketFiles := filehandler.ReadTicketFiles(globals.ServerConfig.Tickets, &globals.Tickets)
-
-		if errReadTicketFiles == nil {
-
-			errReadMailFiles := filehandler.ReadMailFiles(globals.ServerConfig.Mails, &globals.Mails)
-
-			if errReadMailFiles == nil {
-
-				// Read in the templates
-				tmpl = GetTemplates(globals.ServerConfig.Web)
-
-				// Register the handlers
-				errStartHandlers := startHandlers(globals.ServerConfig.Web)
-
-				if tmpl != nil && errStartHandlers == nil {
-
-					// Start a GoRoutine to redirect http requests to https
-					go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
-
-					// Log on which socket the server is listening
-					log.Printf("server listening on https://localhost:%d\n", globals.ServerConfig.Port)
-
-					// Start the server according to config
-					return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", globals.ServerConfig.Port), globals.ServerConfig.Cert, globals.ServerConfig.Key, nil)
-				} else {
-					return errors.New("unable to load templates / register handlers")
-				}
-			} else {
-				return errors.New("unable to load mail files")
-			}
-		} else {
-			return errors.New("unable to load ticket files")
-		}
-	} else {
-		return errors.New("unable to load user file")
+	// Create the folders for tickets, mails and users if it does not exist
+	if createErr := createResourceFolders(config); createErr != nil {
+		log.Println(errors.Wrap(createErr, "unable to create resource directories"))
 	}
+
+	// Read the users file
+	log.Println("Reading users file", config.Users)
+	if errReadUserFile := filehandler.ReadUserFile(config.Users, &users); errReadUserFile != nil {
+		return errors.Wrap(errReadUserFile, "unable to load user file")
+	}
+
+	// Read the tickets
+	log.Println("Reading ticket files in", config.Tickets)
+	if errReadTicketFiles := filehandler.ReadTicketFiles(config.Tickets, &globals.Tickets); errReadTicketFiles != nil {
+		return errors.Wrap(errReadTicketFiles, "unable to load ticket files")
+	}
+
+	// Read the mails
+	log.Println("Reading mail files in", config.Mails)
+	if errReadMailFiles := filehandler.ReadMailFiles(config.Mails, &globals.Mails); errReadMailFiles != nil {
+		return errors.Wrap(errReadMailFiles, "unable to load mail files")
+	}
+
+	// Read the HTML templates
+	log.Println("Loading HTML templates in", config.Web)
+	if tmpl = GetTemplates(config.Web); tmpl == nil {
+		return errors.New("unable to load HTML templates")
+	}
+
+	// Register the handlers
+	log.Println("Registering handlers")
+	if errStartHandlers := startHandlers(config.Web); errStartHandlers != nil {
+		return errors.Wrap(errStartHandlers, "unable to register handlers")
+	}
+
+	// Start a GoRoutine to redirect http requests to https
+	log.Println("Starting Go routine to redirect http requests to https")
+	go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+
+	log.Println("Server startup completed and ready to use")
+
+	// Log on which socket the server is listening
+	log.Printf("server listening on https://localhost:%d, type Ctrl-C to stop", config.Port)
+
+	// Start the server according to config
+	return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", config.Port), config.Cert, config.Key, nil)
 }
 
 // GetTemplates crawls through the templates folder and reads in all
@@ -96,7 +99,7 @@ func GetTemplates(path string) *template.Template {
 	t, errTemplates := template.ParseGlob(path + "/templates/*.html")
 
 	if errTemplates != nil {
-		log.Println("Unable to load the templates: ", errTemplates)
+		log.Println("unable to load the templates:", errTemplates)
 		return nil
 	}
 
@@ -121,11 +124,11 @@ func redirectToTLS(w http.ResponseWriter, req *http.Request) {
 func startHandlers(path string) error {
 
 	// Check if the path exists
-	// Taken from https://gist.github.com/mattes/d13e273314c3b3ade33f
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if !filehandler.DirectoryExists(path) {
 		return errors.New("no path given for web folders")
 	}
 
+	log.Println("Starting handlers for incoming HTTP requests")
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/logout", handleLogout)
@@ -145,16 +148,36 @@ func startHandlers(path string) error {
 	return nil
 }
 
-func createResourceFolders() {
-	if !filehandler.FileExists(globals.ServerConfig.Tickets) {
-		filehandler.CreateFolders(globals.ServerConfig.Tickets)
+// createResourceFolders checks if the required ticket and mail
+// paths given inside the server config exist and creates them
+// if not.
+func createResourceFolders(config *structs.Config) (returnErr error) {
+	if !filehandler.DirectoryExists(config.Tickets) {
+		log.Printf("Creating missing ticket directory '%s'", config.Tickets)
+		if createErr := filehandler.CreateFolders(config.Tickets); createErr != nil {
+			returnErr = errors.Wrap(createErr, "error while creating ticket directory")
+			log.Println(returnErr)
+		}
 	}
 
-	if !filehandler.FileExists(globals.ServerConfig.Mails) {
-		filehandler.CreateFolders(globals.ServerConfig.Mails)
+	if !filehandler.DirectoryExists(config.Mails) {
+		log.Printf("Creating missing mail directory '%s'", config.Mails)
+		if createErr := filehandler.CreateFolders(config.Mails); createErr != nil {
+			returnErr = errors.Wrap(createErr, "error while creating mail directory")
+			log.Println(returnErr)
+		}
 	}
 
-	if !filehandler.FileExists(globals.ServerConfig.Users) {
-		filehandler.CreateFolders(globals.ServerConfig.Users)
-	}
+	return
+}
+
+// logServerConfig outputs the server configuration to the console
+func logServerConfig(config *structs.Config) {
+	log.Println("  Port:", config.Port)
+	log.Println("  Tickets:", config.Tickets)
+	log.Println("  Users:", config.Users)
+	log.Println("  Mails:", config.Mails)
+	log.Println("  Cert:", config.Cert)
+	log.Println("  Key:", config.Key)
+	log.Println("  Web:", config.Web)
 }

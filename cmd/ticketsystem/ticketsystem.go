@@ -1,3 +1,4 @@
+// Main package of the ticketsystem webserver
 package main
 
 import (
@@ -35,7 +36,7 @@ func main() {
 	errServer := server.StartServer(&config)
 
 	if errServer != nil {
-		log.Fatal(errServer)
+		log.Fatal("fatal error occurred: ", errServer, "\nServer startup failed!")
 	}
 }
 

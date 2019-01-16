@@ -1,3 +1,5 @@
+// Interactions with files, writing and reading files and persisting
+// changes to the file system
 package filehandler
 
 import (
@@ -136,19 +138,29 @@ func TestReadTicketFiles(t *testing.T) {
 	errReadTicketFiles := ReadTicketFiles("abc", &tickets)
 	assert.NotNil(t, errReadTicketFiles, "No error was returned, although the path does not exist")
 
-	// Goes to html files, no json
-	errReadTicketFiles2 := ReadTicketFiles("../../www/templates", &tickets)
+	// Create folder for temporary test tickets
+	const testTicketPath = "../../files/testtickets"
+	CreateFolders(testTicketPath)
+
+	// Write invalid JSON into file with .json extension
+	const invalidJsonFile = testTicketPath + "/invalid.json"
+	ioutil.WriteFile(invalidJsonFile, []byte("{"), 0644)
+
+	// Read invalid json file from test directory
+	errReadTicketFiles2 := ReadTicketFiles(testTicketPath, &tickets)
 	assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket files do not exist")
 
-	const correctTicketPath = "../../files/ticketstest"
+	// Remove invalid json file for next tests
+	os.Remove(invalidJsonFile)
+
 	ticket := mockTicket()
-	WriteTicketFile(correctTicketPath, &ticket)
+	WriteTicketFile(testTicketPath, &ticket)
 
 	// Correct path to ticket files
-	errReadTicketFiles3 := ReadTicketFiles(correctTicketPath, &tickets)
+	errReadTicketFiles3 := ReadTicketFiles(testTicketPath, &tickets)
 	assert.Nil(t, errReadTicketFiles3, "An error was returned, although the path is correct")
 
-	os.RemoveAll(correctTicketPath + "/")
+	os.RemoveAll(testTicketPath + "/")
 }
 
 // mockTicket is a helper function to create a dummy ticket for the tests
@@ -200,6 +212,30 @@ func TestFileExists(t *testing.T) {
 	})
 }
 
+func TestDirectoryExists(t *testing.T) {
+	t.Run("existingDirectory", func(t *testing.T) {
+		const existingDirectory = "../../files/tickets"
+
+		assert.True(t, DirectoryExists(existingDirectory), "tickets directory should exist")
+	})
+
+	t.Run("notExistingDirectory", func(t *testing.T) {
+		const notExistingDirectory = "../../files/secret_keys"
+
+		assert.False(t, DirectoryExists(notExistingDirectory), "again, secret keys should not be stored here")
+	})
+}
+
+func TestHasJsonExtension(t *testing.T) {
+	t.Run("jsonExtension", func(t *testing.T) {
+		assert.True(t, hasJsonExtension("ticket.json"), "should be true because file has a .json file extension")
+	})
+
+	t.Run("noJsonExtension", func(t *testing.T) {
+		assert.False(t, hasJsonExtension("ticket.xml"), "should be false because file has .xml file extension instead of .json")
+	})
+}
+
 func mockMail() structs.Mail {
 	return structs.Mail{
 		Id:      random.CreateRandomId(10),
@@ -223,7 +259,7 @@ func TestWriteReadMailFile(t *testing.T) {
 		})
 
 		t.Run("mailDirectoryExists", func(t *testing.T) {
-			assert.True(t, FileExists(mailDirectory), "mailDirectory should exist because function creates missing folders")
+			assert.True(t, DirectoryExists(mailDirectory), "mailDirectory should exist because function creates missing folders")
 		})
 
 		t.Run("mailWritten", func(t *testing.T) {
@@ -286,6 +322,21 @@ func TestWrapAndLogError(t *testing.T) {
 	expectedErr := errors.Wrap(readErr, "could not read mail file")
 
 	wrapErr := wrapAndLogError(readErr, "could not read mail file")
+
+	t.Run("notNil", func(t *testing.T) {
+		assert.NotNil(t, wrapErr, "wrap error should not be nil")
+	})
+
+	t.Run("equalWrappedError", func(t *testing.T) {
+		assert.Equal(t, expectedErr.Error(), wrapErr.Error(), "expected and wrapped error should be identical")
+	})
+}
+
+func TestWrapAndLogErrorf(t *testing.T) {
+	err := errors.New("mkdir: '': no such file or directory")
+	expectedErr := errors.Wrap(err, "could not create mail directory '../../files/testmails'")
+
+	wrapErr := wrapAndLogErrorf(err, "could not create mail directory '%s'", "../../files/testmails")
 
 	t.Run("notNil", func(t *testing.T) {
 		assert.NotNil(t, wrapErr, "wrap error should not be nil")

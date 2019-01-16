@@ -1,3 +1,4 @@
+// Web API for outgoing mails to be fetched and verified to be sent
 package api_out
 
 import (

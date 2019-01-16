@@ -1,3 +1,4 @@
+// Project-wide needed structures for data elements
 package structs
 
 /*

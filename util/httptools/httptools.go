@@ -1,3 +1,4 @@
+// Useful tools for HTTP handlers
 package httptools
 
 import (
@@ -22,11 +23,14 @@ import (
  * Useful tools for HTTP handlers
  */
 
+// StatusCodeError writes an error message given by the cause parameter alongside
+// with a HTTP status code and its description to the given response writer. The
+// status code should be an erroneous one as the function implies it.
 func StatusCodeError(writer http.ResponseWriter, cause string, statusCode int) {
 	http.Error(writer, fmt.Sprintf("%d %s: %s", statusCode, http.StatusText(statusCode), cause), statusCode)
 }
 
-// successful response 200 OK with appended newline
+// JsonResponse
 func JsonResponse(writer http.ResponseWriter, jsonProperties structs.JsonMap) {
 	writer.Write(append(responseToJson(writer, jsonProperties), '\n'))
 }

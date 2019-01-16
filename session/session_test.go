@@ -1,3 +1,4 @@
+// Session Management
 package session
 
 import (

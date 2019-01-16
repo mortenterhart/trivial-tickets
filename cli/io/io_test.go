@@ -1,3 +1,4 @@
+// I/O operations for the CLI
 package io
 
 import (

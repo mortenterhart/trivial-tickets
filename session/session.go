@@ -1,3 +1,4 @@
+// Session Management
 package session
 
 import (
@@ -54,7 +55,7 @@ func GetSession(sessionId string) (structs.Session, error) {
 	if session != (structs.Session{}) {
 		return globals.Sessions[sessionId].Session, nil
 	} else {
-		return structs.Session{}, errors.New("Unable to find session with id: " + sessionId)
+		return structs.Session{}, errors.New("unable to find session with id: " + sessionId)
 	}
 }
 
@@ -81,7 +82,7 @@ func CreateSessionId() (string, error) {
 	l, errRnd := io.ReadFull(rand.Reader, sessionId)
 
 	if errRnd != nil && l == length {
-		return "", errors.New("Unable to create session id")
+		return "", errors.New("unable to create session id")
 	}
 
 	return base64.URLEncoding.EncodeToString(sessionId), nil
@@ -94,7 +95,7 @@ func CreateSessionCookie() (*http.Cookie, string, error) {
 	sessionId, errSessionId := CreateSessionId()
 
 	if errSessionId != nil {
-		return nil, "", errors.New("Unable to create session id")
+		return nil, "", errors.New("unable to create session id")
 	}
 
 	return &http.Cookie{
@@ -105,7 +106,7 @@ func CreateSessionCookie() (*http.Cookie, string, error) {
 }
 
 // deleteSessionCookie returns a http cookie which will overwrite the
-// existing session cookie in order to nulify it
+// existing session cookie in order to nullify it
 func DeleteSessionCookie() *http.Cookie {
 
 	return &http.Cookie{
@@ -142,7 +143,7 @@ func CheckForSession(w http.ResponseWriter, r *http.Request) (structs.Session, e
 		cookie, sessionId, errCreateSessionCookie := CreateSessionCookie()
 
 		if errCreateSessionCookie != nil {
-			return structs.Session{}, errors.New("Unable to create a session cookie")
+			return structs.Session{}, errors.New("unable to create a session cookie")
 		}
 
 		http.SetCookie(w, cookie)

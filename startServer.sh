@@ -28,17 +28,18 @@ if [ -d "cmd/ticketsystem" ]; then
         cd cmd/ticketsystem
 
         info "Starting Ticketsystem webserver"
-        go run ticketsystem.go
+        go run ticketsystem.go "$@"
+        exit_status=$?
 
         cd ../..
     fi
 else
     error "cannot find the main executable cmd/ticketsystem/ticketsystem.go"
     echo "You might be in the wrong working directory, execute"
-    echo '  cd "${0%/*}"'
+    echo "  cd \"${0%/*}\""
     echo "to change to the correct directory."
 
     exit 1
 fi
 
-exit 0
+exit "${exit_status}"

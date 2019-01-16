@@ -26,17 +26,17 @@ if [ -d "cmd/commandLineTool" ]; then
 
     if [ "$?" -eq 0 ]; then
 
-        info "Starting Ticketsystem webserver"
-        go run cmd/commandLineTool/commandLineTool.go
-
+        info "Starting command line interface"
+        go run cmd/commandLineTool/commandLineTool.go "$@"
+        exit_status=$?
     fi
 else
     error "cannot find the main executable cmd/commandLineTool/commandLineTool.go"
     echo "You might be in the wrong working directory, execute"
-    echo '  cd "${0%/*}"'
+    echo "  cd \"${0%/*}\""
     echo "to change to the correct directory."
 
     exit 1
 fi
 
-exit 0
+exit "${exit_status}"

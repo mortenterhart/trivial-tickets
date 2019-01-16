@@ -1,3 +1,4 @@
+// Mail message construction using templating
 package mail_events
 
 import (

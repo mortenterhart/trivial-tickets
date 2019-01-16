@@ -1,3 +1,4 @@
+// Server handlers reacting to HTTP requests
 package server
 
 import (
@@ -127,7 +128,10 @@ func TestHandleCreateTicket(t *testing.T) {
 	server := httptest.NewServer(handler)
 	defer server.Close()
 
-	config := structs.Config{Tickets: "../files/testtickets"}
+	config := structs.Config{
+		Tickets: "../files/testtickets",
+		Mails:   "../files/testmails",
+	}
 
 	globals.ServerConfig = &config
 
@@ -136,8 +140,8 @@ func TestHandleCreateTicket(t *testing.T) {
 
 	assert.Equal(t, http.StatusFound, resp.StatusCode, "Status code did not match 302")
 
-	// Delete created ticket file
-	os.RemoveAll("../files/testtickets/")
+	// Delete created ticket and mail file
+	cleanupTestFiles()
 }
 
 // holiday
@@ -266,7 +270,8 @@ func TestHandleHandleUpdateTicketMerge(t *testing.T) {
 	tmpl = GetTemplates("../www")
 
 	config := mockConfig()
-	config.Tickets = "../files/testticket"
+	config.Tickets = "../files/testtickets"
+	config.Mails = "../files/testmails"
 	globals.ServerConfig = &config
 
 	handler := &updateTicketHandler{}
@@ -277,10 +282,10 @@ func TestHandleHandleUpdateTicketMerge(t *testing.T) {
 
 	resp, err := http.Post(server.URL, "application/x-www-form-urlencoded", reader)
 
-	assert.Nil(t, err, "")
-	assert.Equal(t, http.StatusOK, resp.StatusCode, "")
+	assert.Nil(t, err, "there was an error in POST request")
+	assert.Equal(t, http.StatusOK, resp.StatusCode, "status code is not 200 OK")
 
-	os.RemoveAll("../files/testticket")
+	cleanupTestFiles()
 }
 
 func TestHandleHandleUpdateTicketExtern(t *testing.T) {
@@ -288,7 +293,8 @@ func TestHandleHandleUpdateTicketExtern(t *testing.T) {
 	tmpl = GetTemplates("../www")
 
 	config := mockConfig()
-	config.Tickets = "../files/testticket"
+	config.Tickets = "../files/testtickets"
+	config.Mails = "../files/testmails"
 	globals.ServerConfig = &config
 
 	handler := &updateTicketHandler{}
@@ -302,7 +308,7 @@ func TestHandleHandleUpdateTicketExtern(t *testing.T) {
 	assert.Nil(t, err, "There was an error")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "Wrong http status code")
 
-	os.RemoveAll("../files/testticket")
+	cleanupTestFiles()
 }
 
 // unassign ticket
@@ -317,7 +323,8 @@ func (h *unassignTicketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 func TestHandleHandleUnassignTicket(t *testing.T) {
 
 	config := mockConfig()
-	config.Tickets = "../files/testtickets/"
+	config.Tickets = "../files/testtickets"
+	config.Mails = "../files/testmails"
 
 	globals.ServerConfig = &config
 
@@ -336,7 +343,7 @@ func TestHandleHandleUnassignTicket(t *testing.T) {
 	assert.Nil(t, err, "An unexpected error occured")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http status is not 200")
 
-	os.RemoveAll("../files/testtickets/")
+	cleanupTestFiles()
 }
 
 // assign ticket
@@ -358,7 +365,8 @@ func (h *assignTicketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 func TestHandleHandleAssignTicket(t *testing.T) {
 
 	config := mockConfig()
-	config.Tickets = "../files/testtickets/"
+	config.Tickets = "../files/testtickets"
+	config.Mails = "../files/testmails"
 	globals.ServerConfig = &config
 
 	users["testuser"] = structs.User{
@@ -390,5 +398,12 @@ func TestHandleHandleAssignTicket(t *testing.T) {
 	assert.Nil(t, err, "An unexpected error occured")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http status is not 200")
 
-	os.RemoveAll("../files/testtickets/")
+	cleanupTestFiles()
+}
+
+// cleanupTestFiles removes all test tickets and mails
+// from the paths in the given config
+func cleanupTestFiles() {
+	os.RemoveAll("../files/testtickets")
+	os.RemoveAll("../files/testmails")
 }

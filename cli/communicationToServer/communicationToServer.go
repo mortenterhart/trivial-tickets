@@ -1,3 +1,4 @@
+// Functions from the CLI calling various API endpoints from the server
 package communicationToServer
 
 import (

@@ -1,3 +1,4 @@
+// Random id creation
 package random
 
 import (

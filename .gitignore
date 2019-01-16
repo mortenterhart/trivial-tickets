@@ -1,4 +1,3 @@
-#
 # Ticketsystem Trivial Tickets
 #
 # Matriculation numbers: 3040018, 6694964, 3478222
@@ -7,18 +6,16 @@
 # Institute:             Duale Hochschule Baden-Württemberg Mosbach
 #
 # ---------------
-# Travis build configuration
-#
+# Ignored files in Git
 
-language: go
+# Ignore generated mails and tickets
+/files/mails/*.json
+/files/tickets/*.json
 
-go:
-- "1.11"
-- "1.10"
-- "1.9"
-- "1.8"
+# Do not ignore predefined tickets
+!/files/tickets/1z9JcEUnW3.json
+!/files/tickets/6xSD9nNjAk.json
+!/files/tickets/NRCyhbIptw.json
 
-os:
-- osx
-- linux
-- windows
+# Ignore IntelliJ files
+/.idea
