@@ -116,6 +116,13 @@ func logResponseBody(t *testing.T, response *http.Response) {
 	t.Log(string(body))
 }
 
+func displayDirectoryContents(t *testing.T, dirname string, contents []os.FileInfo) {
+	t.Logf("Directory contents of '%s' showing %d file(s):", dirname, len(contents))
+	for index, file := range contents {
+		t.Logf("%d: %s", index, file.Name())
+	}
+}
+
 func TestReceiveMailRejectsGET(t *testing.T) {
 	teardown := setupAndTeardown()
 	defer teardown()
@@ -363,6 +370,7 @@ func TestReceiveMailCreateTicket(t *testing.T) {
 			dirContents, readErr := ioutil.ReadDir(globals.ServerConfig.Tickets)
 			assert.NoError(t, readErr, fmt.Sprintf("directory '%s' should exist and be readable within test", globals.ServerConfig.Tickets))
 
+			displayDirectoryContents(t, globals.ServerConfig.Tickets, dirContents)
 			assert.Equal(t, 1, len(dirContents), fmt.Sprintf("directory '%s' should contain exactly one ticket", globals.ServerConfig.Tickets))
 		})
 
@@ -370,6 +378,7 @@ func TestReceiveMailCreateTicket(t *testing.T) {
 			dirContents, readErr := ioutil.ReadDir(globals.ServerConfig.Mails)
 			assert.NoError(t, readErr, fmt.Sprintf("directory '%s' should exist and be readable within test", globals.ServerConfig.Mails))
 
+			displayDirectoryContents(t, globals.ServerConfig.Mails, dirContents)
 			assert.Equal(t, 1, len(dirContents), fmt.Sprintf("directory '%s' should contain exactly one mail (ticket creation)", globals.ServerConfig.Mails))
 		})
 	})
@@ -420,6 +429,7 @@ func TestReceiveMailCreateAnswer(t *testing.T) {
 			dirContents, readErr := ioutil.ReadDir(globals.ServerConfig.Tickets)
 			assert.NoError(t, readErr, fmt.Sprintf("directory '%s' should exist and be readable within test", globals.ServerConfig.Tickets))
 
+			displayDirectoryContents(t, globals.ServerConfig.Mails, dirContents)
 			assert.Equal(t, 1, len(dirContents), fmt.Sprintf("directory '%s' should contain exactly one ticket", globals.ServerConfig.Tickets))
 		})
 
@@ -427,6 +437,7 @@ func TestReceiveMailCreateAnswer(t *testing.T) {
 			dirContents, readErr := ioutil.ReadDir(globals.ServerConfig.Mails)
 			assert.NoError(t, readErr, fmt.Sprintf("directory '%s' should exist and be readable within test", globals.ServerConfig.Mails))
 
+			displayDirectoryContents(t, globals.ServerConfig.Mails, dirContents)
 			assert.Equal(t, 1, len(dirContents), fmt.Sprintf("directory '%s' should contain exactly one mail (answer creation)", globals.ServerConfig.Mails))
 		})
 	})
@@ -461,6 +472,7 @@ func TestReceiveMailCreateAnswerInvalidTicketId(t *testing.T) {
 			dirContents, readErr := ioutil.ReadDir(globals.ServerConfig.Tickets)
 			assert.NoError(t, readErr, fmt.Sprintf("directory '%s' should exist and be readable within test", globals.ServerConfig.Tickets))
 
+			displayDirectoryContents(t, globals.ServerConfig.Tickets, dirContents)
 			assert.Equal(t, 2, len(dirContents), fmt.Sprintf("directory '%s' should contain two tickets", globals.ServerConfig.Tickets))
 		})
 
@@ -468,6 +480,7 @@ func TestReceiveMailCreateAnswerInvalidTicketId(t *testing.T) {
 			dirContents, readErr := ioutil.ReadDir(globals.ServerConfig.Mails)
 			assert.NoError(t, readErr, fmt.Sprintf("directory '%s' should exist and be readable within test", globals.ServerConfig.Mails))
 
+			displayDirectoryContents(t, globals.ServerConfig.Mails, dirContents)
 			assert.Equal(t, 1, len(dirContents), fmt.Sprintf("directory '%s' should contain exactly one mail (answer creation)", globals.ServerConfig.Mails))
 		})
 	})

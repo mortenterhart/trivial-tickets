@@ -91,6 +91,13 @@ func cleanupMails() {
 	os.RemoveAll(globals.ServerConfig.Mails)
 }
 
+func displayDirectoryContents(t *testing.T, dirname string, contents []os.FileInfo) {
+	t.Logf("Directory contents of '%s' showing %d file(s):", dirname, len(contents))
+	for index, file := range contents {
+		t.Logf("%d: %s", index, file.Name())
+	}
+}
+
 func TestSendMail(t *testing.T) {
 	testTicket := mockTicket()
 
@@ -104,6 +111,8 @@ func TestSendMail(t *testing.T) {
 		dirContents, readErr := ioutil.ReadDir(globals.ServerConfig.Mails)
 
 		assert.NoError(t, readErr, "reading mail directory should not return error")
+
+		displayDirectoryContents(t, globals.ServerConfig.Mails, dirContents)
 		assert.Equal(t, 1, len(dirContents), "mail directory should contain exactly one mail")
 	})
 
