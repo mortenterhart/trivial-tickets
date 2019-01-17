@@ -1,13 +1,13 @@
 {
    "Id": "1z9JcEUnW3",
    "Subject": "ddddd",
-   "Status": 0,
+   "Status": 1,
    "User": {
-      "Id": "",
-      "Name": "",
-      "Username": "",
-      "Mail": "",
-      "Hash": "",
+      "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
+      "Name": "Admin",
+      "Username": "admin",
+      "Mail": "admin@example.com",
+      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
       "IsOnHoliday": false
    },
    "Customer": "test@mail.de",
@@ -18,6 +18,20 @@
          "User": "test@mail.de",
          "Text": "\u0026lt;script\u0026gt;alert(\u0026#39;hi\u0026#39;);\u0026lt;/script\u0026gt;",
          "Reply_Type": ""
+      },
+      {
+         "Date": "2019-01-17T11:50:34.651255+01:00",
+         "FormattedDate": "Thu Jan 17 11:50:34 2019",
+         "User": "1@l.c",
+         "Text": "pbpaste",
+         "Reply_Type": "extern"
+      },
+      {
+         "Date": "2019-01-17T11:51:26.569126+01:00",
+         "FormattedDate": "Thu Jan 17 11:51:26 2019",
+         "User": "1.l@c.c",
+         "Text": "pbpaste",
+         "Reply_Type": "extern"
       }
    ],
    "MergeTo": ""
