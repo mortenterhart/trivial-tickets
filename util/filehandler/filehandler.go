@@ -207,8 +207,10 @@ func ReadMailFiles(directory string, mails *map[string]structs.Mail) error {
 // If the file does not exist, it returns an non-nil error.
 func RemoveMailFile(directory string, mailId string) error {
 	mailPath := path.Join(directory, mailId) + ".json"
-	if os.Remove(mailPath) != nil {
-		return fmt.Errorf("could not delete mail file with id '%s'", mailId)
+	if removeErr := os.Remove(mailPath); removeErr != nil {
+		returnErr := fmt.Errorf("could not delete mail file with id '%s'", mailId)
+		logger.Error("%v: %v", returnErr, removeErr)
+		return returnErr
 	}
 
 	return nil
