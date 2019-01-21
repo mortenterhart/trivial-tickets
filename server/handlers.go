@@ -183,10 +183,11 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 
 		// Extract the id url parameter
-		param, errParam := r.URL.Query()["id"]
+		param, paramDefined := r.URL.Query()["id"]
 
-		if !errParam || len(param[0]) < 1 {
-			log.Fatal(errParam)
+		if !paramDefined || len(param[0]) < 1 {
+			logger.Errorf("%s %s: missing parameter '%s'", r.Method, r.RequestURI, "id")
+			return
 		}
 
 		// Get the ticket based on the given id
@@ -252,6 +253,9 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 				// Merge structs.Ticket
 				ticketMergedTo, ticketMergedFrom := ticket.MergeTickets(updatedTicket, ticketFrom)
 
+				logger.Infof("Merging ticket '%s' to ticket '%s' and saving to file system",
+					ticketMergedFrom.Id, ticketMergedTo.Id)
+
 				// Write both tickets to memory
 				globals.Tickets[ticketMergedTo.Id] = ticketMergedTo
 				globals.Tickets[ticketMergedFrom.Id] = ticketMergedFrom
@@ -265,6 +269,8 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 
+			logger.Infof("Updating ticket '%s' with status '%s' and %d answers", updatedTicket.Id,
+				updatedTicket.Status.String(), len(updatedTicket.Entries))
 			// Assign the updated ticket to the ticket map in memory
 			globals.Tickets[ticketId] = updatedTicket
 
@@ -276,7 +282,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 			replyType = "extern"
 		}
 
-		// Publish mail if the reply was selected for external
+		// Send mail if the reply was selected for external
 		if replyType == "extern" {
 			mailEvent := mail_events.UpdatedTicket
 			if reply != "" {
@@ -287,7 +293,8 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Redirect to the ticket again, now with updated Values
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: currentSession, Ticket: updatedTicket, Tickets: globals.Tickets})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket",
+			structs.DataSingleTicket{Session: currentSession, Ticket: updatedTicket, Tickets: globals.Tickets})
 
 		return
 	}
@@ -302,10 +309,11 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 
 		// Extract the GET request parameters
-		param, errParam := r.URL.Query()["id"]
+		param, paramDefined := r.URL.Query()["id"]
 
-		if !errParam || len(param[0]) < 1 {
-			log.Fatal(errParam)
+		if !paramDefined || len(param[0]) < 1 {
+			logger.Errorf("%s %s: missing parameter '%s'", r.Method, r.RequestURI, "id")
+			return
 		}
 
 		// Get the ticket based on the given id
@@ -321,6 +329,9 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Make sure the requesting user owns the ticket
 		if currentSession.User.Id == currentTicket.User.Id {
+
+			logger.Infof("Unassigning user '%s' (username '%s') from ticket '%s'",
+				currentTicket.User.Name, currentTicket.User.Username, currentTicket.Id)
 
 			// Replace the assigned user with nobody
 			updatedTicket := ticket.UnassignTicket(currentTicket)
@@ -352,6 +363,7 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 
 		if errCheckForSession != nil {
 			logger.Error("Unable to get session")
+			return
 		}
 
 		if currentSession.IsLoggedIn {
@@ -367,6 +379,9 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 
 			// Update the ticket itself
 			updatedTicket := ticket.AssignTicket(users[user], currentTicket)
+
+			logger.Infof("Assigning user '%s' (username '%s') to ticket '%s'",
+				updatedTicket.User.Name, updatedTicket.User.Username, updatedTicket.Id)
 
 			// Update the ticket in memory
 			globals.Tickets[ticketId] = updatedTicket
