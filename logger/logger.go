@@ -6,83 +6,65 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime"
-)
 
-type LogLevel int
-
-const (
-	LevelInfo LogLevel = iota
-	LevelWarning
-	LevelError
-	LevelFatal
+	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 var stdout = log.New(os.Stdout, "", log.LstdFlags)
 
 func Info(v ...interface{}) {
-	prependLogLevel(&v, LevelInfo)
-	stdout.Println(v...)
-}
-
-func prependLogLevel(v *[]interface{}, level LogLevel) {
-	levelPrefix := levelText(level)
-	*v = append([]interface{}{levelPrefix}, *v...)
-}
-
-func prependFunctionName(v *[]interface{}) {
-	functionName, file, line := getCallerFunctionName(3)
-	text := fmt.Sprintf("%s (%s:%d):", functionName, file, line)
-	*v = append([]interface{}{text}, *v...)
-}
-
-func levelText(level LogLevel) string {
-	switch level {
-	case LevelInfo:
-		return "[INFO]"
-
-	case LevelWarning:
-		return "[WARNING]"
-
-	case LevelError:
-		return "[ERROR]"
-
-	case LevelFatal:
-		return "[FATAL ERROR]"
+	if canLog(structs.LevelInfo) {
+		prependLogLevel(&v, structs.LevelInfo)
+		appendFunctionLocation(&v)
+		stdout.Println(v...)
 	}
-
-	return "undefined"
 }
 
 func Infof(format string, v ...interface{}) {
-	stdout.Printf(levelText(LevelInfo)+" "+format, v...)
+	if canLog(structs.LevelInfo) {
+		stdout.Printf(levelText(structs.LevelInfo)+" "+format, v...)
+	}
 }
 
 func Warn(v ...interface{}) {
-	prependLogLevel(&v, LevelWarning)
-	stdout.Println(v...)
+	if canLog(structs.LevelWarning) {
+		prependLogLevel(&v, structs.LevelWarning)
+		appendFunctionLocation(&v)
+		stdout.Println(v...)
+	}
 }
 
 func Warnf(format string, v ...interface{}) {
-	stdout.Printf(levelText(LevelWarning)+" "+format, v...)
+	if canLog(structs.LevelWarning) {
+		stdout.Printf(levelText(structs.LevelWarning)+" "+format, v...)
+	}
 }
 
 func Error(v ...interface{}) {
-	prependLogLevel(&v, LevelError)
-	stdout.Println(v...)
+	if canLog(structs.LevelError) {
+		prependLogLevel(&v, structs.LevelError)
+		appendFunctionLocation(&v)
+		stdout.Println(v...)
+	}
 }
 
 func Errorf(format string, v ...interface{}) {
-	stdout.Printf(levelText(LevelError)+" "+format, v...)
+	if canLog(structs.LevelError) {
+		stdout.Printf(levelText(structs.LevelError)+" "+format, v...)
+	}
 }
 
 func Fatal(v ...interface{}) {
-	prependLogLevel(&v, LevelFatal)
+	prependLogLevel(&v, structs.LevelFatal)
+	appendFunctionLocation(&v)
 	stdout.Fatalln(v...)
 }
 
 func Fatalf(format string, v ...interface{}) {
-	stdout.Fatalf(levelText(LevelFatal)+" "+format, v...)
+	stdout.Fatalf(levelText(structs.LevelFatal)+" "+format, v...)
 }
 
 func ApiRequest(request *http.Request) {
@@ -90,8 +72,54 @@ func ApiRequest(request *http.Request) {
 		request.RequestURI, request.Method, request.Host, request.ContentLength)
 }
 
+func prependLogLevel(v *[]interface{}, level structs.LogLevel) {
+	levelPrefix := levelText(level)
+	*v = append([]interface{}{levelPrefix}, *v...)
+}
+
+func appendFunctionLocation(v *[]interface{}) {
+	var location string
+	functionName, file, line := getCallerFunctionName(3)
+
+	if !globals.LogConfig.FullPaths {
+		leadingSlashes := regexp.MustCompile("^.*/")
+		functionName = leadingSlashes.ReplaceAllString(functionName, "")
+		file = leadingSlashes.ReplaceAllString(file, "")
+	}
+
+	if globals.LogConfig.VerboseLog {
+		location = fmt.Sprintf("[%s in %s:%d]", functionName, file, line)
+	} else {
+		location = fmt.Sprintf("[%s:%d]", functionName, line)
+	}
+
+	*v = append(*v, location)
+}
+
+func levelText(level structs.LogLevel) string {
+	switch level {
+	case structs.LevelInfo:
+		return "[INFO]"
+
+	case structs.LevelWarning:
+		return "[WARNING]"
+
+	case structs.LevelError:
+		return "[ERROR]"
+
+	case structs.LevelFatal:
+		return "[FATAL ERROR]"
+	}
+
+	return "undefined"
+}
+
 func updateLogger(writer io.Writer) {
 	stdout.SetOutput(writer)
+}
+
+func canLog(level structs.LogLevel) bool {
+	return globals.LogConfig.LogLevel <= level
 }
 
 func getCallerFunctionName(skipFrames int) (string, string, int) {
