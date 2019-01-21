@@ -3,12 +3,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/mortenterhart/trivial-tickets/cli/communicationToServer"
 	"github.com/mortenterhart/trivial-tickets/cli/io"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/cliUtils"
 	"log"
 	"math"
+	"os"
 )
 
 /*
@@ -78,6 +80,8 @@ func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail string) 
 	subject := flag.String("subject", "", "The subject of the message")
 	message := flag.String("message", "", "The body of the message.")
 
+	flag.Usage = usageMessage
+
 	flag.Parse()
 
 	if *port > math.MaxUint16 {
@@ -87,7 +91,8 @@ func getConfig() (conf structs.CLIConfig, fetch bool, submit bool, mail string) 
 	conf = structs.CLIConfig{
 		IPAddr: *IPAddr,
 		Port:   uint16(*port),
-		Cert:   *cert}
+		Cert:   *cert,
+	}
 
 	fetch = *f
 	submit = *s
@@ -132,4 +137,11 @@ func commandLoop() {
 			log.Fatal(com, err)
 		}
 	}
+}
+
+func usageMessage() {
+	fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [options]\n\n", os.Args[0])
+	fmt.Fprintf(flag.CommandLine.Output(), "options may be one of the following:\n")
+
+	flag.PrintDefaults()
 }

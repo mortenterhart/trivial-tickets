@@ -3,6 +3,7 @@ package httptools
 
 import (
 	"fmt"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"net/http"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
@@ -27,7 +28,9 @@ import (
 // with a HTTP status code and its description to the given response writer. The
 // status code should be an erroneous one as the function implies it.
 func StatusCodeError(writer http.ResponseWriter, cause string, statusCode int) {
-	http.Error(writer, fmt.Sprintf("%d %s: %s", statusCode, http.StatusText(statusCode), cause), statusCode)
+	errorMessage := fmt.Sprintf("%d %s: %s", statusCode, http.StatusText(statusCode), cause)
+	http.Error(writer, errorMessage, statusCode)
+	logger.Error(errorMessage)
 }
 
 // JsonResponse
@@ -35,7 +38,7 @@ func JsonResponse(writer http.ResponseWriter, jsonProperties structs.JsonMap) {
 	writer.Write(append(responseToJson(writer, jsonProperties), '\n'))
 }
 
-// erroneous response
+// JsonError
 func JsonError(writer http.ResponseWriter, jsonProperties structs.JsonMap, statusCode int) {
 	http.Error(writer, string(responseToJson(writer, jsonProperties)), statusCode)
 }

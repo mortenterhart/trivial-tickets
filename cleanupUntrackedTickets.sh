@@ -18,6 +18,7 @@ root_dir="${0%/*}"
 clean_options=()
 force_removal="false"
 dry_run="false"
+exclude_pattern=""
 
 function info() {
     printf "[%s] INFO %s\n" "${program_name}" "$*"
@@ -44,7 +45,8 @@ function helpText() {
     printf "  -q, --quiet       Don't print the file paths as they\n"
     printf "                    are removed.\n"
     printf "Mandatory arguments to long options are also mandatory\n"
-    printf "for short options too.\n"
+    printf "for short options too. Long options may be abbreviated as\n"
+    printf "long as they do not get ambiguous.\n"
 }
 
 function processArguments() {
@@ -74,45 +76,70 @@ function processArguments() {
                 ;;
             e)
                 clean_options+=("-e" "${OPTARG}")
+                exclude_pattern="${OPTARG}"
                 ;;
             -)
-                case "${OPTARG}" in
-                    exclude)
-                        error "option requires an argument: --${OPTARG}"
+                local option="${OPTARG%%=*}"
+                local option_argument="${OPTARG#*=}"
+
+                local long_options="dry-run exclude force help interactive quiet"
+                local long_options_arguments="exclude"
+
+                local -a option_matches=($(compgen -W "${long_options}" -- "${option}"))
+
+                if [ "${#option_matches[@]}" -eq 0 ]; then
+                    error "unrecognized option: --${option}"
+                    helpText >&2
+                    exit 1
+                elif [ "${#option_matches[@]}" -eq 1 ]; then
+                    if compgen -W "${long_options_arguments}" -- "${option_matches[0]}" >/dev/null 2>&1 && [[ "${OPTARG}" != *=* ]]; then
+                        error "option requires an argument: --${option_matches[0]}"
                         helpText >&2
                         exit 2
-                        ;;
-                    force)
-                        force_removal="true"
-                        clean_mode_set="true"
-                        ;;
-                    help)
-                        helpText;
-                        exit 0
-                        ;;
-                    dry-run)
-                        clean_options+=("--dry-run")
-                        dry_run="true"
-                        clean_mode_set="true"
-                        ;;
-                    quiet)
-                        clean_options+=("--quiet")
-                        ;;
-                    interactive)
-                        clean_options+=("--interactive")
-                        clean_mode_set="true"
-                        ;;
-                    exclude=*)
-                        clean_options+=("--${OPTARG}")
-                        ;;
-                    *)
-                        error "unrecognized option: --${OPTARG}"
+                    elif ! compgen -W "${long_options_arguments}" -- "${option_matches[0]}" >/dev/null 2>&1 && [[ "${OPTARG}" == *=* ]]; then
+                        error "option does not allow an argument: --${option_matches[0]}"
                         helpText >&2
-                        exit 1
-                        ;;
-                esac
+                        exit 2
+                    fi
+
+                    case "${option_matches[0]}" in
+                        force)
+                            force_removal="true"
+                            clean_mode_set="true"
+                            ;;
+                        help)
+                            helpText;
+                            exit 0
+                            ;;
+                        dry-run)
+                            clean_options+=("--dry-run")
+                            dry_run="true"
+                            clean_mode_set="true"
+                            ;;
+                        quiet)
+                            clean_options+=("--quiet")
+                            ;;
+                        interactive)
+                            clean_options+=("--interactive")
+                            clean_mode_set="true"
+                            ;;
+                        exclude)
+                            clean_options+=("--exclude" "${option_argument}")
+                            exclude_pattern="${option_argument}"
+                            ;;
+                    esac
+                else
+                    error "ambiguous option: --${option}; could be one of:"
+                    printf "  --%s\n" "${option_matches[@]}"
+                    exit 3
+                fi
                 ;;
             \?)
+                if [ "${OPTARG}" == "?" ]; then
+                    helpText
+                    exit 0
+                fi
+
                 error "invalid option -- ${OPTARG}"
                 helpText >&2
                 exit 1
@@ -130,6 +157,11 @@ function processArguments() {
     fi
 }
 
+function promptMenu() {
+    info "Commands:  [y/N] Continue deletion   [n] Show which files would be removed"
+    info "           [*]   Abort deletion      [q] Quit"
+}
+
 processArguments "$@"
 
 shift "$((OPTIND - 1))"
@@ -139,7 +171,8 @@ info "  ${root_dir}/files/tickets"
 info "  ${root_dir}/files/mails"
 
 untracked_files=()
-mapfile -t untracked_files < <(git -C "${root_dir}" ls-files --ignored --exclude-standard --others "files/tickets/*.json" "files/mails/*.json")
+mapfile -t untracked_files < <(git -C "${root_dir}" ls-files --ignored --exclude-standard --others \
+    $(if [ -n "${exclude_pattern}" ]; then echo "--exclude" "${exclude_pattern}"; fi) "files/tickets/*.json" "files/mails/*.json")
 
 if [ "${#untracked_files[@]}" -gt 0 ]; then
 
@@ -151,14 +184,20 @@ if [ "${#untracked_files[@]}" -gt 0 ]; then
     while ! "${prompt_finished}"; do
 
         if ! "${force_removal}" && ! "${dry_run}"; then
-            info "Commands:  [y/N] Continue deletion   [n] Show which files would be removed"
+            promptMenu
             read -rep "$(info "Command: ")" continue_deletion
         fi
 
         case "${continue_deletion}" in
             n)
                 info "These untracked files would be deleted by cleanup:"
+                printf "\n"
                 printf "%s\n" "${untracked_files[@]}"
+                printf "\n"
+                ;;
+            q)
+                info "Quitting, no cleanup done."
+                prompt_finished="true"
                 ;;
             [yY])
                 if "${dry_run}"; then
@@ -166,6 +205,7 @@ if [ "${#untracked_files[@]}" -gt 0 ]; then
                 else
                     info "Removing all untracked tickets and mails:"
                 fi
+                printf "\n"
 
                 git -C "${root_dir}" clean -X "${clean_options[@]}" -- "files/tickets/*.json" "files/mails/*.json"
 

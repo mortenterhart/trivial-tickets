@@ -2,16 +2,22 @@
 package server
 
 import (
+	"context"
 	"fmt"
+	"html/template"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
 	"github.com/mortenterhart/trivial-tickets/api/api_in"
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 	"github.com/pkg/errors"
-	"html/template"
-	"log"
-	"net/http"
 )
 
 /*
@@ -36,59 +42,72 @@ var tmpl *template.Template
 var users = make(map[string]structs.User)
 
 // StartServer gets the parameters for the server and starts it
-func StartServer(config *structs.Config) error {
+func StartServer(config *structs.Config) (int, error) {
 
 	// Assign given config to the global variable
-	log.Println("Initializing server configuration")
+	logger.Info("Initializing server configuration")
 	logServerConfig(config)
 	globals.ServerConfig = config
 
 	// Create the folders for tickets, mails and users if it does not exist
 	if createErr := createResourceFolders(config); createErr != nil {
-		log.Println(errors.Wrap(createErr, "unable to create resource directories"))
+		logger.Error(errors.Wrap(createErr, "unable to create resource directories"))
 	}
 
 	// Read the users file
-	log.Println("Reading users file", config.Users)
+	logger.Info("Reading users file", config.Users)
 	if errReadUserFile := filehandler.ReadUserFile(config.Users, &users); errReadUserFile != nil {
-		return errors.Wrap(errReadUserFile, "unable to load user file")
+		return 1, errors.Wrap(errReadUserFile, "unable to load user file")
 	}
 
 	// Read the tickets
-	log.Println("Reading ticket files in", config.Tickets)
+	logger.Info("Reading ticket files in", config.Tickets)
 	if errReadTicketFiles := filehandler.ReadTicketFiles(config.Tickets, &globals.Tickets); errReadTicketFiles != nil {
-		return errors.Wrap(errReadTicketFiles, "unable to load ticket files")
+		return 1, errors.Wrap(errReadTicketFiles, "unable to load ticket files")
 	}
 
 	// Read the mails
-	log.Println("Reading mail files in", config.Mails)
+	logger.Info("Reading mail files in", config.Mails)
 	if errReadMailFiles := filehandler.ReadMailFiles(config.Mails, &globals.Mails); errReadMailFiles != nil {
-		return errors.Wrap(errReadMailFiles, "unable to load mail files")
+		return 1, errors.Wrap(errReadMailFiles, "unable to load mail files")
 	}
 
 	// Read the HTML templates
-	log.Println("Loading HTML templates in", config.Web)
+	logger.Info("Loading HTML templates in", config.Web)
 	if tmpl = GetTemplates(config.Web); tmpl == nil {
-		return errors.New("unable to load HTML templates")
+		return 1, errors.New("unable to load HTML templates")
 	}
 
 	// Register the handlers
-	log.Println("Registering handlers")
+	logger.Info("Registering handlers")
 	if errStartHandlers := startHandlers(config.Web); errStartHandlers != nil {
-		return errors.Wrap(errStartHandlers, "unable to register handlers")
+		return 1, errors.Wrap(errStartHandlers, "unable to register handlers")
 	}
 
 	// Start a GoRoutine to redirect http requests to https
-	log.Println("Starting Go routine to redirect http requests to https")
+	logger.Info("Starting Go routine to redirect http requests to https")
 	go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
 
-	log.Println("Server startup completed and ready to use")
+	logger.Info("Server setup completed and starting server")
 
-	// Log on which socket the server is listening
-	log.Printf("server listening on https://localhost:%d, type Ctrl-C to stop", config.Port)
+	interrupt := notifyOnInterruptSignal()
+	shutdown := make(chan error)
 
-	// Start the server according to config
-	return http.ListenAndServeTLS(fmt.Sprintf("%s%d", ":", config.Port), config.Cert, config.Key, nil)
+	server := http.Server{
+		Addr: fmt.Sprintf("%s%d", ":", config.Port),
+	}
+
+	go func() {
+		// Log on which socket the server is listening
+		logger.Infof("server listening on https://localhost:%d (PID = %d), type Ctrl-C to stop",
+			config.Port, os.Getpid())
+
+		// Start the server according to config
+		serverErr := server.ListenAndServeTLS(config.Cert, config.Key)
+		shutdown <- serverErr
+	}()
+
+	return handleServerShutdown(&server, shutdown, interrupt)
 }
 
 // GetTemplates crawls through the templates folder and reads in all
@@ -99,7 +118,7 @@ func GetTemplates(path string) *template.Template {
 	t, errTemplates := template.ParseGlob(path + "/templates/*.html")
 
 	if errTemplates != nil {
-		log.Println("unable to load the templates:", errTemplates)
+		logger.Error("unable to load the templates:", errTemplates)
 		return nil
 	}
 
@@ -128,7 +147,7 @@ func startHandlers(path string) error {
 		return errors.New("no path given for web folders")
 	}
 
-	log.Println("Starting handlers for incoming HTTP requests")
+	logger.Info("Starting handlers for incoming HTTP requests")
 	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/login", handleLogin)
 	http.HandleFunc("/logout", handleLogout)
@@ -148,23 +167,78 @@ func startHandlers(path string) error {
 	return nil
 }
 
+func notifyOnInterruptSignal() <-chan os.Signal {
+	signalListener := make(chan os.Signal)
+	signal.Notify(signalListener, os.Interrupt, os.Kill, syscall.SIGTERM)
+	return signalListener
+}
+
+func handleServerShutdown(server *http.Server, shutdown <-chan error, interrupt <-chan os.Signal) (int, error) {
+	exitCode := 0
+
+	select {
+	case serverErr := <-shutdown:
+		if serverErr != http.ErrServerClosed {
+			return 1, errors.Wrap(serverErr, "error while starting server")
+		}
+	case capturedSignal := <-interrupt:
+		switch capturedSignal {
+		case os.Interrupt:
+			logger.Infof("Captured terminating signal %s (SIGINT)", capturedSignal)
+			exitCode = 0
+
+		case os.Kill:
+			logger.Infof("Captured terminating signal %s (SIGKILL), preferred way is SIGINT", capturedSignal)
+			exitCode = 1
+
+		case syscall.SIGTERM:
+			logger.Infof("Captured terminating signal %s (SIGTERM), preferred way is SIGINT", capturedSignal)
+			exitCode = 1
+
+		}
+
+		timeout := 5 * time.Second
+		if shutdownErr := shutdownGracefully(server, timeout); shutdownErr != nil {
+			logger.Error("Server shutdown caused error:", shutdownErr)
+			return 1, shutdownErr
+		}
+
+		logger.Info("Server shutdown successful")
+	}
+
+	return exitCode, nil
+}
+
+func shutdownGracefully(server *http.Server, timeout time.Duration) error {
+	logger.Infof("Shutting down server gracefully with timeout of %s", timeout)
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if shutdownErr := server.Shutdown(ctx); shutdownErr != nil {
+		return errors.Wrap(shutdownErr, "server shutdown failed")
+	}
+
+	return nil
+}
+
 // createResourceFolders checks if the required ticket and mail
 // paths given inside the server config exist and creates them
 // if not.
 func createResourceFolders(config *structs.Config) (returnErr error) {
 	if !filehandler.DirectoryExists(config.Tickets) {
-		log.Printf("Creating missing ticket directory '%s'", config.Tickets)
+		logger.Infof("Creating missing ticket directory '%s'", config.Tickets)
 		if createErr := filehandler.CreateFolders(config.Tickets); createErr != nil {
 			returnErr = errors.Wrap(createErr, "error while creating ticket directory")
-			log.Println(returnErr)
+			logger.Error(returnErr)
 		}
 	}
 
 	if !filehandler.DirectoryExists(config.Mails) {
-		log.Printf("Creating missing mail directory '%s'", config.Mails)
+		logger.Infof("Creating missing mail directory '%s'", config.Mails)
 		if createErr := filehandler.CreateFolders(config.Mails); createErr != nil {
 			returnErr = errors.Wrap(createErr, "error while creating mail directory")
-			log.Println(returnErr)
+			logger.Error(returnErr)
 		}
 	}
 
@@ -173,11 +247,11 @@ func createResourceFolders(config *structs.Config) (returnErr error) {
 
 // logServerConfig outputs the server configuration to the console
 func logServerConfig(config *structs.Config) {
-	log.Println("  Port:", config.Port)
-	log.Println("  Tickets:", config.Tickets)
-	log.Println("  Users:", config.Users)
-	log.Println("  Mails:", config.Mails)
-	log.Println("  Cert:", config.Cert)
-	log.Println("  Key:", config.Key)
-	log.Println("  Web:", config.Web)
+	logger.Info("  Port:", config.Port)
+	logger.Info("  Tickets:", config.Tickets)
+	logger.Info("  Users:", config.Users)
+	logger.Info("  Mails:", config.Mails)
+	logger.Info("  Cert:", config.Cert)
+	logger.Info("  Key:", config.Key)
+	logger.Info("  Web:", config.Web)
 }

@@ -2,6 +2,7 @@
 package server
 
 import (
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"html/template"
 	"log"
 	"net/http"
@@ -56,10 +57,11 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		// Get submitted username
 		username := template.HTMLEscapeString(r.FormValue("username"))
 
-		// Get the user with the given username from the hashmap
+		// Get the user with the given username from the hash map
 		// Check if the given username and password are correct
 		if user, errUser := users[username]; errUser {
 			if username == user.Username && hashing.CheckPassword(user.Hash, template.HTMLEscapeString(r.FormValue("password"))) {
+				logger.Infof("User '%s' (username '%s') logged in successfully", user.Name, username)
 
 				// Create a session to update the current one
 				currentSession, _ := session.GetSession(sessionId)
@@ -85,11 +87,15 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 
+		user := globals.Sessions[sessionId].Session.User
+
 		// Remove the session of the user
 		delete(globals.Sessions, sessionId)
 
 		// Delete the session cookie
 		http.SetCookie(w, session.DeleteSessionCookie())
+
+		logger.Infof("User '%s' (username '%s') logged out now", user.Name, user.Username)
 	}
 
 	// Redirect the user to the index
@@ -109,6 +115,8 @@ func handleCreateTicket(w http.ResponseWriter, r *http.Request) {
 
 		// Create the ticket
 		newTicket := ticket.CreateTicket(mail, subject, text)
+		logger.Infof(`Creating new ticket '%s' for customer '%s' with subject "%s"`,
+			newTicket.Id, newTicket.Customer, newTicket.Subject)
 
 		// Assign the ticket to the tickets kept in memory
 		globals.Tickets[newTicket.Id] = newTicket
@@ -151,6 +159,9 @@ func handleHoliday(w http.ResponseWriter, r *http.Request) {
 			currentSession.User.IsOnHoliday, user.IsOnHoliday = true, true
 		}
 
+		logger.Infof("Updating the holiday setting for user '%s' (username '%s') to %t",
+			user.Name, user.Username, user.IsOnHoliday)
+
 		// Update the session with the one just created
 		session.UpdateSession(sessionId, currentSession)
 
@@ -191,11 +202,12 @@ func handleTicket(w http.ResponseWriter, r *http.Request) {
 		currentSession, errCheckForSession := session.CheckForSession(w, r)
 
 		if errCheckForSession != nil {
-			log.Println("Unable to get session")
+			logger.Error("Unable to get session")
 		}
 
 		// Serve the template to show a single ticket
-		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket", structs.DataSingleTicket{Session: currentSession, Ticket: ticket, Tickets: globals.Tickets, Users: users})
+		tmpl.Lookup("ticket.html").ExecuteTemplate(w, "ticket",
+			structs.DataSingleTicket{Session: currentSession, Ticket: ticket, Tickets: globals.Tickets, Users: users})
 
 		return
 	}
@@ -213,7 +225,7 @@ func handleUpdateTicket(w http.ResponseWriter, r *http.Request) {
 		currentSession, errCheckForSession := session.CheckForSession(w, r)
 
 		if errCheckForSession != nil {
-			log.Println("Unable to get session")
+			logger.Error("Unable to get session")
 		}
 
 		// Get form values
@@ -304,7 +316,7 @@ func handleUnassignTicket(w http.ResponseWriter, r *http.Request) {
 		currentSession, errCheckForSession := session.CheckForSession(w, r)
 
 		if errCheckForSession != nil {
-			log.Println("Unable to get session")
+			logger.Error("Unable to get session")
 		}
 
 		// Make sure the requesting user owns the ticket
@@ -339,7 +351,7 @@ func handleAssignTicket(w http.ResponseWriter, r *http.Request) {
 		currentSession, errCheckForSession := session.CheckForSession(w, r)
 
 		if errCheckForSession != nil {
-			log.Println("Unable to get session")
+			logger.Error("Unable to get session")
 		}
 
 		if currentSession.IsLoggedIn {

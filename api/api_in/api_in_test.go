@@ -3,12 +3,9 @@ package api_in
 
 import (
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/ticket"
-	"github.com/mortenterhart/trivial-tickets/util/filehandler"
-	"github.com/mortenterhart/trivial-tickets/util/jsontools"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,6 +14,9 @@ import (
 
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/ticket"
+	"github.com/mortenterhart/trivial-tickets/util/filehandler"
+	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,13 +77,13 @@ func testServerConfig() structs.Config {
 func cleanupTestFiles(config structs.Config) {
 	if filehandler.DirectoryExists(config.Tickets) {
 		if removeErr := os.RemoveAll(config.Tickets); removeErr != nil {
-			log.Println("test error: cannot remove test tickets:", removeErr)
+			logger.Error("test error: cannot remove test tickets:", removeErr)
 		}
 	}
 
 	if filehandler.DirectoryExists(config.Mails) {
 		if removeErr := os.RemoveAll(config.Mails); removeErr != nil {
-			log.Println("test error: cannot remove test mails:", removeErr)
+			logger.Error("test error: cannot remove test mails:", removeErr)
 		}
 	}
 }
@@ -99,7 +99,7 @@ func createReader(data string) io.Reader {
 func buildExpectedJson(properties structs.JsonMap) []byte {
 	expected, decodeErr := jsontools.MapToJson(properties)
 	if decodeErr != nil {
-		log.Println("error while decoding expected JSON string:", decodeErr)
+		logger.Error("error while decoding expected JSON string:", decodeErr)
 		return nil
 	}
 
@@ -109,7 +109,7 @@ func buildExpectedJson(properties structs.JsonMap) []byte {
 func logResponseBody(t *testing.T, response *http.Response) {
 	body, readErr := ioutil.ReadAll(response.Body)
 	if readErr != nil {
-		log.Println("response could not be read:", readErr)
+		logger.Error("response could not be read:", readErr)
 		return
 	}
 

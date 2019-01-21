@@ -4,10 +4,10 @@ package api_out
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -76,7 +76,7 @@ func createReader(data string) io.Reader {
 func buildExpectedJson(properties structs.JsonMap) []byte {
 	expected, decodeErr := jsontools.MapToJson(properties)
 	if decodeErr != nil {
-		log.Println("error while decoding expected JSON string:", decodeErr)
+		logger.Error("error while decoding expected JSON string:", decodeErr)
 		return nil
 	}
 

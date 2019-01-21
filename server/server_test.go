@@ -86,7 +86,7 @@ func TestStartServerNoUsersPath(t *testing.T) {
 	config := mockConfig()
 	config.Users = ""
 
-	err := StartServer(&config)
+	_, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no users path was specified")
 }
@@ -97,7 +97,7 @@ func TestStartServerNoMailsPath(t *testing.T) {
 	config := mockConfig()
 	config.Mails = ""
 
-	err := StartServer(&config)
+	_, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no mails path was specified")
 }
@@ -108,7 +108,7 @@ func TestStartServerNoWebPath(t *testing.T) {
 	config := mockConfig()
 	config.Web = ""
 
-	err := StartServer(&config)
+	_, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no web path was specified")
 }
@@ -119,7 +119,7 @@ func TestStartServerNoTicketsPath(t *testing.T) {
 	config := mockConfig()
 	config.Tickets = ""
 
-	err := StartServer(&config)
+	_, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no tickets path was specified")
 }

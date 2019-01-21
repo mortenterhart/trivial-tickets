@@ -4,8 +4,8 @@ package api_in
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"reflect"
 	"regexp"
@@ -59,6 +59,7 @@ var apiParameters = map[string]reflect.Type{
 // properties "from" (the sender's email address), "subject" (the ticket subject)
 // and "message" (the ticket's message body).
 func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
+	logger.ApiRequest(request)
 
 	// Only accept POST requests
 	if request.Method == "POST" {
@@ -134,12 +135,14 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 				// If the ticket status was already closed, open it again
 				if existingTicket.Status == structs.CLOSED {
 					existingTicket.Status = structs.OPEN
+					logger.Infof(`Reopened ticket '%s' (subject "%s") because it was closed`,
+						existingTicket.Id, existingTicket.Subject)
 				}
 
 				// Update the ticket with a new comment consisting of the
 				// email address and message from the mail
-				log.Printf(`Attaching new answer from '%s' to ticket '%s' (id "%s")`+"\n",
-					mail.From, existingTicket.Subject, existingTicket.Id)
+				logger.Infof(`Attaching new answer from '%s' to ticket '%s' (subject "%s")`+"\n",
+					mail.From, existingTicket.Id, existingTicket.Subject)
 				createdTicket = ticket.UpdateTicket(convertStatusToString(existingTicket.Status),
 					mail.From, mail.Message, "extern", existingTicket)
 
@@ -149,7 +152,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 			} else {
 				// The subject is formatted like an answering mail, but the
 				// ticket id does not exist
-				log.Printf("WARNING: ticket id '%s' does not belong to an existing ticket, creating "+
+				logger.Warnf("Ticket id '%s' does not belong to an existing ticket, creating "+
 					"new ticket out of mail\n", ticketId)
 			}
 		}
@@ -157,6 +160,8 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 		// If the mail is not an answer create a new ticket in every other case
 		if !isAnswerMail {
 			createdTicket = ticket.CreateTicket(mail.From, mail.Subject, mail.Message)
+			logger.Infof(`Creating new ticket "%s" (id '%s') out of mail from '%s'`,
+				createdTicket.Subject, createdTicket.Id, mail.From)
 
 			// Send mail notification to customer that a new ticket
 			// has been created
@@ -166,7 +171,11 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 		// Push the created or updated ticket to the ticket storage and write
 		// it into its own file
 		globals.Tickets[createdTicket.Id] = createdTicket
-		filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &createdTicket)
+		if writeErr := filehandler.WriteTicketFile(globals.ServerConfig.Tickets, &createdTicket); writeErr != nil {
+			httptools.StatusCodeError(writer, fmt.Sprintf("failed to write file for ticket '%s'", createdTicket.Id),
+				http.StatusInternalServerError)
+			return
+		}
 
 		// Construct a JSON response with successful status and message
 		// and write it into the response writer
@@ -174,6 +183,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 			"status":  http.StatusOK,
 			"message": http.StatusText(http.StatusOK),
 		})
+		logger.Infof("%d %s: Mail request was processed successfully", http.StatusOK, http.StatusText(http.StatusOK))
 		return
 	}
 
@@ -182,6 +192,8 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 		"status":  http.StatusMethodNotAllowed,
 		"message": fmt.Sprintf("METHOD_NOT_ALLOWED (%s)", request.Method),
 	}, http.StatusMethodNotAllowed)
+	logger.Infof("%d %s: request sent with wrong method '%s', expecting 'POST'", http.StatusMethodNotAllowed,
+		http.StatusText(http.StatusMethodNotAllowed), request.Method)
 }
 
 // convertStatusToString converts a status enum constant which is

@@ -5,8 +5,8 @@ package filehandler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -39,7 +39,7 @@ func ReadUserFile(src string, users *map[string]structs.User) error {
 	fileContent, errReadFile := ioutil.ReadFile(src)
 
 	if errReadFile != nil {
-		log.Println(errReadFile)
+		logger.Error(errReadFile)
 		return errReadFile
 	}
 
@@ -47,7 +47,7 @@ func ReadUserFile(src string, users *map[string]structs.User) error {
 	errUnmarshal := json.Unmarshal(fileContent, users)
 
 	if errUnmarshal != nil {
-		log.Println(errUnmarshal)
+		logger.Error(errUnmarshal)
 		return errUnmarshal
 	}
 
@@ -58,7 +58,7 @@ func ReadUserFile(src string, users *map[string]structs.User) error {
 // file system to persist any changes
 func WriteUserFile(dest string, users *map[string]structs.User) error {
 
-	// Create json from the hashmap
+	// Create json from the hash map
 	usersMarshal, _ := json.MarshalIndent(users, "", "   ")
 
 	// Write json to file
@@ -74,7 +74,7 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 
 		errCreateFolders := CreateFolders(path)
 		if errCreateFolders != nil {
-			log.Println(errCreateFolders)
+			logger.Error(errCreateFolders)
 			return errCreateFolders
 		}
 	}
@@ -83,7 +83,7 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 	marshalTicket, errMarshalTicket := json.MarshalIndent(ticket, "", "   ")
 
 	if errMarshalTicket != nil {
-		log.Println(errMarshalTicket)
+		logger.Error(errMarshalTicket)
 		return errMarshalTicket
 	}
 
@@ -123,7 +123,7 @@ func hasJsonExtension(filename string) bool {
 	if globErr != nil {
 		// This error can never be returned because the glob pattern above is valid
 		// and it is not checked whether the file with the given filename exists
-		log.Println("file name matching failed due to syntax error in glob pattern: \"*.json\"")
+		logger.Error("file name matching failed due to syntax error in glob pattern: \"*.json\"")
 		return false
 	}
 
@@ -219,7 +219,7 @@ func RemoveMailFile(directory string, mailId string) error {
 // to the console.
 func wrapAndLogError(err error, wrapErrorMessage string) error {
 	wrappedError := errors.Wrap(err, wrapErrorMessage)
-	log.Println(wrappedError)
+	logger.Error(wrappedError)
 	return wrappedError
 }
 
@@ -242,7 +242,7 @@ func ReadTicketFiles(path string, tickets *map[string]structs.Ticket) error {
 	// Get all the files in given directory
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		return err
 	}
 
