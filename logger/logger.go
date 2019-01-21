@@ -25,7 +25,7 @@ func Info(v ...interface{}) {
 
 func Infof(format string, v ...interface{}) {
 	if canLog(structs.LevelInfo) {
-		stdout.Printf(levelText(structs.LevelInfo)+" "+format, v...)
+		stdout.Printf(buildFormatString(structs.LevelInfo, format), v...)
 	}
 }
 
@@ -39,7 +39,7 @@ func Warn(v ...interface{}) {
 
 func Warnf(format string, v ...interface{}) {
 	if canLog(structs.LevelWarning) {
-		stdout.Printf(levelText(structs.LevelWarning)+" "+format, v...)
+		stdout.Printf(buildFormatString(structs.LevelWarning, format), v...)
 	}
 }
 
@@ -53,7 +53,7 @@ func Error(v ...interface{}) {
 
 func Errorf(format string, v ...interface{}) {
 	if canLog(structs.LevelError) {
-		stdout.Printf(levelText(structs.LevelError)+" "+format, v...)
+		stdout.Printf(buildFormatString(structs.LevelError, format), v...)
 	}
 }
 
@@ -64,7 +64,7 @@ func Fatal(v ...interface{}) {
 }
 
 func Fatalf(format string, v ...interface{}) {
-	stdout.Fatalf(levelText(structs.LevelFatal)+" "+format, v...)
+	stdout.Fatalf(buildFormatString(structs.LevelFatal, format), v...)
 }
 
 func ApiRequest(request *http.Request) {
@@ -78,22 +78,27 @@ func prependLogLevel(v *[]interface{}, level structs.LogLevel) {
 }
 
 func appendFunctionLocation(v *[]interface{}) {
-	var location string
-	functionName, file, line := getCallerFunctionName(3)
+	*v = append(*v, getLoggingLocationSuffix())
+}
+
+func getLoggingLocationSuffix() string {
+	functionName, file, line := getCallerFunctionName(4)
 
 	if !globals.LogConfig.FullPaths {
-		leadingSlashes := regexp.MustCompile("^.*/")
+		leadingSlashes := regexp.MustCompile(	"^.*/")
 		functionName = leadingSlashes.ReplaceAllString(functionName, "")
 		file = leadingSlashes.ReplaceAllString(file, "")
 	}
 
 	if globals.LogConfig.VerboseLog {
-		location = fmt.Sprintf("[%s in %s:%d]", functionName, file, line)
-	} else {
-		location = fmt.Sprintf("[%s:%d]", functionName, line)
+		return fmt.Sprintf("[%s in %s:%d]", functionName, file, line)
 	}
 
-	*v = append(*v, location)
+	return fmt.Sprintf("[%s:%d]", functionName, line)
+}
+
+func buildFormatString(level structs.LogLevel, formatString string) string {
+	return fmt.Sprintln(levelText(level), formatString, getLoggingLocationSuffix())
 }
 
 func levelText(level structs.LogLevel) string {
