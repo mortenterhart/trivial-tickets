@@ -4,10 +4,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/logger"
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"math"
 	"os"
 
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/server"
 	"github.com/mortenterhart/trivial-tickets/structs"
 )
@@ -49,6 +50,8 @@ func main() {
 // It returns this struct
 func initConfig() (structs.Config, error) {
 
+	globals.LogConfig = &structs.LogConfig{}
+
 	// Get the command line arguments
 	port := flag.Int("port", 8443, "`port` on which the web server will run")
 	tickets := flag.String("tickets", "../../files/tickets", "`directory` in which the tickets will be stored")
@@ -57,6 +60,9 @@ func initConfig() (structs.Config, error) {
 	cert := flag.String("cert", "../../ssl/server.cert", "location of the ssl certificate `file`")
 	key := flag.String("key", "../../ssl/server.key", "location of the ssl key `file`")
 	web := flag.String("web", "../../www", "location of the www `directory`")
+	verbose := flag.Bool("verbose", false, "Enable output of verbose log (package paths, file names and line numbers)")
+	fullPaths := flag.Bool("full-paths", false, "Log package names and filenames with full paths instead of abbreviated ones")
+	logLevelString := flag.String("loglevel", "info", "Specify `level` of logging (either \"info\", \"warning\", \"error\" or \"fatal\")")
 
 	// Set another usage message function
 	flag.Usage = usageMessage
@@ -68,6 +74,18 @@ func initConfig() (structs.Config, error) {
 	if !isPortInBoundaries(*port) {
 		return structs.Config{}, fmt.Errorf("applied port %d is not a correct port number", *port)
 	}
+
+	logLevel, convertErr := convertLogLevel(*logLevelString)
+	if convertErr != nil {
+		return structs.Config{}, convertErr
+	}
+
+	logConfig := structs.LogConfig{
+		LogLevel:   logLevel,
+		VerboseLog: *verbose,
+		FullPaths:  *fullPaths,
+	}
+	globals.LogConfig = &logConfig
 
 	// Populate and return the struct
 	return structs.Config{
@@ -94,4 +112,25 @@ func usageMessage() {
 	fmt.Fprintf(flag.CommandLine.Output(), "options may be one of the following:\n")
 
 	flag.PrintDefaults()
+}
+
+func convertLogLevel(logLevelString string) (level structs.LogLevel, convertErr error) {
+	switch logLevelString {
+	case "info":
+		level = structs.LevelInfo
+
+	case "warning":
+		level = structs.LevelWarning
+
+	case "error":
+		level = structs.LevelError
+
+	case "fatal":
+		level = structs.LevelFatal
+
+	default:
+		convertErr = fmt.Errorf("log level '%s' not defined", logLevelString)
+	}
+
+	return
 }

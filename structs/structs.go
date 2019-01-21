@@ -37,6 +37,21 @@ type CLIConfig struct {
 	Cert   string
 }
 
+type LogConfig struct {
+	LogLevel   LogLevel
+	VerboseLog bool
+	FullPaths  bool
+}
+
+type LogLevel int
+
+const (
+	LevelInfo LogLevel = iota
+	LevelWarning
+	LevelError
+	LevelFatal
+)
+
 // Session is a struct that holds session variables for a certain user
 type Session struct {
 	User       User

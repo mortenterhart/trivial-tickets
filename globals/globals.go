@@ -30,5 +30,8 @@ var Mails = make(map[string]structs.Mail)
 // Holds the given config for access to the backend systems
 var ServerConfig *structs.Config
 
+// Configuration for logging
+var LogConfig *structs.LogConfig
+
 // Holds all the sessions for the users
 var Sessions = make(map[string]structs.SessionManager)
