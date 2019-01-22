@@ -52,6 +52,24 @@ const (
 	LevelFatal
 )
 
+func (level LogLevel) String() string {
+	switch level {
+	case LevelInfo:
+		return "[INFO]"
+
+	case LevelWarning:
+		return "[WARNING]"
+
+	case LevelError:
+		return "[ERROR]"
+
+	case LevelFatal:
+		return "[FATAL ERROR]"
+	}
+
+	return "undefined"
+}
+
 // Session is a struct that holds session variables for a certain user
 type Session struct {
 	User       User

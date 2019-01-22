@@ -19,6 +19,7 @@ func Info(v ...interface{}) {
 	if canLog(structs.LevelInfo) {
 		prependLogLevel(&v, structs.LevelInfo)
 		appendFunctionLocation(&v)
+
 		stdout.Println(v...)
 	}
 }
@@ -33,6 +34,7 @@ func Warn(v ...interface{}) {
 	if canLog(structs.LevelWarning) {
 		prependLogLevel(&v, structs.LevelWarning)
 		appendFunctionLocation(&v)
+
 		stdout.Println(v...)
 	}
 }
@@ -47,6 +49,7 @@ func Error(v ...interface{}) {
 	if canLog(structs.LevelError) {
 		prependLogLevel(&v, structs.LevelError)
 		appendFunctionLocation(&v)
+
 		stdout.Println(v...)
 	}
 }
@@ -57,14 +60,21 @@ func Errorf(format string, v ...interface{}) {
 	}
 }
 
+type FatalFunc func(v ...interface{})
+type FatalfFunc func(format string, v ...interface{})
+
+var fatalln FatalFunc = stdout.Fatalln
+var fatalf FatalfFunc = stdout.Fatalf
+
 func Fatal(v ...interface{}) {
 	prependLogLevel(&v, structs.LevelFatal)
 	appendFunctionLocation(&v)
-	stdout.Fatalln(v...)
+
+	fatalln(v...)
 }
 
 func Fatalf(format string, v ...interface{}) {
-	stdout.Fatalf(buildFormatString(structs.LevelFatal, format), v...)
+	fatalf(buildFormatString(structs.LevelFatal, format), v...)
 }
 
 func ApiRequest(request *http.Request) {
@@ -73,19 +83,20 @@ func ApiRequest(request *http.Request) {
 }
 
 func prependLogLevel(v *[]interface{}, level structs.LogLevel) {
-	levelPrefix := levelText(level)
-	*v = append([]interface{}{levelPrefix}, *v...)
+	*v = append([]interface{}{level.String()}, *v...)
 }
 
 func appendFunctionLocation(v *[]interface{}) {
 	*v = append(*v, getLoggingLocationSuffix())
 }
 
+var skipFrames = 4
+
 func getLoggingLocationSuffix() string {
-	functionName, file, line := getCallerFunctionName(4)
+	functionName, file, line := getCallerFunctionName(skipFrames)
 
 	if !globals.LogConfig.FullPaths {
-		leadingSlashes := regexp.MustCompile(	"^.*/")
+		leadingSlashes := regexp.MustCompile("^.*/")
 		functionName = leadingSlashes.ReplaceAllString(functionName, "")
 		file = leadingSlashes.ReplaceAllString(file, "")
 	}
@@ -98,25 +109,7 @@ func getLoggingLocationSuffix() string {
 }
 
 func buildFormatString(level structs.LogLevel, formatString string) string {
-	return fmt.Sprintln(levelText(level), formatString, getLoggingLocationSuffix())
-}
-
-func levelText(level structs.LogLevel) string {
-	switch level {
-	case structs.LevelInfo:
-		return "[INFO]"
-
-	case structs.LevelWarning:
-		return "[WARNING]"
-
-	case structs.LevelError:
-		return "[ERROR]"
-
-	case structs.LevelFatal:
-		return "[FATAL ERROR]"
-	}
-
-	return "undefined"
+	return fmt.Sprintln(level.String(), formatString, getLoggingLocationSuffix())
 }
 
 func updateLogger(writer io.Writer) {
@@ -132,6 +125,7 @@ func getCallerFunctionName(skipFrames int) (string, string, int) {
 	return frame.Function, frame.File, frame.Line
 }
 
+// Taken from https://stackoverflow.com/a/35213181
 func getFrame(skipFrames int) runtime.Frame {
 	// We need the frame at index skipFrames+2, since we never want runtime.Callers and getFrame
 	targetFrameIndex := skipFrames + 2
