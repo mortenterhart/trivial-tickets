@@ -2,13 +2,17 @@
 package server
 
 import (
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"syscall"
 	"testing"
+	"time"
 
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/filehandler"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -64,20 +68,12 @@ func TestRedirectToTLSWithParams(t *testing.T) {
 	assert.Equal(t, http.StatusTemporaryRedirect, w.Code, "The HTTP status code was incorrect")
 }
 
-// TestStartHandlers makes sure the registering of the handlers works as planned
-func TestStartHandlers(t *testing.T) {
-
-	err := startHandlers("../www")
-
-	assert.Nil(t, err, "An error occured, although the path was correct")
-}
-
 // TestStartHandlersNoPath is used to produce an error to make sure the function works properly
 func TestStartHandlersNoPath(t *testing.T) {
 
 	err := startHandlers("")
 
-	assert.NotNil(t, err, "No error occured, although the path was incorrect")
+	assert.NotNil(t, err, "No error occurred, although the path was incorrect")
 }
 
 // TestStartServerNoUsersPath produces an error to make sure the server will not start without a path to the users.json file
@@ -86,9 +82,10 @@ func TestStartServerNoUsersPath(t *testing.T) {
 	config := mockConfig()
 	config.Users = ""
 
-	_, err := StartServer(&config)
+	exitCode, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no users path was specified")
+	assert.Equal(t, 1, exitCode, "exit code should be 1 due to expected error")
 }
 
 // TestStartServerNoUsersPath produces an error to make sure the server will not start without a path to the mail folder
@@ -97,9 +94,10 @@ func TestStartServerNoMailsPath(t *testing.T) {
 	config := mockConfig()
 	config.Mails = ""
 
-	_, err := StartServer(&config)
+	exitCode, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no mails path was specified")
+	assert.Equal(t, 1, exitCode, "exit code should be 1 due to expected error")
 }
 
 // TestStartServerNoUsersPath produces an error to make sure the server will not start without a path to the web files
@@ -108,9 +106,10 @@ func TestStartServerNoWebPath(t *testing.T) {
 	config := mockConfig()
 	config.Web = ""
 
-	_, err := StartServer(&config)
+	exitCode, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no web path was specified")
+	assert.Equal(t, 1, exitCode, "exit code should be 1 due to expected error")
 }
 
 // TestStartServerNoUsersPath produces an error to make sure the server will not start without a path to the ticket folder
@@ -119,9 +118,38 @@ func TestStartServerNoTicketsPath(t *testing.T) {
 	config := mockConfig()
 	config.Tickets = ""
 
-	_, err := StartServer(&config)
+	exitCode, err := StartServer(&config)
 
 	assert.NotNil(t, err, "No error was returned, although no tickets path was specified")
+	assert.Equal(t, 1, exitCode, "exit code should be 1 due to expected error")
+}
+
+func TestStartServerAllConfigsSet(t *testing.T) {
+
+	config := mockConfig()
+	shutdown := make(chan bool)
+
+	go func() {
+		exitCode, err := StartServer(&config)
+
+		t.Run("errorNil", func(t *testing.T) {
+			assert.NoError(t, err, "returned error should be nil because the server was shutdown correctly")
+		})
+
+		t.Run("exitCode", func(t *testing.T) {
+			assert.Equal(t, 0, exitCode, "exit code should be 0 because the server was shutdown correctly")
+		})
+
+		shutdown <- true
+	}()
+
+	time.Sleep(2 * time.Second)
+
+	signalErr := syscall.Kill(os.Getpid(), syscall.SIGINT)
+
+	assert.NoError(t, signalErr, "sending interrupt signal should not cause an error")
+
+	<-shutdown
 }
 
 func TestCreateResourceFolders(t *testing.T) {
@@ -169,6 +197,162 @@ func TestCreateResourceFolders(t *testing.T) {
 	cleanupTestFiles()
 }
 
+func TestNotifyOnInterruptSignal(t *testing.T) {
+	interrupt := notifyOnInterruptSignal()
+
+	done := make(chan bool)
+
+	go t.Run("catchSignal", func(t *testing.T) {
+		t.Log("Waiting for signal")
+		capturedSignal := <-interrupt
+
+		t.Log("Caught signal SIGINT in Go routine")
+
+		t.Run("caughtSignalNotNil", func(t *testing.T) {
+			assert.NotNil(t, capturedSignal, "captured signal should not be nil")
+		})
+
+		t.Run("isInterruptSignal", func(t *testing.T) {
+			assert.Equal(t, syscall.SIGINT, capturedSignal, "captured signal should be SIGINT signal")
+		})
+
+		done <- true
+	})
+
+	signalErr := syscall.Kill(os.Getpid(), syscall.SIGINT)
+
+	t.Run("signalErrNil", func(t *testing.T) {
+		assert.NoError(t, signalErr, "kill error should be nil")
+	})
+
+	t.Log("Waiting for signal tests done")
+	<-done
+}
+
+func TestHandleServerShutdown(t *testing.T) {
+	testServer := &http.Server{}
+
+	startError := make(chan error)
+	interrupt := make(chan os.Signal)
+	done := make(chan bool)
+
+	t.Run("fatalStartError", func(t *testing.T) {
+		provokedError := errors.New("listen tcp :8443: address already in use")
+
+		go t.Run("handleServerStartError", func(t *testing.T) {
+			exitCode, err := handleServerShutdown(testServer, startError, nil)
+
+			t.Run("errorNotNil", func(t *testing.T) {
+				assert.Error(t, err, "error should not be nil")
+			})
+
+			t.Run("equalErrorMessage", func(t *testing.T) {
+				expectedError := errors.Wrap(provokedError, "error while starting server")
+
+				assert.Equal(t, expectedError.Error(), err.Error(),
+					"the returned error should be the one that was written in the startError channel")
+			})
+
+			t.Run("exitCode", func(t *testing.T) {
+				assert.Equal(t, 1, exitCode, "exit code on start error should be 1")
+			})
+
+			done <- true
+		})
+
+		startError <- provokedError
+
+		t.Log("Waiting for start error tests to finish")
+		<-done
+	})
+
+	t.Run("serverClosedError", func(t *testing.T) {
+		go t.Run("handleStartErrorIsErrServerClosed", func(t *testing.T) {
+			exitCode, err := handleServerShutdown(testServer, startError, nil)
+
+			t.Run("errorNil", func(t *testing.T) {
+				assert.NoError(t, err, "returned error should be nil")
+			})
+
+			t.Run("exitCode", func(t *testing.T) {
+				assert.Equal(t, 0, exitCode, "exit code should be 0 because the start error is ErrServerClosed")
+			})
+
+			done <- true
+		})
+
+		startError <- http.ErrServerClosed
+
+		t.Log("Waiting for start error tests with ErrServerClosed to finish")
+		<-done
+	})
+
+	t.Run("interrupt", func(t *testing.T) {
+		go t.Run("handleInterruptSignal", func(t *testing.T) {
+			exitCode, err := handleServerShutdown(testServer, nil, interrupt)
+
+			t.Run("errorNil", func(t *testing.T) {
+				assert.NoError(t, err, "returned error should be nil")
+			})
+
+			t.Run("exitCode", func(t *testing.T) {
+				assert.Equal(t, 0, exitCode, "exit code should be 0 because the server was shutdown correctly")
+			})
+
+			done <- true
+		})
+
+		interrupt <- os.Interrupt
+
+		t.Log("Waiting for interrupt signal handling to finish")
+		<-done
+	})
+
+	t.Run("kill", func(t *testing.T) {
+		go t.Run("handleKillSignal", func(t *testing.T) {
+			exitCode, err := handleServerShutdown(testServer, nil, interrupt)
+
+			t.Run("errorNil", func(t *testing.T) {
+				assert.NoError(t, err, "returned error should be nil")
+			})
+
+			t.Run("exitCode", func(t *testing.T) {
+				assert.Equal(t, 1, exitCode, "exit code should be 1 because the server was not "+
+					"shutdown correctly, interrupt signal should be used")
+			})
+
+			done <- true
+		})
+
+		interrupt <- os.Kill
+
+		t.Log("Waiting for kill signal handling to finish")
+		<-done
+	})
+
+	t.Run("terminate", func(t *testing.T) {
+		go t.Run("handleTerminateSignal", func(t *testing.T) {
+			exitCode, err := handleServerShutdown(testServer, nil, interrupt)
+
+			t.Run("errorNil", func(t *testing.T) {
+				assert.NoError(t, err, "returned error should be nil")
+			})
+
+			t.Run("exitCode", func(t *testing.T) {
+				assert.Equal(t, 1, exitCode, "exit code should be 1 because the server was not "+
+					"shutdown correctly, interrupt signal should be used")
+			})
+
+			done <- true
+		})
+
+		interrupt <- syscall.SIGTERM
+
+		t.Log("Waiting for terminate signal handling to finish")
+		<-done
+	})
+}
+
 // Utility function to create a mock configuration for the server
 func mockConfig() structs.Config {
 
@@ -179,7 +363,8 @@ func mockConfig() structs.Config {
 		Users:   "../files/users/users.json",
 		Cert:    "../ssl/server.cert",
 		Key:     "../ssl/server.key",
-		Web:     "../www"}
+		Web:     "../www",
+	}
 }
 
 func mockLogConfig() structs.LogConfig {

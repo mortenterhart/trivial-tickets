@@ -43,7 +43,7 @@ func SendMail(mailEvent mail_events.Event, ticket structs.Ticket) {
 	}
 
 	logger.Infof(`Composing notification mail (id "%s") to '%s' for %s`,
-		newMail.Id, newMail.To, mail_events.EventText(mailEvent))
+		newMail.Id, newMail.To, mailEvent.String())
 
 	globals.Mails[newMail.Id] = newMail
 

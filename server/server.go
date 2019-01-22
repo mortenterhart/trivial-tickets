@@ -91,7 +91,7 @@ func StartServer(config *structs.Config) (int, error) {
 	logger.Info("Server setup completed and starting server")
 
 	interrupt := notifyOnInterruptSignal()
-	shutdown := make(chan error)
+	startError := make(chan error)
 
 	server := http.Server{
 		Addr: fmt.Sprintf("%s%d", ":", config.Port),
@@ -104,10 +104,65 @@ func StartServer(config *structs.Config) (int, error) {
 
 		// Start the server according to config
 		serverErr := server.ListenAndServeTLS(config.Cert, config.Key)
-		shutdown <- serverErr
+		startError <- serverErr
 	}()
 
-	return handleServerShutdown(&server, shutdown, interrupt)
+	return handleServerShutdown(&server, startError, interrupt)
+}
+
+func notifyOnInterruptSignal() <-chan os.Signal {
+	signalListener := make(chan os.Signal)
+	signal.Notify(signalListener, os.Interrupt, os.Kill, syscall.SIGTERM)
+	return signalListener
+}
+
+func handleServerShutdown(server *http.Server, startError <-chan error, interrupt <-chan os.Signal) (int, error) {
+	exitCode := 0
+
+	select {
+	case serverErr := <-startError:
+		if serverErr != http.ErrServerClosed {
+			return 1, errors.Wrap(serverErr, "error while starting server")
+		}
+	case capturedSignal := <-interrupt:
+		switch capturedSignal {
+		case os.Interrupt:
+			logger.Infof("Captured terminating signal %s (SIGINT)", capturedSignal)
+			exitCode = 0
+
+		case os.Kill:
+			logger.Infof("Captured terminating signal %s (SIGKILL), preferred way is SIGINT", capturedSignal)
+			exitCode = 1
+
+		case syscall.SIGTERM:
+			logger.Infof("Captured terminating signal %s (SIGTERM), preferred way is SIGINT", capturedSignal)
+			exitCode = 1
+
+		}
+
+		timeout := 5 * time.Second
+		if shutdownErr := shutdownGracefully(server, timeout); shutdownErr != nil {
+			logger.Error("Server shutdown caused error:", shutdownErr)
+			return 1, shutdownErr
+		}
+
+		logger.Info("Server shutdown successful")
+	}
+
+	return exitCode, nil
+}
+
+func shutdownGracefully(server *http.Server, timeout time.Duration) error {
+	logger.Infof("Shutting down server gracefully with timeout of %s", timeout)
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if shutdownErr := server.Shutdown(ctx); shutdownErr != nil {
+		return errors.Wrap(shutdownErr, "server shutdown failed")
+	}
+
+	return nil
 }
 
 // GetTemplates crawls through the templates folder and reads in all
@@ -163,61 +218,7 @@ func startHandlers(path string) error {
 
 	// Map the css, js and img folders to the location specified
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(path+"/static"))))
-
-	return nil
-}
-
-func notifyOnInterruptSignal() <-chan os.Signal {
-	signalListener := make(chan os.Signal)
-	signal.Notify(signalListener, os.Interrupt, os.Kill, syscall.SIGTERM)
-	return signalListener
-}
-
-func handleServerShutdown(server *http.Server, shutdown <-chan error, interrupt <-chan os.Signal) (int, error) {
-	exitCode := 0
-
-	select {
-	case serverErr := <-shutdown:
-		if serverErr != http.ErrServerClosed {
-			return 1, errors.Wrap(serverErr, "error while starting server")
-		}
-	case capturedSignal := <-interrupt:
-		switch capturedSignal {
-		case os.Interrupt:
-			logger.Infof("Captured terminating signal %s (SIGINT)", capturedSignal)
-			exitCode = 0
-
-		case os.Kill:
-			logger.Infof("Captured terminating signal %s (SIGKILL), preferred way is SIGINT", capturedSignal)
-			exitCode = 1
-
-		case syscall.SIGTERM:
-			logger.Infof("Captured terminating signal %s (SIGTERM), preferred way is SIGINT", capturedSignal)
-			exitCode = 1
-
-		}
-
-		timeout := 5 * time.Second
-		if shutdownErr := shutdownGracefully(server, timeout); shutdownErr != nil {
-			logger.Error("Server shutdown caused error:", shutdownErr)
-			return 1, shutdownErr
-		}
-
-		logger.Info("Server shutdown successful")
-	}
-
-	return exitCode, nil
-}
-
-func shutdownGracefully(server *http.Server, timeout time.Duration) error {
-	logger.Infof("Shutting down server gracefully with timeout of %s", timeout)
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	if shutdownErr := server.Shutdown(ctx); shutdownErr != nil {
-		return errors.Wrap(shutdownErr, "server shutdown failed")
-	}
+	http.NewServeMux()
 
 	return nil
 }

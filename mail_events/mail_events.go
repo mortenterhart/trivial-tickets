@@ -37,6 +37,27 @@ const (
 	UnassignedTicket
 )
 
+func (event Event) String() string {
+	switch event {
+	case NewTicket:
+		return "new ticket"
+
+	case NewAnswer:
+		return "new answer"
+
+	case UpdatedTicket:
+		return "updated ticket"
+
+	case AssignedTicket:
+		return "assigned ticket"
+
+	case UnassignedTicket:
+		return "unassigned ticket"
+	}
+
+	return "undefined"
+}
+
 // NewMailBody creates a message to be sent inside a mail body.
 // Depending of the mail event (e.g. ticket or answer creation)
 // different messages are written to the body and populated with
@@ -55,7 +76,7 @@ func NewMailBody(event Event, ticket structs.Ticket) string {
 	switch event {
 	case NewTicket:
 		eventMessage = "Ihr Ticket '{{.ticketId}}' ist erfolgreich erstellt worden.\n" +
-			fmt.Sprintf("Wenn Sie eine neuen Kommentar zu diesem Ticket schreiben wollen,\n" +
+			fmt.Sprintf("Wenn Sie eine neuen Kommentar zu diesem Ticket schreiben wollen,\n"+
 				"nutzen Sie bitte den folgenden Link: mailto:support@trivial-tickets.com?subject=%s",
 				url.PathEscape(fmt.Sprintf(`[Ticket "%s"] %s`, ticket.Id, ticket.Subject)))
 
@@ -149,25 +170,4 @@ func getMessage(ticketEntries []structs.Entry, displayLatestMessage bool) (strin
 	}
 
 	return ticketEntries[0].Text, ""
-}
-
-func EventText(event Event) string {
-	switch event {
-	case NewTicket:
-		return "new ticket"
-
-	case NewAnswer:
-		return "new answer"
-
-	case UpdatedTicket:
-		return "updated ticket"
-
-	case AssignedTicket:
-		return "assigned ticket"
-
-	case UnassignedTicket:
-		return "unassigned ticket"
-	}
-
-	return "undefined"
 }

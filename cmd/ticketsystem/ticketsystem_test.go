@@ -2,6 +2,12 @@
 package main
 
 import (
+	"bytes"
+	"flag"
+	"fmt"
+	"github.com/mortenterhart/trivial-tickets/structs"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -46,4 +52,63 @@ func TestIsPortInBoundaries(t *testing.T) {
 
 	assert.Equal(t, true, is80InBoundaries, "Port 80 is not accepted, but it should be")
 	assert.Equal(t, false, is67534InBoundaries, "Port 67534 is accepted. Should not happen.")
+}
+
+func TestUsageMessage(t *testing.T) {
+	var testBuffer bytes.Buffer
+	flag.CommandLine.SetOutput(&testBuffer)
+
+	usageMessage()
+
+	t.Run("bufferBeginsWithUsage", func(t *testing.T) {
+		assert.True(t, strings.HasPrefix(testBuffer.String(), fmt.Sprintf("Usage: %s [options]", os.Args[0])))
+	})
+
+	t.Run("bufferContainsOptions", func(t *testing.T) {
+		assert.Contains(t, testBuffer.String(), "options may be one of the following")
+	})
+}
+
+func TestConvertLogLevel(t *testing.T) {
+	t.Run("levelInfo", func(t *testing.T) {
+		level, err := convertLogLevel("info")
+
+		assert.NoError(t, err)
+		assert.Equal(t, structs.LevelInfo, level)
+	})
+
+	t.Run("levelWarning", func(t *testing.T) {
+		level, err := convertLogLevel("warning")
+
+		assert.NoError(t, err)
+		assert.Equal(t, structs.LevelWarning, level)
+	})
+
+	t.Run("levelError", func(t *testing.T) {
+		level, err := convertLogLevel("error")
+
+		assert.NoError(t, err)
+		assert.Equal(t, structs.LevelError, level)
+	})
+
+	t.Run("levelFatal", func(t *testing.T) {
+		level, err := convertLogLevel("fatal")
+
+		assert.NoError(t, err)
+		assert.Equal(t, structs.LevelFatal, level)
+	})
+
+	t.Run("levelInfo", func(t *testing.T) {
+		level, err := convertLogLevel("info")
+
+		assert.NoError(t, err)
+		assert.Equal(t, structs.LevelInfo, level)
+	})
+
+	t.Run("undefinedLevel", func(t *testing.T) {
+		level, err := convertLogLevel("undefined")
+
+		assert.Error(t, err)
+		assert.Empty(t, level)
+	})
 }

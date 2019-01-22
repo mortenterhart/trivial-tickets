@@ -260,3 +260,29 @@ func TestNewMailBodyUnassignedTicket(t *testing.T) {
 		})
 	})
 }
+
+func TestEvent_String(t *testing.T) {
+	t.Run("newTicket", func(t *testing.T) {
+		assert.Equal(t, "new ticket", NewTicket.String())
+	})
+
+	t.Run("newAnswer", func(t *testing.T) {
+		assert.Equal(t, "new answer", NewAnswer.String())
+	})
+
+	t.Run("updatedTicket", func(t *testing.T) {
+		assert.Equal(t, "updated ticket", UpdatedTicket.String())
+	})
+
+	t.Run("assignedTicket", func(t *testing.T) {
+		assert.Equal(t, "assigned ticket", AssignedTicket.String())
+	})
+
+	t.Run("unassignedTicket", func(t *testing.T) {
+		assert.Equal(t, "unassigned ticket", UnassignedTicket.String())
+	})
+
+	t.Run("undefinedEvent", func(t *testing.T) {
+		assert.Equal(t, "undefined", Event(100).String())
+	})
+}
