@@ -4,8 +4,6 @@ package api_out
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/logger"
-	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,9 +13,11 @@ import (
 	"testing"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/mail_events"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
+	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -49,9 +49,20 @@ func testServerConfig() structs.Config {
 	}
 }
 
+func testLogConfig() structs.LogConfig {
+	return structs.LogConfig{
+		LogLevel:   structs.LevelInfo,
+		VerboseLog: false,
+		FullPaths:  false,
+	}
+}
+
 func initializeConfig() {
 	config := testServerConfig()
 	globals.ServerConfig = &config
+
+	logConfig := testLogConfig()
+	globals.LogConfig = &logConfig
 }
 
 // Setup and teardown

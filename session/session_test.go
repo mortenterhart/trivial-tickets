@@ -37,7 +37,7 @@ func TestCreateSessionCookie(t *testing.T) {
 	assert.NotNil(t, sessionId, "The returned session is was nil")
 	assert.NotNil(t, cookie, "The returned cookie is was nil")
 	assert.Equal(t, "session", cookie.Name, "The cookie was not named session")
-	assert.True(t, (len(sessionId) == 44), "The session is has the wrong length")
+	assert.True(t, len(sessionId) == 44, "The session is has the wrong length")
 }
 
 // TestGetSessionId tests that a session id is retrievable if it is set
@@ -50,7 +50,7 @@ func TestGetSessionId(t *testing.T) {
 	sId := GetSessionId(request)
 
 	assert.NotNil(t, sId, "No session id was found")
-	assert.True(t, (len(sId) == 44), "Session id has the wrong length")
+	assert.True(t, len(sId) == 44, "Session id has the wrong length")
 }
 
 // TestGetSessionIdError produces an error to make sure the function will
@@ -60,7 +60,7 @@ func TestGetSessionIdError(t *testing.T) {
 	request := &http.Request{}
 	sId := GetSessionId(request)
 
-	assert.False(t, (len(sId) == 44), "No error was returned")
+	assert.False(t, len(sId) == 44, "No error was returned")
 }
 
 // TestDeleteSessionCookie tests the invalidation of a session cookie by overwriting its value
@@ -114,7 +114,7 @@ func TestUpdateSession(t *testing.T) {
 }
 
 // TestCheckForSession tests the function to look for a session with and without
-// the pripor existence of a session
+// the prior existence of a session
 func TestCheckForSession(t *testing.T) {
 
 	// Create a request with and without the session cookie set

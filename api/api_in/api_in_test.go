@@ -57,6 +57,9 @@ func setupAndTeardown() teardownFunc {
 	config := testServerConfig()
 	globals.ServerConfig = &config
 
+	logConfig := testLogConfig()
+	globals.LogConfig = &logConfig
+
 	return func() {
 		cleanupTestFiles(config)
 	}
@@ -71,6 +74,14 @@ func testServerConfig() structs.Config {
 		Cert:    "../../ssl/server.cert",
 		Key:     "../../ssl/server.key",
 		Web:     "../../www",
+	}
+}
+
+func testLogConfig() structs.LogConfig {
+	return structs.LogConfig{
+		LogLevel:   structs.LevelInfo,
+		VerboseLog: false,
+		FullPaths:  false,
 	}
 }
 

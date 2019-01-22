@@ -3,6 +3,7 @@
 package filehandler
 
 import (
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -29,6 +30,25 @@ import (
  * Interactions with files, writing and reading files and persisting
  * changes to the file system
  */
+
+func TestMain(m *testing.M) {
+	initializeLogConfig()
+
+	os.Exit(m.Run())
+}
+
+func initializeLogConfig() {
+	logConfig := testLogConfig()
+	globals.LogConfig = &logConfig
+}
+
+func testLogConfig() structs.LogConfig {
+	return structs.LogConfig{
+		LogLevel:   structs.LevelInfo,
+		VerboseLog: false,
+		FullPaths:  false,
+	}
+}
 
 // TestWriteReadUserFile tests both WriteUserFile and ReadUserFile back to back since the
 // mock data can be used for both

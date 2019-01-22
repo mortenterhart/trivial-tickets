@@ -68,9 +68,20 @@ func testConfig() structs.Config {
 	}
 }
 
+func testLogConfig() structs.LogConfig {
+	return structs.LogConfig{
+		LogLevel:   structs.LevelInfo,
+		VerboseLog: false,
+		FullPaths:  false,
+	}
+}
+
 func initializeConfig() {
 	config := testConfig()
 	globals.ServerConfig = &config
+
+	logConfig := testLogConfig()
+	globals.LogConfig = &logConfig
 }
 
 // Setup and teardown

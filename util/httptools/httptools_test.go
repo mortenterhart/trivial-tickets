@@ -2,12 +2,14 @@
 package httptools
 
 import (
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -24,6 +26,25 @@ import (
  * Package httptools [tests]
  * Useful tools for HTTP handlers
  */
+
+func TestMain(m *testing.M) {
+	initializeLogConfig()
+
+	os.Exit(m.Run())
+}
+
+func initializeLogConfig() {
+	logConfig := testLogConfig()
+	globals.LogConfig = &logConfig
+}
+
+func testLogConfig() structs.LogConfig {
+	return structs.LogConfig{
+		LogLevel:   structs.LevelInfo,
+		VerboseLog: false,
+		FullPaths:  false,
+	}
+}
 
 func TestStatusCodeError(t *testing.T) {
 	recorder := httptest.NewRecorder()

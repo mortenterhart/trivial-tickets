@@ -35,6 +35,20 @@ import (
  * Various mock structs and global variables are populated to make the tests work properly
  */
 
+// TestMain is the superior test routine that is run to start the tests.
+// It setups the logging configuration because the logger is used during
+// the tested handlers.
+func TestMain(m *testing.M) {
+	initializeLogConfig()
+
+	os.Exit(m.Run())
+}
+
+func initializeLogConfig() {
+	logConfig := mockLogConfig()
+	globals.LogConfig = &logConfig
+}
+
 // index
 // --------------------------
 type indexHandler struct{}

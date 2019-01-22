@@ -181,3 +181,11 @@ func mockConfig() structs.Config {
 		Key:     "../ssl/server.key",
 		Web:     "../www"}
 }
+
+func mockLogConfig() structs.LogConfig {
+	return structs.LogConfig{
+		LogLevel:   structs.LevelInfo,
+		VerboseLog: false,
+		FullPaths:  false,
+	}
+}
