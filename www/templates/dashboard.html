@@ -1,6 +1,23 @@
 <!--
 
 /*
+ * Trivial Tickets Ticketsystem
+ * Copyright (C) 2019 The Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
  * Ticketsystem Trivial Tickets
  *
  * Matriculation numbers: 3040018, 6694964, 3478222
@@ -15,45 +32,49 @@
 -->
 
 {{define "dashboard"}}
-{{$session := .Session}}
-<div class="dashboard" id="dashboard">
-    <div class="settings">
-        <p class="region_label">Einstellungen</p>
-        <div class="holiday_mode">
-            <form action="/holiday" method="POST">
-            {{if .Session.User.IsOnHoliday}}
-                <button type="submit">Urlaubsmodus deaktivieren</button>
-            {{else}}
-                <button type="submit">Urlaubsmodus aktivieren</button>
-            {{end}}
-            </form>
-        </div>
-    </div>
-    <div class="my_tickets">
-        <p class="region_label">Meine Tickets</p>
-    {{range $index, $element := .Tickets}}
-    {{if eq $element.User.Id $session.User.Id}}
-        <div class="ticket_dashboard" id="ticket_{{$element.Id}}">
-            <table style="width: 50%;">
-                <tr>
-                    <td>Kunde:</td>
-                    <td>{{$element.Customer}}</td>
-                </tr>
-                <tr>
-                    <td>Betreff:</td><td>{{$element.Subject}}</td>
-                </tr>
-                <tr>
-                    <td>Ticketnummer:</td>
-                    <td><input name="ticket" class="input_label" type="text" readonly value="{{$element.Id}}"></td>
-                </tr>
-            </table>
-            <div>
-                <button onclick="location.href='/ticket?id={{$element.Id}}'" type="button">Ticket öffnen</button>
-                <button id="btn_{{$element.Id}}" onclick="unassignTicket(this.id)">Ticket freigeben</button>
+    {{$session := .Session}}
+    <div class="dashboard" id="dashboard">
+        <div class="settings">
+            <p class="region_label">Settings</p>
+            <div class="holiday_mode">
+                <form method="POST" action="/holiday">
+                    {{if $session.User.IsOnHoliday}}
+                        <button type="submit">Disable Vacation Mode</button>
+                    {{else}}
+                        <button type="submit">Enable Vacation Mode</button>
+                    {{end}}
+                </form>
             </div>
         </div>
-    {{end}}
-    {{end}}
+        <div class="my_tickets">
+            <p class="region_label">My assigned Tickets</p>
+            {{range $index, $element := .Tickets}}
+                {{if eq $element.User.ID $session.User.ID}}
+                    <div class="ticket_dashboard" id="ticket_{{$element.ID}}">
+                        <table style="width: 50%;">
+                            <tr>
+                                <td>Customer:</td>
+                                <td>{{$element.Customer}}</td>
+                            </tr>
+                            <tr>
+                                <td>Subject:</td>
+                                <td>{{$element.Subject}}</td>
+                            </tr>
+                            <tr>
+                                <td>Ticket Number:</td>
+                                <td>
+                                    <input name="ticket" class="input_label" type="text" readonly disabled
+                                           value="{{$element.ID}}">
+                                </td>
+                            </tr>
+                        </table>
+                        <div>
+                            <button onclick="location.href = '/ticket?id={{$element.ID}}';" type="button">Open Ticket</button>
+                            <button id="btn_{{$element.ID}}" onclick="unassignTicket(this.id)">Release Ticket</button>
+                        </div>
+                    </div>
+                {{end}}
+            {{end}}
+        </div>
     </div>
-</div>
 {{end}}

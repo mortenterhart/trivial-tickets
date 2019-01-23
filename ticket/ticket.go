@@ -1,4 +1,21 @@
-// Administration of ticket actions
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package ticket contains operations for the administration
+// of ticket actions and updates.
 package ticket
 
 import (
@@ -24,7 +41,8 @@ import (
  * Administration of ticket actions
  */
 
-// CreateTicket takes the arguments from either web or the mail api and returns a populated ticket
+// CreateTicket takes the arguments from either web or
+// the Mail API and returns a populated ticket.
 func CreateTicket(mail, subject, text string) structs.Ticket {
 
 	// Create a new entry for the ticket
@@ -40,9 +58,9 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 
 	// Construct the ticket
 	return structs.Ticket{
-		Id:       random.CreateRandomId(10),
+		ID:       random.CreateRandomID(structs.RandomIDLength),
 		Subject:  subject,
-		Status:   structs.OPEN,
+		Status:   structs.StatusOpen,
 		User:     structs.User{},
 		Customer: mail,
 		Entries:  entries,
@@ -50,8 +68,9 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 	}
 }
 
-// UpdateTicket gets update parameters as well as the ticket to be updated
-// and returns it with the values overwritten
+// UpdateTicket gets update parameters as well as the
+// ticket to be updated and returns it with the values
+// overwritten.
 func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.Ticket) structs.Ticket {
 
 	// Set the status to the one provided by the form
@@ -66,7 +85,7 @@ func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.T
 			FormattedDate: time.Now().Format(time.ANSIC),
 			User:          mail,
 			Text:          reply,
-			Reply_Type:    replyType,
+			ReplyType:     replyType,
 		}
 
 		entries := currentTicket.Entries
@@ -78,7 +97,10 @@ func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.T
 	return currentTicket
 }
 
-// MergeTickets merges two tickets if they share the same customer
+// MergeTickets merges two tickets if they share the
+// same customer. The entries of the mergeFromTicket
+// are appended to the mergeToTicket and all entries
+// are sorted by their creation time.
 func MergeTickets(mergeToTicket, mergeFromTicket structs.Ticket) (structs.Ticket, structs.Ticket) {
 
 	if mergeToTicket.Customer == mergeFromTicket.Customer {
@@ -94,32 +116,32 @@ func MergeTickets(mergeToTicket, mergeFromTicket structs.Ticket) (structs.Ticket
 		mergeToTicket.Entries = entriesMerged
 
 		// Point to the newly merged ticket
-		mergeFromTicket.MergeTo = mergeToTicket.Id
-		mergeFromTicket.Status = structs.CLOSED
+		mergeFromTicket.MergeTo = mergeToTicket.ID
+		mergeFromTicket.Status = structs.StatusClosed
 		mergeFromTicket.User = structs.User{}
 	}
 
 	return mergeToTicket, mergeFromTicket
 }
 
-// AssignTicket adds a user to a ticket
+// AssignTicket adds a user to a ticket.
 func AssignTicket(user structs.User, currentTicket structs.Ticket) structs.Ticket {
 
 	// Assign the user to the specified ticket
 	// and change the Status
 	currentTicket.User = user
-	currentTicket.Status = structs.PROCESSING
+	currentTicket.Status = structs.StatusInProgress
 
 	return currentTicket
 }
 
-// UnassignTicket removes a user from a ticket
+// UnassignTicket removes a user from a ticket.
 func UnassignTicket(currentTicket structs.Ticket) structs.Ticket {
 
 	// Replace the assigned user with an empty struct
 	// and set the status to open
 	currentTicket.User = structs.User{}
-	currentTicket.Status = structs.OPEN
+	currentTicket.Status = structs.StatusOpen
 
 	return currentTicket
 }

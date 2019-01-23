@@ -1,26 +1,26 @@
 {
-   "admin": {
-      "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
-      "Name": "Admin",
-      "Username": "admin",
-      "Mail": "admin@trivial-tickets.com",
-      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
-      "IsOnHoliday": false
-   },
-   "max4711": {
-      "Id": "1lefJPUAZgd58hTuZrN16GbUjDOgCA0xShaUCD2spPY=",
-      "Name": "Max Mustermann",
-      "Username": "max4711",
-      "Mail": "max.mustermann@trivial-tickets.com",
-      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
-      "IsOnHoliday": false
-   },
-   "tron": {
-      "Id": "CLwt_Y27ktggbjaNzn5U2fpCM6Az1ktAKo46n0mLP6A=",
-      "Name": "Boris Floricic",
-      "Username": "tron",
-      "Mail": "boris.floricic@trivial-tickets.com",
-      "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
-      "IsOnHoliday": false
-   }
+    "admin": {
+        "id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
+        "name": "Admin",
+        "username": "admin",
+        "mail": "admin@trivial-tickets.com",
+        "hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+        "isOnHoliday": false
+    },
+    "max4711": {
+        "id": "1lefJPUAZgd58hTuZrN16GbUjDOgCA0xShaUCD2spPY=",
+        "name": "Max Mustermann",
+        "username": "max4711",
+        "mail": "max.mustermann@trivial-tickets.com",
+        "hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+        "isOnHoliday": false
+    },
+    "tron": {
+        "id": "CLwt_Y27ktggbjaNzn5U2fpCM6Az1ktAKo46n0mLP6A=",
+        "name": "Boris Floricic",
+        "username": "tron",
+        "mail": "boris.floricic@trivial-tickets.com",
+        "hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+        "isOnHoliday": false
+    }
 }

@@ -1,4 +1,21 @@
-// Random id creation
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package random implements a pseudo-random algorithm to
+// create unique ticket and mail ids.
 package random
 
 import (
@@ -20,12 +37,13 @@ import (
  * Random id creation
  */
 
-// letters are the valid characters for the ids
+// letters are the valid characters for the ids.
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-// CreateRandomId generates a pseudo random id for tickets and mails
-// Tweaked example from https://stackoverflow.com/a/22892986
-func CreateRandomId(n int) string {
+// CreateRandomID generates a pseudo-random id for
+// tickets and mails with length n.
+// Tweaked example from https://stackoverflow.com/a/22892986.
+func CreateRandomID(n int) string {
 
 	// Seed the random function to make it more random
 	rand.Seed(time.Now().UnixNano())

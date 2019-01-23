@@ -1,25 +1,72 @@
 #!/usr/bin/env bash
+##
+## Trivial Tickets Ticketsystem
+## Copyright (C) 2019 The Contributors
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+##
+## Ticketsystem Trivial Tickets
+##
+## Matriculation numbers: 3040018, 6694964, 3478222
+## Lecture:               Programmieren II, INF16B
+## Lecturer:              Herr Prof. Dr. Helmut Neemann
+## Institute:             Duale Hochschule Baden-Württemberg Mosbach
+##
+## ---------------
+## Script to generate a coverage report
+## from the tests in the packages
+##
+## Get more information about this script here:
+## https://github.com/mortenterhart/trivial-tickets/wiki/Generating-a-Coverage-Report
+##
 
+# Script constants
 script="${0##*/}"
 root_dir="${0%/*}"
 
+# Output Options
 output_dir=""
 output_file=""
 coverage_profile="${root_dir}/coverage.txt"
 
+# Test packages
+default_package="${root_dir}/..."
+
+# Test and Coverage Options
 checks=""
 coverage_mode="atomic"
 coverage_format="html"
-preserve_report="false"
+preserve_profile="false"
 race="false"
 verbose="false"
 
+# printError prints an error message with an help advice
+# to stdout. The message is built through concatenation
+# of all arguments.
+#
+# Parameters:
+#   $*: the error message
 function printError() {
     printf "%s: %s\n" "${script}" "$*" >&2
     printf "Try '%s --help' for more information.\n" "${script}" >&2
 }
 
-function printCovermodes() {
+# printCoverageModes prints the available coverage modes
+# to stdout. This is called in case an invalid mode was
+# specified on the command-line.
+function printCoverageModes() {
     printf "%s: These coverage modes are available:\n" "${script}"
     printf "  set     test which statements run\n"
     printf "  count   test how often a statement runs\n"
@@ -27,6 +74,8 @@ function printCovermodes() {
     printf "          correct in multithreaded tests\n"
 }
 
+# printHelp outputs a help message with usage instructions
+# and documentation for all options to the console.
 function printHelp() {
     printf "Usage: %s [option(s)] [--] [package] ...\n" "${script}"
     printf "Generate a coverage profile for the named packages\n"
@@ -73,10 +122,11 @@ function printHelp() {
     printf "                        was given. The FILE should not exist yet, otherwise\n"
     printf "                        it is going to be overwritten. The leading directory,\n"
     printf "                        if any, is stripped if --output-directory is given.\n"
-    printf "      --preserve-report Don't remove the coverage profile after output file\n"
+    printf "      --preserve-profile\n"
+    printf "                        Don't remove the coverage profile after output file\n"
     printf "                        has been generated.\n"
-    printf "  -r, --race            Examine the tests and search for race conditions\n"
-    printf "                        in parallelized tests and report warnings, if any.\n"
+    printf "  -r, --race            Examine the tests and search for race conditions in\n"
+    printf "                        parallelized tests or code and report warnings, if any.\n"
     printf "  -v, --verbose         Print information for each executed test such as\n"
     printf "                        test logs and results.\n"
     printf "Mandatory arguments to long options are also mandatory to short options.\n\n"
@@ -94,6 +144,174 @@ function printHelp() {
     printf "HTML output will be shown in the default web browser.\n"
 }
 
+# compareVersions compares the numbers of two given version
+# strings. The exit code indicates the comparison result. The
+# versions are split on dots '.' so no other version delimiter
+# is supported.
+#
+# If one version contains more numbers separated by dots
+# the missing numbers in the other version are filled with
+# zeros.
+#
+# The exit code is 0 if the versions are identical, 1 if
+# the first version is greater than the second version
+# and 2 if the first is lower than the second.
+#
+# Parameters:
+#   $1: the first version
+#   $2: the second version
+#
+# Examples:
+#   compareVersions "1.10.1" "1.10.0"     # exit code: 1
+#   compareVersions "1.11.5.2" "1.11.5"   # exit code: 2
+#   compareVersions "1.10.0.0" "1.10"     # exit code: 0
+function compareVersions() {
+    local v1="$1"
+    local v2="$2"
+
+    # If the version strings are equal, return 0 directly
+    if [[ "${v1}" == "${v2}" ]]; then
+        return 0
+    fi
+
+    # Split the version strings on dots
+    local IFS="."
+    local -i i
+    local ver1=(${v1}) ver2=(${v2})
+
+    # Fill empty fields in ver1 with zeros
+    for ((i = "${#ver1[@]}"; i < "${#ver2[@]}"; i++)); do
+        ver1[i]=0
+    done
+
+    for ((i = 0; i < "${#ver1[@]}"; i++)); do
+        if [ -z "${ver2[i]}" ]; then
+            # Fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+
+        # Ensure the version numbers are decimal numbers
+        # (base 10).
+        # If a version number contains a leading zero,
+        # such as "08", the Bash 'let' builtin evaluates
+        # it as octal number. The '10#xx' syntax prevents
+        # this behaviour and reads the number 'xx' in
+        # base 10 (decimal numbers).
+        local ver1_decimal="$(( 10#${ver1[i]} ))"
+        local ver2_decimal="$(( 10#${ver2[i]} ))"
+
+        if ((ver1_decimal > ver2_decimal)); then
+            return 1
+        fi
+
+        if ((ver1_decimal < ver2_decimal)); then
+            return 2
+        fi
+    done
+
+    return 0
+}
+
+# testVersion makes a version comparison between two provided
+# version strings. The versions can be compared using different
+# comparison operators which can be one of the following:
+#
+#   <, <=, ==, >, >=
+#
+# The operator is passed as second argument in between the two
+# versions and should be quoted with double quotes to prevent
+# interpretation by the shell.
+#
+# The exit status indicates if the test was successful or not.
+# The exit code 0 is returned if the condition matches and 1
+# otherwise.
+#
+# Parameters:
+#   $1: first version string
+#   $2: comparison operator as mentioned above
+#   $3: second version string
+#
+# Examples:
+#   testVersion 1.11.5 "<" 1.12     # true
+#   testVersion 1.12.0 ">" 1.11.5   # true
+#   testVersion 2.0.0 "==" 2        # true
+#   testVersion 1.11.3 ">=" 1.11.4  # false
+function testVersion() {
+    local version1="$1"
+    local compareOperator="$2"
+    local version2="$3"
+
+    local matching="false"
+
+    # Check if the applied comparison operator
+    # is valid
+    case "${compareOperator}" in
+        "<" | "<=" | "==" | ">" | ">=") ;;
+        *)
+            printf "%s: testVersion: invalid compare operator: %s\n" "${script}" "${compareOperator}" >&2
+            return 5
+            ;;
+    esac
+
+    local actualOperator
+
+    # Compare the versions and check exit code for
+    # comparison result
+    compareVersions "${version1}" "${version2}"
+    case "$?" in
+        0) actualOperator="==" ;;
+        1) actualOperator=">"  ;;
+        2) actualOperator="<"  ;;
+    esac
+
+    if [ "${compareOperator}" == "<=" ]; then
+        if [ "${actualOperator}" == "<" ] || [ "${actualOperator}" == "==" ]; then
+            matching="true"
+        fi
+    elif [ "${compareOperator}" == ">=" ]; then
+        if [ "${actualOperator}" == ">" ] || [ "${actualOperator}" == "==" ]; then
+            matching="true"
+        fi
+    elif [ "${actualOperator}" == "${compareOperator}" ]; then
+        matching="true"
+    fi
+
+    if "${matching}"; then
+        return 0
+    fi
+
+    return 1
+}
+
+# getGoVersion writes the version of the currently active
+# Go runtime to the variable specified in the first
+# parameter $1. It uses the output of the 'go version'
+# command to get the version.
+#
+# Parameters:
+#   $1: the name of the variable where the go version is
+#       written to (callback variable)
+#
+# Example:
+#   local go_version
+#   getGoVersion go_version
+#   echo "${go_version}"     # Example Output: 1.11.5
+function getGoVersion() {
+    local callback_variable="$1"
+
+    # Get the Go version in the format: "go1.11.5"
+    local version="$(go version | grep -Eo "go[0-9]+(\.[0-9]+)+")"
+
+    # Write the raw Go version number into the callback variable
+    printf -v "${callback_variable}" "${version#go}"
+}
+
+# assignCoverageMode checks the provided coverage mode
+# and sets the coverage mode option if the mode is valid.
+# If the mode is invalid the script exits with an error.
+#
+# Parameters:
+#   $1: the argument to the --coverage-mode option
 function assignCoverageMode() {
     local mode_argument="$1"
 
@@ -103,15 +321,66 @@ function assignCoverageMode() {
             ;;
         *)
             printf "%s: invalid coverage mode: '%s'\n" "${script}" "${mode_argument}" >&2
-            printCovermodes >&2
+            printCoverageModes >&2
             exit 3
     esac
 }
 
+# assignCoverageProfile sets the file to which the
+# coverage profile is going to be written. The profile
+# is generated by the 'go test' step. The function
+# checks if the given file argument exists and if so
+# it further checks if the file is regular and writable.
+# If one of the checks is unsuccessful the script exits
+# with an error.
+#
+# Parameters:
+#   $1: the argument to the --coverage-profile option
+function assignCoverageProfile() {
+    local file_argument="$1"
+
+    if [ -e "${file_argument}" ]; then
+        if ! [ -f "${file_argument}" ]; then
+            printError "file exists and is not a regular file: ${file_argument}"
+            exit 3
+        fi
+
+        if ! [ -w "${file_argument}" ]; then
+            printError "file is not writable: ${file_argument}"
+            exit 3
+        fi
+
+        printf "%s: warning: file '%s' already exists and will be overwritten\n" "${script}" "${file_argument}"
+    fi
+
+    coverage_profile="${file_argument}"
+}
+
+# assignChecks sets the option which causes the test step
+# to perform code checks using 'go vet' before executing
+# the actual tests. There are three predefined check arguments:
+#
+#   all      run all checks
+#   default  select all checks that are assumed to be
+#            always worth
+#   off      do not perform any checks
+#
+# Other arguments are also valid and are checked against
+# the available code checks that 'go vet' offers. If an
+# unrecognized check is supplied the script exits with
+# an error. See the complete list of checks with
+# 'go tool vet -help' for Go versions <= 1.12 or
+# 'go tool vet help' for Go 1.12 and later.
+#
+# Parameters:
+#   $1: the argument to the --checks option
 function assignChecks() {
     local checks_argument="$1"
 
     case "${checks_argument}" in
+        all)
+            checks="all"
+            ;;
         default)
             checks=""
             ;;
@@ -119,11 +388,49 @@ function assignChecks() {
             checks="off"
             ;;
         *)
+            # Split the check list in the argument on commas,
+            # so do not put quotes around the variable expansion
+            local IFS=","
+            local all_checks=(${checks_argument})
+
+            # Declare local variable to insert the help text
+            # of 'go tool vet' with all defined options depending
+            # on the Go version.
+            local go_vet_options
+
+            # Get the version of the current Go runtime
+            local go_version
+            getGoVersion go_version
+
+            # Test whether the Go version is below 1.12 or not. This
+            # is necessary because the command-line interface of
+            # 'go tool vet' was changed in the Go 1.12 release.
+            if testVersion "${go_version}" ">=" "1.12"; then
+                go_vet_options="$(go tool vet help 2>&1 > /dev/null)"
+            else
+                go_vet_options="$(go tool vet -help 2>&1)"
+            fi
+
+            # For each specified check, examine if the check exists
+            for c in "${all_checks[@]}"; do
+                if ! grep -q -- "-\b${c}\b" <<< "${go_vet_options}"; then
+                    printError "undefined check: '${c}'" >&2
+                    exit 3
+                fi
+            done
+
             checks="${checks_argument}"
             ;;
     esac
 }
 
+# assignOutputDirectory sets the output directory option
+# only if the directory exists and is a directory. If the
+# option argument does not exist the scripts exits with
+# with an error.
+#
+# Parameters:
+#   $1: the argument to the --output-directory option
 function assignOutputDirectory() {
     local directory_argument="$1"
 
@@ -135,16 +442,32 @@ function assignOutputDirectory() {
     fi
 }
 
+# assignOutputFile sets the output file option to the
+# specified file. If the file already exists a warning
+# is printed to stdout telling that the file will be
+# overwritten.
+#
+# Parameters:
+#   $1: the argument to the --output-file option
 function assignOutputFile() {
     local file_argument="$1"
 
-    if [ -e "${file_argument}" ]; then
+    if [ -d "${file_argument}" ]; then
+        printError "output file is a directory: ${file_argument}"
+        exit 3
+    elif [ -e "${file_argument}" ]; then
+        if ! [ -w "${file_argument}" ]; then
+            printError "file exists, but is not writable: ${file_argument}"
+            exit 3
+        fi
+
         printf "%s: warning: file '%s' already exists and will be overwritten\n" "${script}" "${file_argument}"
     fi
 
     output_file="${file_argument}"
 }
 
+# Parse the command-line options
 while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
     case "${option}" in
         c)
@@ -170,7 +493,7 @@ while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
             assignOutputFile "${OPTARG}"
             ;;
         p)
-            coverage_profile="${OPTARG}"
+            assignCoverageProfile "${OPTARG}"
             ;;
         r)
             race="true"
@@ -183,7 +506,7 @@ while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
             option_argument="${OPTARG#*=}"
 
             long_options="checks coverage-mode coverage-profile functions help html output-directory
-                          output-file preserve-report race verbose"
+                          output-file preserve-profile race verbose"
             long_options_arguments="checks coverage-mode coverage-profile output-directory output-file"
 
             option_matches=($(compgen -W "${long_options}" -- "${option_name}"))
@@ -194,9 +517,14 @@ while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
             elif [ "${#option_matches[@]}" -eq 1 ]; then
                 option_name="${option_matches[0]}"
 
-                if compgen -W "${long_options_arguments}" -- "${option_name}" >/dev/null 2>&1 && [[ "${OPTARG}" != *=* ]]; then
-                    printError "option requires an argument: '--${option_name}'" >&2
-                    exit 2
+                if compgen -W "${long_options_arguments}" -- "${option_name}" >/dev/null 2>&1; then
+                    if [[ "${OPTARG}" != *=* ]]; then
+                        printError "option requires an argument: '--${option_name}'" >&2
+                        exit 2
+                    elif [ -z "${option_argument}" ]; then
+                        printError "option requires a non-empty argument: '--${option_name}'"
+                        exit 2
+                    fi
                 elif ! compgen -W "${long_options_arguments}" -- "${option_name}" >/dev/null 2>&1 && [[ "${OPTARG}" == *=* ]]; then
                     printError "option does not allow an argument: '--${option_name}'" >&2
                     exit 2
@@ -210,7 +538,7 @@ while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
                         assignCoverageMode "${option_argument}"
                         ;;
                     coverage-profile)
-                        coverage_profile="${option_argument}"
+                        assignCoverageProfile "${option_argument}"
                         ;;
                     functions)
                         coverage_format="functions"
@@ -228,8 +556,8 @@ while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
                     output-directory)
                         assignOutputDirectory "${option_argument}"
                         ;;
-                    preserve-report)
-                        preserve_report="true"
+                    preserve-profile)
+                        preserve_profile="true"
                         ;;
                     race)
                         race="true"
@@ -239,7 +567,8 @@ while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
                         ;;
                 esac
             else
-                printf "%s: ambiguous option: '--%s'; could be one of:\n" "${script}" "${option_name}" >&2
+                option_pos="$((OPTIND - 1))"
+                printf "%s: ambiguous option: '%s'; could be one of:\n" "${script}" "${!option_pos}" >&2
                 printf "  > --%s\n" "${option_matches[@]}" >&2
                 printf "Try '%s --help' for more information.\n" "${script}" >&2
                 exit 1
@@ -256,17 +585,21 @@ while getopts ":c:d:fhHm:o:p:rv-:" option "$@"; do
     esac
 done
 
+# Shift all the processed options so that only
+# non-option parameters remain
 shift "$((OPTIND - 1))"
 
+# All non-option parameters are package paths
 packages=("$@")
 if [ "${#packages[@]}" -eq 0 ]; then
-    packages[0]="./..."
+    packages[0]="${default_package}"
 else
     for pack in "${packages[@]}"; do
-        if [[ "${pack}" =~ /...$ ]]; then
+        if [[ "${pack}" == */... ]]; then
             pack="${pack%/...}"
         fi
 
+        # Check if all packages provided exist
         if ! [ -d "${pack}" ]; then
             printError "package does not exist: '${pack}'"
             exit 1
@@ -274,9 +607,14 @@ else
     done
 fi
 
+# Arrays with options for 'go test' and
+# 'go tool cover'
 go_test_options=()
 go_cover_options=()
 
+# Set the test flag for output directory and strip
+# the leading directory of the coverage profile and
+# output file paths
 if [ -n "${output_dir}" ]; then
     go_test_options+=("-outputdir=${output_dir}")
 
@@ -287,26 +625,35 @@ if [ -n "${output_dir}" ]; then
     fi
 fi
 
+# Set the coverage profile, coverage mode and
+# vet options
 go_test_options+=("-coverprofile=${coverage_profile}")
 go_test_options+=("-covermode=${coverage_mode}")
 go_test_options+=("-vet=${checks}")
 
+# Set the race option
 if "${race}"; then
     go_test_options+=("-race")
 fi
 
+# Set the verbose option
 if "${verbose}"; then
     go_test_options+=("-v")
 fi
 
+# Set the output file option
 if [ -n "${output_file}" ]; then
     go_cover_options+=("-o" "${output_file}")
 fi
 
+# Set the correct path to the coverage profile
+# if an output directory was specified
 if [ -n "${output_dir}" ]; then
     coverage_profile="${output_dir}/${coverage_profile}"
 fi
 
+# Set the output format option to either functions
+# or HTML
 case "${coverage_format}" in
     functions)
         go_cover_options+=("-func=${coverage_profile}")
@@ -316,24 +663,51 @@ case "${coverage_format}" in
         ;;
 esac
 
+## ----------------------------------------
+## Begin of generating coverage report
+## ----------------------------------------
+
+# Check if Go is installed correctly
+if ! type -P "go" > /dev/null 2>&1; then
+    printError "executable \"go\" is not installed or not inside your \$PATH"
+    exit 2
+fi
+
+printf "%s: Checking for missing Go test dependencies\n" "${script}"
+
+# Check and install the required test dependencies
+go get -t -v "${packages[@]}"
+
 printf "%s: Building coverage profile by executing tests in package(s):\n" "${script}"
 printf "  - %s\n" "${packages[@]}"
 
+# Execute the tests with coverage and the
+# specified options
 go test "${go_test_options[@]}" "${packages[@]}"
 
-test_successful="$?"
-exit_status="${test_successful}"
+# Get the exit status (successful test result)
+test_status="$?"
+exit_status="${test_status}"
 
-if [ "${test_successful}" -eq 0 ] && [ -f "${coverage_profile}" ]; then
+# If the tests were successful generate the coverage report
+if [ "${test_status}" -eq 0 ] && [ -f "${coverage_profile}" ]; then
     printf "%s: Tests succeeded, generating coverage report\n" "${script}"
     go tool cover "${go_cover_options[@]}"
     exit_status=$?
-
-    if ! "${preserve_report}"; then
-        rm -f "${coverage_profile}"
-    fi
-else
+elif [ "${test_status}" -eq 1 ]; then
     printf "%s: Some of the tests failed, coverage report could not be generated.\n" "${script}"
+elif [ "${test_status}" -eq 2 ]; then
+    printf "%s: There were build errors in the tests, coverage report could not be generated.\n" "${script}"
+elif [ -e "${coverage_profile}" ]; then
+    printf "%s: Coverage profile cannot be read from '%s', report could not be generated.\n" "${script}" "${coverage_profile}"
 fi
 
+# Only delete the coverage profile if the --preserve-report
+# option is not set and the file is owned by the current user
+# so that the file can be deleted
+if ! "${preserve_profile}" && [ -O "${coverage_profile}" ]; then
+    rm -f "${coverage_profile}"
+fi
+
+# Exit the script with the exit status
 exit "${exit_status}"

@@ -1,4 +1,21 @@
-// Useful tools for HTTP handlers
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package httptools provides useful tools for building HTTP
+// responses.
 package httptools
 
 import (
@@ -11,7 +28,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/log/testlog"
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs/defaults"
 	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 )
 
@@ -29,31 +48,46 @@ import (
  * Useful tools for HTTP handlers
  */
 
+//revive:disable:deep-exit
+
+// TestMain is started to run the tests and initializes the
+// configuration before running the tests. The tests' exit
+// status is returned as the overall exit status.
 func TestMain(m *testing.M) {
 	initializeLogConfig()
 
 	os.Exit(m.Run())
 }
 
+//revive:enable:deep-exit
+
+// initializeLogConfig initializes the global logging
+// configuration with test values.
 func initializeLogConfig() {
 	logConfig := testLogConfig()
 	globals.LogConfig = &logConfig
 }
 
+// testLogConfig returns a logging configuration suitable
+// to be used in tests.
 func testLogConfig() structs.LogConfig {
 	return structs.LogConfig{
-		LogLevel:   structs.LevelInfo,
-		VerboseLog: false,
-		FullPaths:  false,
+		LogLevel:  structs.AsLogLevel(defaults.LogLevelString),
+		Verbose:   defaults.LogVerbose,
+		FullPaths: defaults.LogFullPaths,
 	}
 }
 
 func TestStatusCodeError(t *testing.T) {
+	testlog.BeginTest()
+	defer testlog.EndTest()
+
 	recorder := httptest.NewRecorder()
 
 	StatusCodeError(recorder, "internal error", http.StatusInternalServerError)
 
 	response := recorder.Result()
+	defer response.Body.Close()
 
 	t.Run("statusCode", func(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, response.StatusCode, "response status code should be 500 Internal Server Error")
@@ -73,21 +107,29 @@ func TestStatusCodeError(t *testing.T) {
 }
 
 func TestJsonResponse(t *testing.T) {
+	testlog.BeginTest()
+	defer testlog.EndTest()
+
 	recorder := httptest.NewRecorder()
 
-	jsonProperties := structs.JsonMap{
+	jsonProperties := structs.JSONMap{
 		"status":  http.StatusOK,
 		"message": "OK",
 	}
 
-	JsonResponse(recorder, jsonProperties)
+	JSONResponse(recorder, jsonProperties)
 
 	response := recorder.Result()
+	defer response.Body.Close()
 
 	t.Run("statusCode", func(t *testing.T) {
 		assert.Equal(t, http.StatusOK, response.StatusCode, "response status code should be 200 OK")
 	})
 
+	t.Run("jsonContentType", func(t *testing.T) {
+		assert.Equal(t, jsonContentType, response.Header.Get("Content-Type"), "response should have the JSON content type")
+	})
+
 	body, readErr := ioutil.ReadAll(response.Body)
 
 	t.Run("readBody", func(t *testing.T) {
@@ -95,29 +137,40 @@ func TestJsonResponse(t *testing.T) {
 	})
 
 	t.Run("equalBody", func(t *testing.T) {
-		expectedJson, decodeErr := jsontools.MapToJson(jsonProperties)
+		expectedJSON := jsontools.MapToJSON(jsonProperties)
 
-		assert.NoError(t, decodeErr, "decoding map to JSON should not return error")
-		assert.Equal(t, append(expectedJson, '\n'), body, "response body should match decoded expected JSON")
+		assert.Equal(t, append(expectedJSON, '\n'), body, "response body should match decoded expected JSON")
 	})
 }
 
 func TestJsonError(t *testing.T) {
+	testlog.BeginTest()
+	defer testlog.EndTest()
+
 	recorder := httptest.NewRecorder()
 
-	jsonProperties := structs.JsonMap{
+	jsonProperties := structs.JSONMap{
 		"status":  http.StatusInternalServerError,
 		"message": http.StatusText(http.StatusInternalServerError),
 	}
 
-	JsonError(recorder, jsonProperties, http.StatusInternalServerError)
+	JSONError(recorder, jsonProperties, http.StatusInternalServerError)
 
 	response := recorder.Result()
+	defer response.Body.Close()
 
 	t.Run("statusCode", func(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, response.StatusCode, "response status code should be 500 Internal Server Error")
 	})
 
+	t.Run("jsonContentType", func(t *testing.T) {
+		assert.Equal(t, jsonContentType, response.Header.Get("Content-Type"), "response should have JSON content type")
+	})
+
+	t.Run("noSniffOption", func(t *testing.T) {
+		assert.Equal(t, contentTypeOptions, response.Header.Get("X-Content-Type-Options"), "response should have the 'nosniff' option")
+	})
+
 	body, readErr := ioutil.ReadAll(response.Body)
 
 	t.Run("readBody", func(t *testing.T) {
@@ -125,9 +178,8 @@ func TestJsonError(t *testing.T) {
 	})
 
 	t.Run("equalBody", func(t *testing.T) {
-		expectedJson, decodeErr := jsontools.MapToJson(jsonProperties)
+		expectedJSON := jsontools.MapToJSON(jsonProperties)
 
-		assert.NoError(t, decodeErr, "decoding map to JSON should not return error")
-		assert.Equal(t, append(expectedJson, '\n'), body, "response body should match decoded expected JSON")
+		assert.Equal(t, append(expectedJSON, '\n'), body, "response body should match decoded expected JSON")
 	})
 }
