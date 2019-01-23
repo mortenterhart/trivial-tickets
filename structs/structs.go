@@ -21,7 +21,7 @@ import (
 
 // Config is a struct to hold the config parameters provided on startup
 type Config struct {
-	Port    int16
+	Port    uint16
 	Tickets string
 	Users   string
 	Mails   string

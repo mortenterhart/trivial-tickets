@@ -108,16 +108,49 @@ func TestWriteReadUserFile(t *testing.T) {
 	assert.NotNil(t, errReadUserFile2, "No error was returned")
 }
 
+func TestReadUserFileInvalidJson(t *testing.T) {
+	const userDirectory = "../../files/testusers"
+	const userFile = userDirectory + "/users.json"
+
+	createErr := CreateFolders(userDirectory)
+	t.Run("createFoldersError", func(t *testing.T) {
+		assert.NoError(t, createErr, "creating testusers directory should not error")
+	})
+
+	writeErr := ioutil.WriteFile(userFile, []byte("{"), 0644)
+	t.Run("writeUserFileError", func(t *testing.T) {
+		assert.NoError(t, writeErr, "writing invalid user json file should not error")
+	})
+
+	users := make(map[string]structs.User)
+	readErr := ReadUserFile(userFile, &users)
+
+	t.Run("readError", func(t *testing.T) {
+		assert.Error(t, readErr, "reading users.json with invalid json should be an error")
+	})
+
+	t.Run("emptyUsersMap", func(t *testing.T) {
+		assert.Equal(t, 0, len(users), "users map should be empty due to read error")
+	})
+
+	removeErr := os.RemoveAll(userDirectory)
+	t.Run("removeError", func(t *testing.T) {
+		assert.NoError(t, removeErr, "removing users directory should not error")
+	})
+}
+
 func TestWriteTicketFile(t *testing.T) {
 
 	// Path to ticket files
-	const usersFile = "testFiles/testTickets"
+	const ticketFile = "testFiles/testTickets"
 
 	ticket := mockTicket()
 
-	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
+	errWriteTicketFile := WriteTicketFile(ticketFile, &ticket)
 
-	os.RemoveAll("testFiles/")
+	errRemove := os.RemoveAll("testFiles/")
+
+	assert.Nil(t, errRemove, "Unexpected error while removing ticket directory")
 
 	assert.Nil(t, errWriteTicketFile, "Error creating the File")
 }
@@ -126,11 +159,11 @@ func TestWriteTicketFile(t *testing.T) {
 func TestWriteTicketFileError(t *testing.T) {
 
 	// Invalid Path
-	const usersFile = ""
+	const ticketFile = ""
 
 	ticket := mockTicket()
 
-	errWriteTicketFile := WriteTicketFile(usersFile, &ticket)
+	errWriteTicketFile := WriteTicketFile(ticketFile, &ticket)
 
 	assert.NotNil(t, errWriteTicketFile, "Error creating the File")
 }
@@ -143,14 +176,19 @@ func TestCreateFolder(t *testing.T) {
 	// Create the given folders
 	errCreateFolder := CreateFolders(ticketsFolder)
 
-	// Remove them
-	os.RemoveAll("testFolder/")
-
 	// Check that there was no error
 	assert.Nil(t, errCreateFolder, "Error creating the folder(s)")
+
+	// Check that the created directory exists
+	assert.DirExists(t, ticketsFolder, "ticketsFolder/tests should exist now")
+
+	// Remove them
+	errRemove := os.RemoveAll("testFolder/")
+
+	assert.Nil(t, errRemove, "Unexpected error while removing test directory")
 }
 
-// TestReadTicketFiles checks if the ticket files a read correctly and if errors are returned when expected
+// TestReadTicketFiles checks if the ticket files are read correctly and if errors are returned when expected
 func TestReadTicketFiles(t *testing.T) {
 
 	var tickets = make(map[string]structs.Ticket)
@@ -161,27 +199,32 @@ func TestReadTicketFiles(t *testing.T) {
 
 	// Create folder for temporary test tickets
 	const testTicketPath = "../../files/testtickets"
-	CreateFolders(testTicketPath)
+	errCreate := CreateFolders(testTicketPath)
+	assert.NoError(t, errCreate, "Unexpected error while creating folders")
 
 	// Write invalid JSON into file with .json extension
 	const invalidJsonFile = testTicketPath + "/invalid.json"
-	ioutil.WriteFile(invalidJsonFile, []byte("{"), 0644)
+	errWrite := ioutil.WriteFile(invalidJsonFile, []byte("{"), 0644)
+	assert.NoError(t, errWrite, "Unexpected error while writing ticket file")
 
 	// Read invalid json file from test directory
 	errReadTicketFiles2 := ReadTicketFiles(testTicketPath, &tickets)
-	assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket files do not exist")
+	assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket file contains invalid json")
 
 	// Remove invalid json file for next tests
-	os.Remove(invalidJsonFile)
+	errRemove := os.Remove(invalidJsonFile)
+	assert.NoError(t, errRemove, "Unexpected error while removing ticket file")
 
 	ticket := mockTicket()
-	WriteTicketFile(testTicketPath, &ticket)
+	errWrite = WriteTicketFile(testTicketPath, &ticket)
+	assert.NoError(t, errWrite, "Unexpected error while writing ticket file")
 
 	// Correct path to ticket files
 	errReadTicketFiles3 := ReadTicketFiles(testTicketPath, &tickets)
 	assert.Nil(t, errReadTicketFiles3, "An error was returned, although the path is correct")
 
-	os.RemoveAll(testTicketPath + "/")
+	errRemove = os.RemoveAll(testTicketPath + "/")
+	assert.NoError(t, errRemove, "Unexpected error while removing test directory")
 }
 
 // mockTicket is a helper function to create a dummy ticket for the tests
@@ -311,7 +354,62 @@ func TestWriteReadMailFile(t *testing.T) {
 		})
 	})
 
-	os.RemoveAll(mailDirectory)
+	errRemove := os.RemoveAll(mailDirectory)
+	assert.NoError(t, errRemove, "error while removing mail directory")
+}
+
+func TestWriteMailFileInvalidDirectory(t *testing.T) {
+	const mailDirectory = ""
+
+	testMail := mockMail()
+
+	writeErr := WriteMailFile(mailDirectory, &testMail)
+
+	assert.Error(t, writeErr, "writing a mail in an empty directory name should return an error")
+}
+
+func TestReadMailFilesInvalidDirectory(t *testing.T) {
+	// Try to read mails from not existing directory
+	const notExistingMailDirectory = "../../files/testmails"
+
+	mails := make(map[string]structs.Mail)
+
+	readErr := ReadMailFiles(notExistingMailDirectory, &mails)
+
+	t.Run("readError", func(t *testing.T) {
+		assert.Error(t, readErr, "reading from not existent directory should be an error")
+	})
+
+	t.Run("emptyMailMap", func(t *testing.T) {
+		assert.Equal(t, 0, len(mails), "mail map should not contain any entries")
+	})
+}
+
+func TestReadMailFilesInvalidJson(t *testing.T) {
+	const mailDirectory = "../../files/testmails"
+
+	createErr := CreateFolders(mailDirectory)
+	t.Run("noCreateError", func(t *testing.T) {
+		assert.NoError(t, createErr, "creating mail directory should not return an error")
+	})
+
+	const invalidJsonFile = mailDirectory + "/invalid.json"
+	writeErr := ioutil.WriteFile(invalidJsonFile, []byte("{"), 0644)
+	t.Run("noWriteError", func(t *testing.T) {
+		assert.NoError(t, writeErr, "writing json file should not be an error")
+	})
+
+	mails := make(map[string]structs.Mail)
+
+	readErr := ReadMailFiles(mailDirectory, &mails)
+	t.Run("readError", func(t *testing.T) {
+		assert.Error(t, readErr, "reading invalid.json with invalid json content should be a decoding error")
+	})
+
+	removeErr := os.RemoveAll(mailDirectory)
+	t.Run("noRemoveError", func(t *testing.T) {
+		assert.NoError(t, removeErr, "removing existing mail directory should not be an error")
+	})
 }
 
 func TestRemoveMailFile(t *testing.T) {
@@ -320,11 +418,17 @@ func TestRemoveMailFile(t *testing.T) {
 	t.Run("existingMail", func(t *testing.T) {
 		// Create test ticket to be removed
 		testMail := mockMail()
-		WriteMailFile(mailDirectory, &testMail)
+		errWrite := WriteMailFile(mailDirectory, &testMail)
+
+		t.Run("noWriteError", func(t *testing.T) {
+			assert.NoError(t, errWrite, "writing mail file should not return an error")
+		})
 
 		removeErr := RemoveMailFile(mailDirectory, testMail.Id)
 
-		assert.NoError(t, removeErr, "removing mail file should not return error since the file exists")
+		t.Run("noRemoveError", func(t *testing.T) {
+			assert.NoError(t, removeErr, "removing mail file should not return error since the file exists")
+		})
 	})
 
 	t.Run("notExistingMail", func(t *testing.T) {
@@ -335,7 +439,8 @@ func TestRemoveMailFile(t *testing.T) {
 		assert.Error(t, removeErr, "remove error should be non-nil because mail file does not exist")
 	})
 
-	os.RemoveAll(mailDirectory)
+	removeErr := os.RemoveAll(mailDirectory)
+	assert.NoError(t, removeErr, "removing mail directory should not return an error because the directory exists")
 }
 
 func TestWrapAndLogError(t *testing.T) {

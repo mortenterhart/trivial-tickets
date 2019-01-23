@@ -40,16 +40,14 @@ func ReadUserFile(src string, users *map[string]structs.User) error {
 	fileContent, errReadFile := ioutil.ReadFile(src)
 
 	if errReadFile != nil {
-		logger.Error(errReadFile)
-		return errReadFile
+		return wrapAndLogError(errReadFile, "unable to read users file")
 	}
 
-	// Unmarshal into users hashmap
+	// Unmarshal into users hash map
 	errUnmarshal := json.Unmarshal(fileContent, users)
 
 	if errUnmarshal != nil {
-		logger.Error(errUnmarshal)
-		return errUnmarshal
+		return wrapAndLogErrorf(errUnmarshal, "unable to decode JSON in users file '%s'", src)
 	}
 
 	return nil
@@ -60,7 +58,7 @@ func ReadUserFile(src string, users *map[string]structs.User) error {
 func WriteUserFile(dest string, users *map[string]structs.User) error {
 
 	// Create json from the hash map
-	usersMarshal, _ := json.MarshalIndent(users, "", "   ")
+	usersMarshal, _ := json.MarshalIndent(users, "", "    ")
 
 	// Write json to file
 	return ioutil.WriteFile(dest, usersMarshal, 0644)
@@ -81,11 +79,10 @@ func WriteTicketFile(path string, ticket *structs.Ticket) error {
 	}
 
 	// Encode the struct with json
-	marshalTicket, errMarshalTicket := json.MarshalIndent(ticket, "", "   ")
+	marshalTicket, errMarshalTicket := json.MarshalIndent(ticket, "", "    ")
 
 	if errMarshalTicket != nil {
-		logger.Error(errMarshalTicket)
-		return errMarshalTicket
+		return wrapAndLogError(errMarshalTicket, "could not encode ticket to JSON")
 	}
 
 	// Create the final output path
@@ -147,7 +144,7 @@ func WriteMailFile(directory string, mail *structs.Mail) error {
 	}
 
 	// Encode the mail into JSON
-	marshaledMail, marshalErr := json.MarshalIndent(mail, "", "   ")
+	marshaledMail, marshalErr := json.MarshalIndent(mail, "", "    ")
 	if marshalErr != nil {
 		return wrapAndLogError(marshalErr, "could not convert mail to JSON")
 	}

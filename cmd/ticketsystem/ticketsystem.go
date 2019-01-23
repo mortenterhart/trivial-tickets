@@ -27,6 +27,24 @@ import (
  * Main package of the ticketsystem webserver
  */
 
+var (
+	// Command-line options
+
+	// Server configuration
+	port           = flag.Int("port", 8443, "`port` on which the web server will run")
+	tickets        = flag.String("tickets", "../../files/tickets", "`directory` in which the tickets will be stored")
+	users          = flag.String("users", "../../files/users/users.json", "`directory` where the users file is stored")
+	mails          = flag.String("mails", "../../files/mails", "`directory` in which the mails will be cached")
+	cert           = flag.String("cert", "../../ssl/server.cert", "location of the ssl certificate `file`")
+	key            = flag.String("key", "../../ssl/server.key", "location of the ssl key `file`")
+	web            = flag.String("web", "../../www", "location of the www `directory`")
+
+	// Logging configuration
+	verbose        = flag.Bool("verbose", false, "Enable output of verbose log (package paths, file names and line numbers)")
+	fullPaths      = flag.Bool("full-paths", false, "Log package names and filenames with full paths instead of abbreviated ones")
+	logLevelString = flag.String("loglevel", "info", "Specify `level` of logging (either \"info\", \"warning\", \"error\" or \"fatal\")")
+)
+
 func main() {
 
 	config, errConfig := initConfig()
@@ -49,20 +67,7 @@ func main() {
 // populates a struct for the config parameters.
 // It returns this struct
 func initConfig() (structs.Config, error) {
-
 	globals.LogConfig = &structs.LogConfig{}
-
-	// Get the command line arguments
-	port := flag.Int("port", 8443, "`port` on which the web server will run")
-	tickets := flag.String("tickets", "../../files/tickets", "`directory` in which the tickets will be stored")
-	users := flag.String("users", "../../files/users/users.json", "`directory` where the users file is stored")
-	mails := flag.String("mails", "../../files/mails", "`directory` in which the mails will be cached")
-	cert := flag.String("cert", "../../ssl/server.cert", "location of the ssl certificate `file`")
-	key := flag.String("key", "../../ssl/server.key", "location of the ssl key `file`")
-	web := flag.String("web", "../../www", "location of the www `directory`")
-	verbose := flag.Bool("verbose", false, "Enable output of verbose log (package paths, file names and line numbers)")
-	fullPaths := flag.Bool("full-paths", false, "Log package names and filenames with full paths instead of abbreviated ones")
-	logLevelString := flag.String("loglevel", "info", "Specify `level` of logging (either \"info\", \"warning\", \"error\" or \"fatal\")")
 
 	// Set another usage message function
 	flag.Usage = usageMessage
@@ -89,7 +94,7 @@ func initConfig() (structs.Config, error) {
 
 	// Populate and return the struct
 	return structs.Config{
-		Port:    int16(*port),
+		Port:    uint16(*port),
 		Tickets: *tickets,
 		Users:   *users,
 		Mails:   *mails,
@@ -104,7 +109,7 @@ func initConfig() (structs.Config, error) {
 // otherwise. Since the port numbers only go up to a 16
 // bit integer
 func isPortInBoundaries(port int) bool {
-	return port > 0 && port <= math.MaxInt16
+	return port > 0 && port <= math.MaxUint16
 }
 
 func usageMessage() {
