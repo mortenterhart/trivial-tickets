@@ -12,7 +12,7 @@ To build the ticket system, you can run the following command from the
 repository's root folder:
 
 ```bash
-go build "./cmd/ticketsystem"
+go build ./cmd/ticketsystem
 ```
 
 Make sure to build the executable from the mentioned directory so that

@@ -152,9 +152,9 @@ who can delete the mails then safely.
 
 ### Further Information
 
-Consult the :closed_book: [User Manual](Ticketsystem_User_Manual_DE.pdf) for
-more information (currently only available in German) or alternatively checkout
-our :book: [Wiki Pages][wiki-home].
+Consult the :closed_book: [User Manual][user-manual-de] for more information
+(currently only available in German) or alternatively checkout our :book:
+[Wiki Pages][wiki-home].
 
 ## Homepage Preview
 
@@ -186,7 +186,9 @@ go get -u -v github.com/mortenterhart/trivial-tickets
 ```
 
 This command requires [git][git] to be installed. It downloads and installs
-all project and test dependencies.
+all project dependencies to your setup Go workspace. For more information
+on how to set the `GOPATH` environment variable accordingly visit [Setting
+GOPATH][go-setting-gopath] from the Go Wiki.
 
 The ticket system is now installed under
 `$GOPATH/src/github.com/mortenterhart/trivial-tickets`.
@@ -277,11 +279,10 @@ alternatively checkout this :book: [Wiki Page][wiki-cleaning-tickets].
 
 ## Configuration
 
-The ticket system main executable
-[`ticketsystem.go`](cmd/ticketsystem/ticketsystem.go) offers the following
-configuration flags. They can be used to alter the default configuration of the
-server and the logger. No option is required since every option has a meaningful
-default value.
+The ticket system main executable [`ticketsystem.go`][github-cmd-ticketsystem]
+offers the following configuration flags. They can be used to alter the default
+configuration of the server and the logger. No option is required since every
+option has a meaningful default value.
 
 The usage of the executable looks like following:
 
@@ -423,7 +424,7 @@ system.
 The command-line tool can be built in the same way than the server by executing
 
 ```bash
-go build ./cmd/commandLineTool
+go build ./cmd/command_line_tool
 ```
 
 from the project's root directory. A better option is to use the attached start
@@ -442,7 +443,7 @@ list of available options.
 The command-line tool can be run in the following way:
 
 ```bash
-./commandLineTool [options]
+./command_line_tool [options]
 ```
 
 If the command-line tool is started without options, the user is guided by an
@@ -749,7 +750,7 @@ API and tells which constraints a client has to take account of when
 communicating with the server.
 
 Read the manual here: :closed_book:
-[Ticketsystem User Manual DE](Ticketsystem_User_Manual_DE.pdf) (German)
+[Ticketsystem User Manual DE][user-manual-de] (German)
 
 ## Mail API
 
@@ -795,6 +796,7 @@ this program. If not, see <http://www.gnu.org/licenses>.
 ## External Links
 
 * [GitHub Releases][github-releases] on github.com
+* [Wiki Pages][wiki-home] on mortenterhart.github.io
 * [Travis Build Status][travis] on travis-ci.com
 * [Code Coverage][codecov] on codecov.io
 * [Project Documentation][godoc] on godoc.org
@@ -805,26 +807,29 @@ this program. If not, see <http://www.gnu.org/licenses>.
 <!-- Labels for external links -->
 [codecov]: https://codecov.io/gh/mortenterhart/trivial-tickets "Codecov Dashboard"
 [git]: https://git-scm.com "Git Homepage"
+[github-cmd-ticketsystem]: https://github.com/mortenterhart/trivial-tickets/blob/master/cmd/ticketsystem/ticketsystem.go "View file ticketsystem.go"
 [github-contributors]: https://github.com/mortenterhart/trivial-tickets/graphs/contributors "See all Contributors"
 [github-fork]: https://github.com/mortenterhart/trivial-tickets/fork "Fork this Repository"
 [github-releases]: https://github.com/mortenterhart/trivial-tickets/releases "GitHub Releases"
 [github-stargazers]: https://github.com/mortenterhart/trivial-tickets/stargazers "GitHub Stars"
+[go-setting-gopath]: https://github.com/golang/go/wiki/SettingGOPATH "Setting the GOPATH environment variable properly"
 [godoc]: https://godoc.org/github.com/mortenterhart/trivial-tickets "Project Documentation"
 [license-gpl3]: https://www.gnu.org/licenses/gpl-3.0 "License GNU GPLv3"
 [revive]: https://revive.run "Revive Homepage"
 [sourcegraph]: https://sourcegraph.com/github.com/mortenterhart/trivial-tickets "Sourcegraph Code Browser"
 [travis]: https://travis-ci.com/mortenterhart/trivial-tickets "Travis Build Status"
+[user-manual-de]: https://mortenterhart.github.io/trivial-tickets/docs/Ticketsystem_User_Manual_DE.pdf "Ticketsystem User Manual (German)"
 
 <!-- Labels for Wiki links -->
-[wiki-cleaning-tickets]: https://github.com/mortenterhart/trivial-tickets/wiki/Cleaning-untracked-Tickets-and-Mails
+[wiki-cleaning-tickets]: https://mortenterhart.github.io/trivial-tickets/wiki/Cleaning-untracked-Tickets-and-Mails
   "Cleaning untracked Tickets and Mails"
-[wiki-cli-usage]: https://github.com/mortenterhart/trivial-tickets/wiki/CLI-Usage "CLI Usage"
-[wiki-coverage-report]: https://github.com/mortenterhart/trivial-tickets/wiki/Generating-a-Coverage-Report
+[wiki-cli-usage]: https://mortenterhart.github.io/trivial-tickets/wiki/CLI-Usage "CLI Usage"
+[wiki-coverage-report]: https://mortenterhart.github.io/trivial-tickets/wiki/Generating-a-Coverage-Report
   "Generating a Coverage Report"
-[wiki-faq]: https://github.com/mortenterhart/trivial-tickets/wiki/FAQ "Frequently Asked Questions"
-[wiki-home]: https://github.com/mortenterhart/trivial-tickets/wiki "Wiki Home"
-[wiki-license]: https://github.com/mortenterhart/trivial-tickets/wiki/License "License Page"
-[wiki-mail-api-reference]: https://github.com/mortenterhart/trivial-tickets/wiki/Mail-API-Reference
+[wiki-faq]: https://mortenterhart.github.io/trivial-tickets/wiki/FAQ "Frequently Asked Questions"
+[wiki-home]: https://mortenterhart.github.io/trivial-tickets/wiki "Wiki Home"
+[wiki-license]: https://mortenterhart.github.io/trivial-tickets/wiki/License "License Page"
+[wiki-mail-api-reference]: https://mortenterhart.github.io/trivial-tickets/wiki/Mail-API-Reference
   "Mail API Reference"
-[wiki-requirements]: https://github.com/mortenterhart/trivial-tickets/wiki/Requirements "Requirements"
-[wiki-server-usage]: https://github.com/mortenterhart/trivial-tickets/wiki/Server-Usage "Server Usage"
+[wiki-requirements]: https://mortenterhart.github.io/trivial-tickets/wiki/Requirements "Requirements"
+[wiki-server-usage]: https://mortenterhart.github.io/trivial-tickets/wiki/Server-Usage "Server Usage"
