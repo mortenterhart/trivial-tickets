@@ -5,14 +5,15 @@ package filehandler
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/logger"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 
-	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/pkg/errors"
+
+	"github.com/mortenterhart/trivial-tickets/logger"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -209,7 +210,7 @@ func RemoveMailFile(directory string, mailId string) error {
 	mailPath := path.Join(directory, mailId) + ".json"
 	if removeErr := os.Remove(mailPath); removeErr != nil {
 		returnErr := fmt.Errorf("could not delete mail file with id '%s'", mailId)
-		logger.Error("%v: %v", returnErr, removeErr)
+		logger.Errorf("%v: %v", returnErr, removeErr)
 		return returnErr
 	}
 

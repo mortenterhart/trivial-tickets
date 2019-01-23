@@ -4,21 +4,22 @@ package api_in
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/logger"
 	"io/ioutil"
 	"net/http"
 	"reflect"
 	"regexp"
 	"strconv"
 
+	"github.com/pkg/errors"
+
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/mail_events"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 	"github.com/mortenterhart/trivial-tickets/util/httptools"
-	"github.com/pkg/errors"
 )
 
 /*
@@ -141,7 +142,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 
 				// Update the ticket with a new comment consisting of the
 				// email address and message from the mail
-				logger.Infof(`Attaching new answer from '%s' to ticket '%s' (subject "%s")`+"\n",
+				logger.Infof(`Attaching new answer from '%s' to ticket '%s' (subject "%s")`,
 					mail.From, existingTicket.Id, existingTicket.Subject)
 				createdTicket = ticket.UpdateTicket(convertStatusToString(existingTicket.Status),
 					mail.From, mail.Message, "extern", existingTicket)
@@ -153,7 +154,7 @@ func ReceiveMail(writer http.ResponseWriter, request *http.Request) {
 				// The subject is formatted like an answering mail, but the
 				// ticket id does not exist
 				logger.Warnf("Ticket id '%s' does not belong to an existing ticket, creating "+
-					"new ticket out of mail\n", ticketId)
+					"new ticket out of mail", ticketId)
 			}
 		}
 

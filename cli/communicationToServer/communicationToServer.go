@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/structs"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -42,12 +43,12 @@ var get = makeGetRequest
 func FetchEmails() (mails map[string]structs.Mail, err error) {
 	response, err := get("api/fetchMails")
 	if err != nil {
-		err = fmt.Errorf("error occured while making the get request: %v", err)
+		err = fmt.Errorf("error occurred while making the get request: %v", err)
 		return
 	}
 	err = json.Unmarshal([]byte(response), &mails)
 	if err != nil {
-		err = fmt.Errorf("error occured while unmarshaling the JSON: %v", err)
+		err = fmt.Errorf("error occurred while unmarshaling the JSON: %v", err)
 		return
 	}
 	return
@@ -82,7 +83,7 @@ func makeGetRequest(path string) (response string, err error) {
 	}
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		err = fmt.Errorf("error occured while reading httpGet response: %v", err)
+		err = fmt.Errorf("error occurred while reading httpGet response: %v", err)
 		return
 	}
 	if resp.Status[0] != '2' {

@@ -6,11 +6,11 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
@@ -123,7 +123,7 @@ func GetSessionId(r *http.Request) string {
 	userCookie, errUserCookie := r.Cookie("session")
 
 	if errUserCookie != nil {
-		log.Print(errUserCookie)
+		logger.Error(errUserCookie)
 		return errUserCookie.Error()
 	}
 

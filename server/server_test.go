@@ -2,16 +2,18 @@
 package server
 
 import (
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/mortenterhart/trivial-tickets/util/filehandler"
-	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"syscall"
 	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 )
 
 /*
@@ -32,11 +34,11 @@ import (
 // with the given standard values
 func TestGetTemplates(t *testing.T) {
 
-	tmpl := GetTemplates("../www")
-	tmplNil := GetTemplates("/www")
+	tmpl := getTemplates("../www")
+	tmplNil := getTemplates("/www")
 
-	assert.NotNil(t, tmpl, "GetTemplates() returned no found templates")
-	assert.Nil(t, tmplNil, "GetTemplates() found templates where it was not supposed to be")
+	assert.NotNil(t, tmpl, "getTemplates() returned no found templates")
+	assert.Nil(t, tmplNil, "getTemplates() found templates where it was not supposed to be")
 }
 
 // TestRedirectToTLS tests the redirect to https, if a request with only http is made

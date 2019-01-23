@@ -11,13 +11,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mortenterhart/trivial-tickets/api/api_in"
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
-	"github.com/pkg/errors"
 )
 
 /*
@@ -74,7 +75,7 @@ func StartServer(config *structs.Config) (int, error) {
 
 	// Read the HTML templates
 	logger.Info("Loading HTML templates in", config.Web)
-	if tmpl = GetTemplates(config.Web); tmpl == nil {
+	if tmpl = getTemplates(config.Web); tmpl == nil {
 		return 1, errors.New("unable to load HTML templates")
 	}
 
@@ -97,7 +98,8 @@ func StartServer(config *structs.Config) (int, error) {
 	startError := make(chan error)
 
 	server := http.Server{
-		Addr: fmt.Sprintf("%s%d", ":", config.Port),
+		Addr:     fmt.Sprintf("%s%d", ":", config.Port),
+		ErrorLog: logger.NewErrorLogger(),
 	}
 
 	go func() {
@@ -169,9 +171,9 @@ func shutdownGracefully(server *http.Server, timeout time.Duration) error {
 	return nil
 }
 
-// GetTemplates crawls through the templates folder and reads in all
+// getTemplates crawls through the templates folder and reads in all
 // present templates.
-func GetTemplates(path string) *template.Template {
+func getTemplates(path string) *template.Template {
 
 	// Crawl via relative path, since our current work dir is in cmd/ticketsystem
 	t, errTemplates := template.ParseGlob(path + "/templates/*.html")

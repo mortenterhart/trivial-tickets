@@ -4,12 +4,14 @@ package communicationToServer
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -112,9 +114,9 @@ func TestRequests(t *testing.T) {
 			responseCode = 500
 			response, getRequestError := makeGetRequest("")
 
-			errorOccured := getRequestError != nil
-			assert.True(t, errorOccured)
-			if errorOccured {
+			errorOccurred := getRequestError != nil
+			assert.True(t, errorOccurred)
+			if errorOccurred {
 				assert.Contains(t, getRequestError.Error(), "received error status code:")
 			}
 			assert.Equal(t, "", response)
@@ -125,9 +127,9 @@ func TestRequests(t *testing.T) {
 			SetServerConfig(conf)
 			response, getRequestError := makeGetRequest("")
 
-			errorOccured := getRequestError != nil
-			assert.True(t, errorOccured)
-			if errorOccured {
+			errorOccurred := getRequestError != nil
+			assert.True(t, errorOccurred)
+			if errorOccurred {
 				assert.Contains(t, getRequestError.Error(), "error sending get request:")
 			}
 			assert.Equal(t, "", response)
@@ -168,9 +170,9 @@ func TestRequests(t *testing.T) {
 			responseCode = 404
 			response, sendError := makePostRequest("", "")
 
-			errorOccured := sendError != nil
-			assert.True(t, errorOccured)
-			if errorOccured {
+			errorOccurred := sendError != nil
+			assert.True(t, errorOccurred)
+			if errorOccurred {
 				assert.Contains(t, sendError.Error(), "error with https request. Status code:")
 			}
 			assert.Equal(t, "", response)

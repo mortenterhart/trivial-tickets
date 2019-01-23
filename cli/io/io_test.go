@@ -3,11 +3,13 @@ package io
 
 import (
 	"errors"
-	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"strconv"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*

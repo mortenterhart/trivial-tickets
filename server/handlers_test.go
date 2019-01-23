@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
 )
 
 /*
@@ -59,7 +60,7 @@ func (h *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestHandleIndex(t *testing.T) {
 
-	tmpl = GetTemplates("../www")
+	tmpl = getTemplates("../www")
 
 	handler := &indexHandler{}
 
@@ -215,7 +216,7 @@ func (h *ticketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func TestHandleHandleTicket(t *testing.T) {
 
-	tmpl = GetTemplates("../www")
+	tmpl = getTemplates("../www")
 
 	handler := &ticketHandler{}
 	server := httptest.NewServer(handler)
@@ -235,7 +236,7 @@ func TestHandleHandleTicket(t *testing.T) {
 
 func TestHandleHandleTicketWithMergeTo(t *testing.T) {
 
-	tmpl = GetTemplates("../www")
+	tmpl = getTemplates("../www")
 
 	handler := &ticketHandler{}
 	server := httptest.NewServer(handler)
@@ -281,7 +282,7 @@ func TestHandleHandleUpdateTicketWrongMethod(t *testing.T) {
 
 func TestHandleHandleUpdateTicketMerge(t *testing.T) {
 
-	tmpl = GetTemplates("../www")
+	tmpl = getTemplates("../www")
 
 	config := mockConfig()
 	config.Tickets = "../files/testtickets"
@@ -304,7 +305,7 @@ func TestHandleHandleUpdateTicketMerge(t *testing.T) {
 
 func TestHandleHandleUpdateTicketExtern(t *testing.T) {
 
-	tmpl = GetTemplates("../www")
+	tmpl = getTemplates("../www")
 
 	config := mockConfig()
 	config.Tickets = "../files/testtickets"
@@ -354,7 +355,7 @@ func TestHandleHandleUnassignTicket(t *testing.T) {
 
 	resp, err := http.Get(server.URL + "/unassignTicket?id=abc123")
 
-	assert.Nil(t, err, "An unexpected error occured")
+	assert.Nil(t, err, "An unexpected error occurred")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http status is not 200")
 
 	cleanupTestFiles()
@@ -409,7 +410,7 @@ func TestHandleHandleAssignTicket(t *testing.T) {
 
 	resp, err := http.Get(server.URL + "/assignTicket?id=abc123&user=testuser")
 
-	assert.Nil(t, err, "An unexpected error occured")
+	assert.Nil(t, err, "An unexpected error occurred")
 	assert.Equal(t, http.StatusOK, resp.StatusCode, "The http status is not 200")
 
 	cleanupTestFiles()

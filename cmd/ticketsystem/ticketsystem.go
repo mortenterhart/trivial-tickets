@@ -4,10 +4,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/globals"
 	"math"
 	"os"
 
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/server"
 	"github.com/mortenterhart/trivial-tickets/structs"

@@ -4,11 +4,12 @@ package mail_events
 import (
 	"bytes"
 	"fmt"
+	"html/template"
+	"net/url"
+
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/structs"
-	"html/template"
-	"net/url"
 )
 
 /*

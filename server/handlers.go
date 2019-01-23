@@ -2,14 +2,13 @@
 package server
 
 import (
-	"github.com/mortenterhart/trivial-tickets/logger"
 	"html/template"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/mortenterhart/trivial-tickets/api/api_out"
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/mail_events"
 	"github.com/mortenterhart/trivial-tickets/session"
 	"github.com/mortenterhart/trivial-tickets/structs"
@@ -38,7 +37,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 	session, errCheckForSession := session.CheckForSession(w, r)
 
 	if errCheckForSession != nil {
-		log.Print("Unable to create session")
+		logger.Error("Unable to create session")
 	}
 
 	tmpl.Lookup("index.html").ExecuteTemplate(w, "index", structs.Data{Session: session, Tickets: globals.Tickets, Users: users})

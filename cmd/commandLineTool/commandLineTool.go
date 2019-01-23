@@ -4,13 +4,14 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"math"
+	"os"
+
 	"github.com/mortenterhart/trivial-tickets/cli/communicationToServer"
 	"github.com/mortenterhart/trivial-tickets/cli/io"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/cliUtils"
-	"log"
-	"math"
-	"os"
 )
 
 /*

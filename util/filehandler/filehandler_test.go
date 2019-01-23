@@ -3,17 +3,18 @@
 package filehandler
 
 import (
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/hashing"
 	"github.com/mortenterhart/trivial-tickets/util/random"
-	"github.com/stretchr/testify/assert"
 )
 
 /*

@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*

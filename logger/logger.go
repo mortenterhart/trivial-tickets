@@ -8,6 +8,8 @@ import (
 	"os"
 	"regexp"
 	"runtime"
+	"strings"
+	"time"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
@@ -15,10 +17,12 @@ import (
 
 var stdout = log.New(os.Stdout, "", log.LstdFlags)
 
+const timeFormat = "2006/01/02 15:04:05"
+
 func Info(v ...interface{}) {
 	if canLog(structs.LevelInfo) {
 		prependLogLevel(&v, structs.LevelInfo)
-		appendFunctionLocation(&v)
+		appendFunctionLocation(&v, 4)
 
 		stdout.Println(v...)
 	}
@@ -33,7 +37,7 @@ func Infof(format string, v ...interface{}) {
 func Warn(v ...interface{}) {
 	if canLog(structs.LevelWarning) {
 		prependLogLevel(&v, structs.LevelWarning)
-		appendFunctionLocation(&v)
+		appendFunctionLocation(&v, 4)
 
 		stdout.Println(v...)
 	}
@@ -48,7 +52,7 @@ func Warnf(format string, v ...interface{}) {
 func Error(v ...interface{}) {
 	if canLog(structs.LevelError) {
 		prependLogLevel(&v, structs.LevelError)
-		appendFunctionLocation(&v)
+		appendFunctionLocation(&v, 4)
 
 		stdout.Println(v...)
 	}
@@ -68,7 +72,7 @@ var fatalf FatalfFunc = stdout.Fatalf
 
 func Fatal(v ...interface{}) {
 	prependLogLevel(&v, structs.LevelFatal)
-	appendFunctionLocation(&v)
+	appendFunctionLocation(&v, 4)
 
 	fatalln(v...)
 }
@@ -82,18 +86,35 @@ func ApiRequest(request *http.Request) {
 		request.RequestURI, request.Method, request.Host, request.ContentLength)
 }
 
+type errorLogWriter struct {
+	output io.Writer
+}
+
+func newErrorLogWriter(output io.Writer) errorLogWriter {
+	return errorLogWriter{output}
+}
+
+func (writer errorLogWriter) Write(message []byte) (n int, err error) {
+	timeStamp := time.Now().Format(timeFormat)
+
+	return fmt.Fprintln(writer.output, timeStamp, structs.LevelError.String(), strings.Trim(string(message), "\n"),
+		getLoggingLocationSuffix(6))
+}
+
+func NewErrorLogger() *log.Logger {
+	return log.New(newErrorLogWriter(os.Stderr), "", 0)
+}
+
 func prependLogLevel(v *[]interface{}, level structs.LogLevel) {
 	*v = append([]interface{}{level.String()}, *v...)
 }
 
-func appendFunctionLocation(v *[]interface{}) {
-	*v = append(*v, getLoggingLocationSuffix())
+func appendFunctionLocation(v *[]interface{}, calldepth int) {
+	*v = append(*v, getLoggingLocationSuffix(calldepth))
 }
 
-var skipFrames = 4
-
-func getLoggingLocationSuffix() string {
-	functionName, file, line := getCallerFunctionName(skipFrames)
+func getLoggingLocationSuffix(calldepth int) string {
+	functionName, file, line := getCallerFunctionName(calldepth)
 
 	if !globals.LogConfig.FullPaths {
 		leadingSlashes := regexp.MustCompile("^.*/")
@@ -109,7 +130,7 @@ func getLoggingLocationSuffix() string {
 }
 
 func buildFormatString(level structs.LogLevel, formatString string) string {
-	return fmt.Sprintln(level.String(), formatString, getLoggingLocationSuffix())
+	return fmt.Sprintln(level.String(), formatString, getLoggingLocationSuffix(4))
 }
 
 func updateLogger(writer io.Writer) {

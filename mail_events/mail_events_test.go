@@ -3,16 +3,17 @@ package mail_events
 
 import (
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/globals"
-	"github.com/mortenterhart/trivial-tickets/util/random"
-	"github.com/stretchr/testify/assert"
 	"html/template"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/ticket"
+	"github.com/mortenterhart/trivial-tickets/util/random"
 )
 
 /*

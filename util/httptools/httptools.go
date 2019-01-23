@@ -3,9 +3,9 @@ package httptools
 
 import (
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/logger"
 	"net/http"
 
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/jsontools"
 )

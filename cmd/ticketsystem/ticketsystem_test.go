@@ -5,12 +5,13 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/mortenterhart/trivial-tickets/structs"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*

@@ -9,9 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
@@ -28,8 +29,6 @@ func initializeLogConfig() {
 func resetLogConfig() {
 	logConfig := testLogConfig()
 	globals.LogConfig = &logConfig
-
-	skipFrames = 4
 }
 
 func testLogConfig() structs.LogConfig {
@@ -324,7 +323,7 @@ func TestFatal(t *testing.T) {
 
 	fatalln = func(v ...interface{}) {
 		prependLogLevel(&v, structs.LevelFatal)
-		appendFunctionLocation(&v)
+		appendFunctionLocation(&v, 4)
 
 		stdout.Println(v...)
 	}
@@ -444,13 +443,11 @@ func TestApiRequest(t *testing.T) {
 func TestGetLoggingLocationSuffix(t *testing.T) {
 	defer resetLogConfig()
 
-	skipFrames = 2
-
 	t.Run("fullPathsFalse", func(t *testing.T) {
 		globals.LogConfig.FullPaths = false
 		globals.LogConfig.VerboseLog = false
 
-		logSuffix := getLoggingLocationSuffix()
+		logSuffix := getLoggingLocationSuffix(2)
 
 		t.Run("suffixNotNil", func(t *testing.T) {
 			assert.NotNil(t, logSuffix, "suffix should not be nil")
@@ -471,7 +468,7 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 		globals.LogConfig.FullPaths = true
 		globals.LogConfig.VerboseLog = false
 
-		logSuffix := getLoggingLocationSuffix()
+		logSuffix := getLoggingLocationSuffix(2)
 
 		t.Run("suffixNotNil", func(t *testing.T) {
 			assert.NotNil(t, logSuffix, "suffix should be not nil")
@@ -492,7 +489,7 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 		globals.LogConfig.FullPaths = true
 		globals.LogConfig.VerboseLog = false
 
-		logSuffix := getLoggingLocationSuffix()
+		logSuffix := getLoggingLocationSuffix(2)
 
 		t.Run("suffixNotNil", func(t *testing.T) {
 			assert.NotNil(t, logSuffix, "suffix should not be nil")
@@ -513,7 +510,7 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 		globals.LogConfig.FullPaths = true
 		globals.LogConfig.VerboseLog = true
 
-		logSuffix := getLoggingLocationSuffix()
+		logSuffix := getLoggingLocationSuffix(2)
 
 		t.Run("suffixNotNil", func(t *testing.T) {
 			assert.NotNil(t, logSuffix, "suffix should not be nil")
@@ -531,5 +528,59 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 			assert.True(t, regexp.MustCompile("\\[.+/logger\\.TestGetLoggingLocationSuffix\\.func[0-9]+ in ([/\\\\]|[A-Z]:).+[/\\\\]logger_test.go:[0-9]+\\]").MatchString(logSuffix),
 				"suffix should contain the full package path")
 		})
+	})
+}
+
+func TestErrorLogWriter(t *testing.T) {
+	t.Run("constructing", func(t *testing.T) {
+		errorWriter := newErrorLogWriter(os.Stderr)
+
+		t.Run("notNil", func(t *testing.T) {
+			assert.NotNil(t, errorWriter, "constructor should return a not-nil instance of errorLogWriter")
+		})
+
+		t.Run("notEmpty", func(t *testing.T) {
+			assert.NotEqual(t, errorLogWriter{}, errorWriter, "errorWriter should not be an empty writer")
+		})
+
+		t.Run("writesToStdout", func(t *testing.T) {
+			assert.Equal(t, os.Stderr, errorWriter.output, "output channel of errorWriter should be stderr")
+		})
+	})
+
+	t.Run("writing", func(t *testing.T) {
+		var buffer bytes.Buffer
+		errorWriter := newErrorLogWriter(&buffer)
+
+		errorMessage := "TLS handshake failed"
+		n, err := errorWriter.Write([]byte(errorMessage))
+
+		t.Run("noError", func(t *testing.T) {
+			assert.NoError(t, err, "writing to stdout should not cause an error")
+		})
+
+		t.Run("equalBufferLength", func(t *testing.T) {
+			assert.Equal(t, buffer.Len(), n, "n should be equal to the buffer length")
+		})
+
+		t.Run("bufferContainsMessage", func(t *testing.T) {
+			assert.Contains(t, buffer.String(), errorMessage, "buffer should contain the written error message alongside with prefix and suffix")
+		})
+	})
+}
+
+func TestNewErrorLogger(t *testing.T) {
+	errorLogger := NewErrorLogger()
+
+	t.Run("notNil", func(t *testing.T) {
+		assert.NotNil(t, errorLogger, "new logger should not be nil")
+	})
+
+	t.Run("noPrefix", func(t *testing.T) {
+		assert.Empty(t, errorLogger.Prefix(), "prefix should be empty")
+	})
+
+	t.Run("noFlags", func(t *testing.T) {
+		assert.Equal(t, 0, errorLogger.Flags(), "logger should not have flags set")
 	})
 }

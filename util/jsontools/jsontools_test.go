@@ -2,8 +2,9 @@
 package jsontools
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mortenterhart/trivial-tickets/structs"
 )

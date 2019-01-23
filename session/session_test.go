@@ -4,10 +4,13 @@ package session
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
-	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
 /*
@@ -23,6 +26,25 @@ import (
  * Package session [tests]
  * Session Management
  */
+
+func TestMain(m *testing.M) {
+	initializeLogConfig()
+
+	os.Exit(m.Run())
+}
+
+func initializeLogConfig() {
+	logConfig := testLogConfig()
+	globals.LogConfig = &logConfig
+}
+
+func testLogConfig() structs.LogConfig {
+	return structs.LogConfig{
+		LogLevel:   structs.LevelInfo,
+		VerboseLog: false,
+		FullPaths:  false,
+	}
+}
 
 // Constant mock session id for testing
 const SESSION_ID = "zSkhrZiqZ1IF6nOJTxpSKFEEOGOgiZ0pn8vKxkW-S40="
