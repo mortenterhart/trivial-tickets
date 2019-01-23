@@ -55,42 +55,26 @@ env:
 # Check the validity of the SSL Certificate
 # and private and public Key files.
 before_install:
-  # Check environment variables and program
-  # versions
-  - echo "GOPATH: ${GOPATH}"
-  - echo "PATH: ${PATH}"
+  - echo "GOPATH = ${GOPATH}"
+  - echo "PATH = ${PATH}"
   - shellcheck --version
   - openssl version
-
-  # Check the information in the SSL Certificate
   - echo "Verifying SSL Certificate (CERT)"
   - openssl x509 -text -noout -in ssl/server.cert
-
-  # Check the Certificate Signing Request (CSR)
   - echo "Verify SSL Certificate Signing Request (CSR)"
   - openssl req -text -noout -verify -in ssl/server.csr
-
-  # Check the SSL Private Key
   - echo "Verifying SSL Private Key (KEY)"
   - openssl rsa -check -noout -in ssl/server.key
-
-  # Check the SSL Public Key
   - echo "Verifiying SSL Public Key (PUB.KEY)"
   - openssl pkey -inform PEM -pubin -in ssl/server.pub.key -text -noout
-
-  # Calculate the Certificate and Private Key moduli
-  # and save them in environment variables
   - export CERT_MODULUS="$(openssl x509 -noout -modulus
-      -in ssl/server.cert | openssl md5)"
+    -in ssl/server.cert | openssl md5)"
   - export KEY_MODULUS="$(openssl rsa -noout -modulus
-      -in ssl/server.key | openssl md5)"
-
-  # Compare the Certificate and Private Key moduli
-  # and verify their equality
+    -in ssl/server.key | openssl md5)"
   - >
-      [ "${CERT_MODULUS}" == "${KEY_MODULUS}" ] &&
-        echo "OK: Certificate and Key Moduli are equal" ||
-        echo "FAIL: Certificate and Key Moduli not matching"
+    [ "${CERT_MODULUS}" == "${KEY_MODULUS}" ] &&
+      echo "OK: Certificate and Key Moduli are equal" ||
+      echo "FAIL: Certificate and Key Moduli not matching"
 
 # Install all project and test dependencies and
 # a code style checker.
@@ -105,25 +89,25 @@ before_script:
   - go vet -all ./...
   - revive -config .revive.toml -formatter stylish ./...
   - shellcheck --format=tty --color=auto -- *.sh ||
-      echo "Detected some code style issues in Shell scripts"
+    echo "Detected some code style issues in Shell scripts"
 
 # Execute the tests with coverage.
+# The following script executes all tests
+# of all packages and creates a coverage
+# report out of the results. The report is
+# written to report.txt. Read more about
+# this script and its options on
+# https://github.com/mortenterhart/trivial-tickets/wiki/Generating-a-Coverage-Report.
 script:
-  # The following script executes all tests
-  # of all packages and creates a coverage
-  # report out of the results. The report is
-  # written to report.txt. Read more about
-  # this script and its options on
-  # https://github.com/mortenterhart/trivial-tickets/wiki/Generating-a-Coverage-Report.
   - ./coverage_report.sh
-      --verbose
-      --race
-      --checks=all
-      --coverage-profile=coverage.txt
-      --coverage-mode=atomic
-      --functions
-      --output-file=report.txt
-      --preserve-profile
+    --verbose
+    --race
+    --checks=all
+    --coverage-profile=coverage.txt
+    --coverage-mode=atomic
+    --functions
+    --output-file=report.txt
+    --preserve-profile
 
 # Output the function coverage report and
 # deploy the coverage profile to Codecov.io.
