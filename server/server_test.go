@@ -2,6 +2,7 @@
 package server
 
 import (
+	"github.com/mortenterhart/trivial-tickets/logger"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -145,11 +146,22 @@ func TestStartServerAllConfigsSet(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	signalErr := syscall.Kill(os.Getpid(), syscall.SIGINT)
+	signalErr := killProcess(syscall.SIGTERM)
 
 	assert.NoError(t, signalErr, "sending interrupt signal should not cause an error")
 
 	<-shutdown
+}
+
+func killProcess(signal syscall.Signal) error {
+	process, err := os.FindProcess(os.Getpid())
+
+	if err != nil {
+		logger.Error("could not find process:", err)
+		return err
+	}
+
+	return process.Signal(signal)
 }
 
 func TestCreateResourceFolders(t *testing.T) {
@@ -219,7 +231,7 @@ func TestNotifyOnInterruptSignal(t *testing.T) {
 		done <- true
 	})
 
-	signalErr := syscall.Kill(os.Getpid(), syscall.SIGINT)
+	signalErr := killProcess(syscall.SIGINT)
 
 	t.Run("signalErrNil", func(t *testing.T) {
 		assert.NoError(t, signalErr, "kill error should be nil")

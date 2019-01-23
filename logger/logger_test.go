@@ -525,7 +525,10 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 
 		t.Run("containsFilename", func(t *testing.T) {
 			assert.Contains(t, logSuffix, "logger_test.go", "suffix should contain filename")
-			assert.True(t, regexp.MustCompile("\\[.+/logger\\.TestGetLoggingLocationSuffix\\.func[0-9]+ in /.+/logger_test.go:[0-9]+\\]").MatchString(logSuffix),
+
+			// Note: The filename in the regex is matched with '/' and '\' in the character
+			// class to be compatible to Unix and Windows systems
+			assert.True(t, regexp.MustCompile("\\[.+/logger\\.TestGetLoggingLocationSuffix\\.func[0-9]+ in [/\\\\].+[/\\\\]logger_test.go:[0-9]+\\]").MatchString(logSuffix),
 				"suffix should contain the full package path")
 		})
 	})
