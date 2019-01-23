@@ -86,7 +86,10 @@ func StartServer(config *structs.Config) (int, error) {
 
 	// Start a GoRoutine to redirect http requests to https
 	logger.Info("Starting Go routine to redirect http requests to https")
-	go http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+	go func() {
+		err := http.ListenAndServe(":80", http.HandlerFunc(redirectToTLS))
+		logger.Error(err)
+	}()
 
 	logger.Info("Server setup completed and starting server")
 
@@ -110,7 +113,7 @@ func StartServer(config *structs.Config) (int, error) {
 	return handleServerShutdown(&server, startError, interrupt)
 }
 
-func notifyOnInterruptSignal() <-chan os.Signal {
+func notifyOnInterruptSignal() chan os.Signal {
 	signalListener := make(chan os.Signal)
 	signal.Notify(signalListener, os.Interrupt, os.Kill, syscall.SIGTERM)
 	return signalListener
@@ -122,22 +125,23 @@ func handleServerShutdown(server *http.Server, startError <-chan error, interrup
 	select {
 	case serverErr := <-startError:
 		if serverErr != http.ErrServerClosed {
-			return 1, errors.Wrap(serverErr, "error while starting server")
+			returnErr := errors.Wrap(serverErr, "error while starting server")
+			logger.Error(returnErr)
+			return 1, returnErr
 		}
 	case capturedSignal := <-interrupt:
 		switch capturedSignal {
 		case os.Interrupt:
-			logger.Infof("Captured terminating signal %s (SIGINT)", capturedSignal)
+			logger.Infof("Captured terminating signal '%s' (SIGINT)", capturedSignal)
 			exitCode = 0
 
 		case os.Kill:
-			logger.Infof("Captured terminating signal %s (SIGKILL), preferred way is SIGINT", capturedSignal)
+			logger.Infof("Captured terminating signal '%s' (SIGKILL), preferred way is SIGINT", capturedSignal)
 			exitCode = 1
 
 		case syscall.SIGTERM:
-			logger.Infof("Captured terminating signal %s (SIGTERM), preferred way is SIGINT", capturedSignal)
+			logger.Infof("Captured terminating signal '%s' (SIGTERM), preferred way is SIGINT", capturedSignal)
 			exitCode = 1
-
 		}
 
 		timeout := 5 * time.Second

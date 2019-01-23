@@ -2,19 +2,16 @@
 package server
 
 import (
-	"github.com/mortenterhart/trivial-tickets/logger"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"syscall"
-	"testing"
-	"time"
-
 	"github.com/mortenterhart/trivial-tickets/globals"
 	"github.com/mortenterhart/trivial-tickets/structs"
 	"github.com/mortenterhart/trivial-tickets/util/filehandler"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"syscall"
+	"testing"
 )
 
 /*
@@ -125,43 +122,53 @@ func TestStartServerNoTicketsPath(t *testing.T) {
 	assert.Equal(t, 1, exitCode, "exit code should be 1 due to expected error")
 }
 
+// TestStartServerAllConfigsSet attempts to start the productive server completely
+// and tests whether the server startup works correctly with all configuration options
+// set properly. The server is directly stopped by a custom start error provoked by
+// an invalid port -10. This is the single solution that is working reliably. It is
+// not possible to get the server instance from the StartServer() function into this
+// test in order to call
+//
+//     server.Shutdown(context)
+//
+// and alternatively the blocking channels in handleServerShutdown() are also local to
+// the function. Here it was also tried to send an interrupt (SIGINT), kill (SIGKILL)
+// or terminating (SIGTERM) signal to the server in order to close it with the interrupt
+// routine, but on the one hand this caused strange blocking of tests or even a kill
+// of the `go test` process. IDE test interfaces were also terminated by the signals.
+// On the other hand signal handling on Windows is not fully supported (e.g sending
+// interrupt signals is unsupported). This caused compile errors because library
+// functions for killing a process were not defined or caused the whole process to
+// finish.
+//
+// Therefore it was proposed to simply provoke a start error which causes the server
+// to reject startup. This can be done by setting the port either to an invalid value
+// such as -10 (always provokes error) or by setting it to a value < 1024 where the
+// permission to bind the port is denied if the user does not have root privileges.
+// Note that the second variant only causes an error if an user other than root is
+// logged in to the system.
 func TestStartServerAllConfigsSet(t *testing.T) {
 
 	config := mockConfig()
+	config.Port = -10
 	shutdown := make(chan bool)
 
 	go func() {
 		exitCode, err := StartServer(&config)
 
-		t.Run("errorNil", func(t *testing.T) {
-			assert.NoError(t, err, "returned error should be nil because the server was shutdown correctly")
+		t.Run("startErrorNotNil", func(t *testing.T) {
+			assert.Error(t, err, "returned error should be not-nil because the server was started with an invalid port")
 		})
 
 		t.Run("exitCode", func(t *testing.T) {
-			assert.Equal(t, 0, exitCode, "exit code should be 0 because the server was shutdown correctly")
+			assert.Equal(t, 1, exitCode, "exit code should be 1 because the server was not able to startup")
 		})
 
 		shutdown <- true
 	}()
 
-	time.Sleep(2 * time.Second)
-
-	signalErr := killProcess(syscall.SIGKILL)
-
-	assert.NoError(t, signalErr, "sending interrupt signal should not cause an error")
-
+	t.Log("Waiting for server shutdown")
 	<-shutdown
-}
-
-func killProcess(signal syscall.Signal) error {
-	process, err := os.FindProcess(os.Getpid())
-
-	if err != nil {
-		logger.Error("could not find process:", err)
-		return err
-	}
-
-	return process.Signal(signal)
 }
 
 func TestCreateResourceFolders(t *testing.T) {
@@ -231,11 +238,7 @@ func TestNotifyOnInterruptSignal(t *testing.T) {
 		done <- true
 	})
 
-	signalErr := killProcess(syscall.SIGKILL)
-
-	t.Run("signalErrNil", func(t *testing.T) {
-		assert.NoError(t, signalErr, "kill error should be nil")
-	})
+	interrupt <- syscall.SIGINT
 
 	t.Log("Waiting for signal tests done")
 	<-done
