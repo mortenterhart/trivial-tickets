@@ -1,3 +1,21 @@
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package logger provides a logging interface to the server
+// supporting different log levels and options.
 package logger
 
 import (
@@ -12,8 +30,25 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/logger/testlogger"
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs/defaults"
 )
+
+/*
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 6694964, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ *
+ * Package logger [tests]
+ * Logging interface to the server supporting different
+ * log levels and options
+ */
 
 func TestMain(m *testing.M) {
 	initializeLogConfig()
@@ -21,52 +56,91 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// initializeLogConfig initializes the logging
+// configuration with test values.
 func initializeLogConfig() {
 	logConfig := testLogConfig()
 	globals.LogConfig = &logConfig
 }
 
+// resetLogConfig resets the logging configuration
+// to the default test values, sets the log
+// destination back to stdout and restores the
+// fatalln function.
 func resetLogConfig() {
 	logConfig := testLogConfig()
 	globals.LogConfig = &logConfig
+
+	updateLogger(os.Stdout)
+	fatalln = stdout.Fatalln
 }
 
+// testLogConfig returns a test logging
+// configuration.
 func testLogConfig() structs.LogConfig {
 	return structs.LogConfig{
-		LogLevel:   structs.LevelInfo,
-		VerboseLog: false,
-		FullPaths:  false,
+		LogLevel:  structs.AsLogLevel(defaults.LogLevelString),
+		Verbose:   defaults.LogVerbose,
+		FullPaths: defaults.LogFullPaths,
 	}
 }
 
+const (
+	// testBufferNotNil denominates the subtest for checking
+	// that the test log buffer is not nil.
+	testBufferNotNil = "bufferNotNil"
+
+	// testBufferNotEmpty denominates the subtest of checking
+	// that the test log buffer is not empty.
+	testBufferNotEmpty = "bufferNotEmpty"
+
+	// testBufferContainsLogLevel denominates the subtest of
+	// checking that the test log buffer contains the mentioned
+	// log level.
+	testBufferContainsLogLevel = "bufferContainsLogLevel"
+
+	// testBufferContainsMessage denominates the subtest of
+	// checking that the test log buffer contains the logged
+	// message.
+	testBufferContainsMessage = "bufferContainsMessage"
+
+	// testLowerLogLevel denominates the subtest of writing
+	// to the test log buffer with a lower log level.
+	testLowerLogLevel = "lowerLogLevel"
+)
+
 func TestInfo(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	var testLogger bytes.Buffer
 	updateLogger(&testLogger)
 
 	message := "Testing the Info function of package logger"
+
 	Info(message)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelInfo.String(), "buffer should contain INFO log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), message, "buffer should contain the message that was written to it")
 	})
 
 	// Write to the logger again with a lower log level and verify that
 	// no messages are written to the logger with this level
-	t.Run("lowerLogLevel", func(t *testing.T) {
+	t.Run(testLowerLogLevel, func(t *testing.T) {
 		globals.LogConfig.LogLevel = structs.LevelWarning
 
 		length := testLogger.Len()
@@ -85,6 +159,9 @@ func TestInfo(t *testing.T) {
 }
 
 func TestInfof(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	var testLogger bytes.Buffer
@@ -96,25 +173,25 @@ func TestInfof(t *testing.T) {
 
 	Infof(format, arguments...)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelInfo.String(), "buffer should contain INFO log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), expectedMessage, "buffer should contain the message that was written to it")
 	})
 
 	// Write to the logger again with a lower log level and verify that
 	// no messages are written to the logger with this level
-	t.Run("lowerLogLevel", func(t *testing.T) {
+	t.Run(testLowerLogLevel, func(t *testing.T) {
 		globals.LogConfig.LogLevel = structs.LevelWarning
 
 		length := testLogger.Len()
@@ -133,33 +210,37 @@ func TestInfof(t *testing.T) {
 }
 
 func TestWarn(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	var testLogger bytes.Buffer
 	updateLogger(&testLogger)
 
 	message := "Testing the Warn function of package logger"
+
 	Warn(message)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelWarning.String(), "buffer should contain WARNING log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), message, "buffer should contain the message that was written to it")
 	})
 
 	// Write to the logger again with a lower log level and verify that
 	// no messages are written to the logger with this level
-	t.Run("lowerLogLevel", func(t *testing.T) {
+	t.Run(testLowerLogLevel, func(t *testing.T) {
 		globals.LogConfig.LogLevel = structs.LevelError
 
 		length := testLogger.Len()
@@ -178,6 +259,9 @@ func TestWarn(t *testing.T) {
 }
 
 func TestWarnf(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	var testLogger bytes.Buffer
@@ -189,25 +273,25 @@ func TestWarnf(t *testing.T) {
 
 	Warnf(format, arguments...)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelWarning.String(), "buffer should contain WARNING log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), expectedMessage, "buffer should contain the message that was written to it")
 	})
 
 	// Write to the logger again with a lower log level and verify that
 	// no messages are written to the logger with this level
-	t.Run("lowerLogLevel", func(t *testing.T) {
+	t.Run(testLowerLogLevel, func(t *testing.T) {
 		globals.LogConfig.LogLevel = structs.LevelError
 
 		length := testLogger.Len()
@@ -226,33 +310,37 @@ func TestWarnf(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	var testLogger bytes.Buffer
 	updateLogger(&testLogger)
 
 	message := "Testing the Error function of package logger"
+
 	Error(message)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelError.String(), "buffer should contain ERROR log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), message, "buffer should contain the message that was written to it")
 	})
 
 	// Write to the logger again with a lower log level and verify that
 	// no messages are written to the logger with this level
-	t.Run("lowerLogLevel", func(t *testing.T) {
+	t.Run(testLowerLogLevel, func(t *testing.T) {
 		globals.LogConfig.LogLevel = structs.LevelFatal
 
 		length := testLogger.Len()
@@ -271,6 +359,9 @@ func TestError(t *testing.T) {
 }
 
 func TestErrorf(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	var testLogger bytes.Buffer
@@ -282,25 +373,25 @@ func TestErrorf(t *testing.T) {
 
 	Errorf(format, arguments...)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelError.String(), "buffer should contain ERROR log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), expectedMessage, "buffer should contain the message that was written to it")
 	})
 
 	// Write to the logger again with a lower log level and verify that
 	// no messages are written to the logger with this level
-	t.Run("lowerLogLevel", func(t *testing.T) {
+	t.Run(testLowerLogLevel, func(t *testing.T) {
 		globals.LogConfig.LogLevel = structs.LevelFatal
 
 		length := testLogger.Len()
@@ -319,43 +410,47 @@ func TestErrorf(t *testing.T) {
 }
 
 func TestFatal(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	fatalln = func(v ...interface{}) {
-		prependLogLevel(&v, structs.LevelFatal)
-		appendFunctionLocation(&v, 4)
-
-		stdout.Println(v...)
+		logln(structs.LevelFatal, v...)
 	}
 
 	var testLogger bytes.Buffer
 	updateLogger(&testLogger)
 
 	message := "Testing the Fatal function of package logger"
+
 	Fatal(message)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelFatal.String(), "buffer should contain FATAL log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), message, "buffer should contain the message that was written to it")
 	})
 }
 
 func TestFatalf(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
-	fatalf = func(format string, v ...interface{}) {
-		stdout.Printf(buildFormatString(structs.LevelFatal, format), v...)
+	fatalln = func(v ...interface{}) {
+		logln(structs.LevelFatal, v...)
 	}
 
 	var testLogger bytes.Buffer
@@ -367,24 +462,27 @@ func TestFatalf(t *testing.T) {
 
 	Fatalf(format, arguments...)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelFatal.String(), "buffer should contain FATAL log level string")
 	})
 
-	t.Run("bufferContainsMessage", func(t *testing.T) {
+	t.Run(testBufferContainsMessage, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), expectedMessage, "buffer should contain the message that was written to it")
 	})
 }
 
 func TestApiRequest(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	var testLogger bytes.Buffer
@@ -395,17 +493,17 @@ func TestApiRequest(t *testing.T) {
 	request := httptest.NewRequest("POST", "/api/receive", strings.NewReader("{}"))
 	request.Host = "localhost:8443"
 
-	ApiRequest(request)
+	APIRequest(request)
 
-	t.Run("bufferNotNil", func(t *testing.T) {
+	t.Run(testBufferNotNil, func(t *testing.T) {
 		assert.NotNil(t, testLogger, "buffer should not be nil")
 	})
 
-	t.Run("bufferNotEmpty", func(t *testing.T) {
+	t.Run(testBufferNotEmpty, func(t *testing.T) {
 		assert.True(t, testLogger.Len() > 0, "buffer should not be empty")
 	})
 
-	t.Run("bufferContainsLogLevel", func(t *testing.T) {
+	t.Run(testBufferContainsLogLevel, func(t *testing.T) {
 		assert.Contains(t, testLogger.String(), structs.LevelInfo.String(), "buffer should contain INFO log level string")
 	})
 
@@ -441,11 +539,14 @@ func TestApiRequest(t *testing.T) {
 }
 
 func TestGetLoggingLocationSuffix(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	defer resetLogConfig()
 
 	t.Run("fullPathsFalse", func(t *testing.T) {
 		globals.LogConfig.FullPaths = false
-		globals.LogConfig.VerboseLog = false
+		globals.LogConfig.Verbose = false
 
 		logSuffix := getLoggingLocationSuffix(2)
 
@@ -466,7 +567,7 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 
 	t.Run("fullPathsTrue", func(t *testing.T) {
 		globals.LogConfig.FullPaths = true
-		globals.LogConfig.VerboseLog = false
+		globals.LogConfig.Verbose = false
 
 		logSuffix := getLoggingLocationSuffix(2)
 
@@ -487,7 +588,7 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 
 	t.Run("verboseLogFalse", func(t *testing.T) {
 		globals.LogConfig.FullPaths = true
-		globals.LogConfig.VerboseLog = false
+		globals.LogConfig.Verbose = false
 
 		logSuffix := getLoggingLocationSuffix(2)
 
@@ -508,7 +609,7 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 
 	t.Run("verboseLogTrue", func(t *testing.T) {
 		globals.LogConfig.FullPaths = true
-		globals.LogConfig.VerboseLog = true
+		globals.LogConfig.Verbose = true
 
 		logSuffix := getLoggingLocationSuffix(2)
 
@@ -532,6 +633,11 @@ func TestGetLoggingLocationSuffix(t *testing.T) {
 }
 
 func TestErrorLogWriter(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
+	defer resetLogConfig()
+
 	t.Run("constructing", func(t *testing.T) {
 		errorWriter := newErrorLogWriter(os.Stderr)
 
@@ -567,9 +673,34 @@ func TestErrorLogWriter(t *testing.T) {
 			assert.Contains(t, buffer.String(), errorMessage, "buffer should contain the written error message alongside with prefix and suffix")
 		})
 	})
+
+	t.Run("writingWithFatalLogLevel", func(t *testing.T) {
+		globals.LogConfig.LogLevel = structs.LevelFatal
+
+		var buffer bytes.Buffer
+		errorWriter := newErrorLogWriter(&buffer)
+
+		errorMessage := "error message"
+		n, err := errorWriter.Write([]byte(errorMessage))
+
+		t.Run("noError", func(t *testing.T) {
+			assert.NoError(t, err, "writing to buffer should not cause an error")
+		})
+
+		t.Run("noBytesWritten", func(t *testing.T) {
+			assert.Equal(t, 0, n, "there should be no bytes written to the buffer")
+		})
+
+		t.Run("emptyBuffer", func(t *testing.T) {
+			assert.Equal(t, 0, buffer.Len(), "the buffer should contain nothing")
+		})
+	})
 }
 
 func TestNewErrorLogger(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	errorLogger := NewErrorLogger()
 
 	t.Run("notNil", func(t *testing.T) {

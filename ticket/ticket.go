@@ -1,4 +1,21 @@
-// Administration of ticket actions
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package ticket contains operations for the administration
+// of ticket actions and updates.
 package ticket
 
 import (
@@ -40,7 +57,7 @@ func CreateTicket(mail, subject, text string) structs.Ticket {
 
 	// Construct the ticket
 	return structs.Ticket{
-		Id:       random.CreateRandomId(10),
+		ID:       random.CreateRandomID(10),
 		Subject:  subject,
 		Status:   structs.OPEN,
 		User:     structs.User{},
@@ -66,7 +83,7 @@ func UpdateTicket(status, mail, reply, replyType string, currentTicket structs.T
 			FormattedDate: time.Now().Format(time.ANSIC),
 			User:          mail,
 			Text:          reply,
-			Reply_Type:    replyType,
+			ReplyType:     replyType,
 		}
 
 		entries := currentTicket.Entries
@@ -94,7 +111,7 @@ func MergeTickets(mergeToTicket, mergeFromTicket structs.Ticket) (structs.Ticket
 		mergeToTicket.Entries = entriesMerged
 
 		// Point to the newly merged ticket
-		mergeFromTicket.MergeTo = mergeToTicket.Id
+		mergeFromTicket.MergeTo = mergeToTicket.ID
 		mergeFromTicket.Status = structs.CLOSED
 		mergeFromTicket.User = structs.User{}
 	}

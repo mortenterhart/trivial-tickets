@@ -1,4 +1,21 @@
-// Administration of ticket actions
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package ticket contains operations for the administration
+// of ticket actions and updates.
 package ticket
 
 import (
@@ -7,6 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/mortenterhart/trivial-tickets/logger/testlogger"
 	"github.com/mortenterhart/trivial-tickets/structs"
 )
 
@@ -25,26 +43,30 @@ import (
  */
 
 func TestCreateTicket(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
-	const MAIL = "test@example.com"
-	const SUBJECT = "PC geht ständig aus"
-	const ENTRY = "Mein PC geht immer aus.\nIch weiß nicht was los ist."
+	const mail = "test@example.com"
+	const subject = "PC is always turning off"
+	const entry = "My computer always turns off.\nI don't know what's the case there"
 
-	ticket := CreateTicket(MAIL, SUBJECT, ENTRY)
+	ticket := CreateTicket(mail, subject, entry)
 
 	assert.NotNil(t, ticket, "No ticket was returned")
-	assert.Equal(t, MAIL, ticket.Customer, "Mail in created ticket did not match")
-	assert.Equal(t, SUBJECT, ticket.Subject, "Subject does not match")
+	assert.Equal(t, mail, ticket.Customer, "Mail in created ticket did not match")
+	assert.Equal(t, subject, ticket.Subject, "Subject does not match")
 }
 
 func TestUpdateTicket(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
-	const STATUS = "2"
-	const TICKET_ID = "abcdef12345"
-	const MAIL = "text@exmaple.com"
-	const REPLY_TYPE = ""
+	const status = "2"
+	const ticketID = "abcdef12345"
+	const mail = "text@exmaple.com"
+	const replyType = ""
 
-	ticket := UpdateTicket(STATUS, TICKET_ID, MAIL, REPLY_TYPE, structs.Ticket{})
+	ticket := UpdateTicket(status, ticketID, mail, replyType, structs.Ticket{})
 
 	assert.NotNil(t, ticket, "No ticket was returned")
 	assert.Equal(t, structs.CLOSED, ticket.Status, "Status does not match")
@@ -53,13 +75,15 @@ func TestUpdateTicket(t *testing.T) {
 // TestMergeTickets makes sure that the entries of merged tickets are combined and that the
 // ticket, where it is matched from has the id of the merged to ticket
 func TestMergeTickets(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
 	// Create Mock entries
 	entry := structs.Entry{
 		Date:          time.Now(),
 		FormattedDate: time.Now().Format(time.ANSIC),
 		User:          "example@example.com",
-		Text:          "hallo mir gehts gut und dir?\n mfg",
+		Text:          "hello I am fine and you?\n Kind regards",
 	}
 
 	var entries []structs.Entry
@@ -69,7 +93,7 @@ func TestMergeTickets(t *testing.T) {
 	}
 
 	// Create mock tickets
-	ticketMergeTo := structs.Ticket{Id: "abcdef123"}
+	ticketMergeTo := structs.Ticket{ID: "abcdef123"}
 	ticketMergeFrom := structs.Ticket{}
 	ticketMergeTo.Entries = entries
 	ticketMergeFrom.Entries = entries
@@ -85,6 +109,8 @@ func TestMergeTickets(t *testing.T) {
 
 // TestAssignAndUnassignTicket tests that assign and unassigning a ticket works properly
 func TestAssignAndUnassignTicket(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
 	// Test assigning the ticket
 	user := structs.User{Username: "abcdef"}

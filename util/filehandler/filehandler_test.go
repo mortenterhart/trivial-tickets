@@ -1,8 +1,26 @@
-// Interactions with files, writing and reading files and persisting
-// changes to the file system
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package filehandler takes care of interactions with files, writing
+// and reading files and persisting changes to the file system.
 package filehandler
 
 import (
+	"github.com/mortenterhart/trivial-tickets/logger/testlogger"
+	"github.com/mortenterhart/trivial-tickets/structs/defaults"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -32,28 +50,78 @@ import (
  * changes to the file system
  */
 
+// mockTicket is a helper function to create a dummy ticket for the tests
+func mockTicket() structs.Ticket {
+	e1 := structs.Entry{
+		Date: time.Now(),
+		User: "customer@example.com",
+		Text: "bla bla",
+	}
+
+	e2 := structs.Entry{
+		Date: time.Now(),
+		User: "max.mustermann@example.com",
+		Text: "ok ok",
+	}
+
+	entries := []structs.Entry{e1, e2}
+
+	user := structs.User{
+		ID:          "12",
+		Name:        "Max Mustermann",
+		Mail:        "max.mustermann@example.com",
+		Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",
+		IsOnHoliday: false,
+	}
+
+	return structs.Ticket{
+		ID:       "test123",
+		Subject:  "Help",
+		Status:   structs.OPEN,
+		User:     user,
+		Customer: "customer@example.com",
+		Entries:  entries,
+	}
+}
+
+func mockMail() structs.Mail {
+	return structs.Mail{
+		ID:      random.CreateRandomID(10),
+		From:    "no-reply@trivial-tickets.com",
+		To:      "customer@mail.com",
+		Subject: "[trivial-tickets] My screen is always black",
+		Message: "I cannot see anything on my screen.",
+	}
+}
+
 func TestMain(m *testing.M) {
 	initializeLogConfig()
 
 	os.Exit(m.Run())
 }
 
+// initializeLogConfig initializes the global logging
+// configuration with test values.
 func initializeLogConfig() {
 	logConfig := testLogConfig()
 	globals.LogConfig = &logConfig
 }
 
+// testLogConfig returns a logging configuration suitable
+// to be used in tests.
 func testLogConfig() structs.LogConfig {
 	return structs.LogConfig{
-		LogLevel:   structs.LevelInfo,
-		VerboseLog: false,
-		FullPaths:  false,
+		LogLevel:  structs.AsLogLevel(defaults.LogLevelString),
+		Verbose:   defaults.LogVerbose,
+		FullPaths: defaults.LogFullPaths,
 	}
 }
 
 // TestWriteReadUserFile tests both WriteUserFile and ReadUserFile back to back since the
 // mock data can be used for both
 func TestWriteReadUserFile(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
 	// File name for test
 	const file = "testUsers.json"
@@ -66,7 +134,7 @@ func TestWriteReadUserFile(t *testing.T) {
 
 	// Mock two users and add them to the map
 	u := structs.User{
-		Id:          "abc123",
+		ID:          "abc123",
 		Name:        "Admin",
 		Username:    "admin",
 		Mail:        "admin@example.com",
@@ -75,7 +143,7 @@ func TestWriteReadUserFile(t *testing.T) {
 	}
 
 	u1 := structs.User{
-		Id:          "def456",
+		ID:          "def456",
 		Name:        "Max Mustermann",
 		Username:    "max4711",
 		Mail:        "max.mustermann@example.com",
@@ -109,6 +177,9 @@ func TestWriteReadUserFile(t *testing.T) {
 }
 
 func TestReadUserFileInvalidJson(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	const userDirectory = "../../files/testusers"
 	const userFile = userDirectory + "/users.json"
 
@@ -117,7 +188,7 @@ func TestReadUserFileInvalidJson(t *testing.T) {
 		assert.NoError(t, createErr, "creating testusers directory should not error")
 	})
 
-	writeErr := ioutil.WriteFile(userFile, []byte("{"), 0644)
+	writeErr := ioutil.WriteFile(userFile, []byte("{"), defaults.FileModeRegular)
 	t.Run("writeUserFileError", func(t *testing.T) {
 		assert.NoError(t, writeErr, "writing invalid user json file should not error")
 	})
@@ -140,6 +211,8 @@ func TestReadUserFileInvalidJson(t *testing.T) {
 }
 
 func TestWriteTicketFile(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
 	// Path to ticket files
 	const ticketFile = "testFiles/testTickets"
@@ -157,6 +230,8 @@ func TestWriteTicketFile(t *testing.T) {
 
 // TestWriteTicketFileError produces an error on creating a directory
 func TestWriteTicketFileError(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
 	// Invalid Path
 	const ticketFile = ""
@@ -168,28 +243,10 @@ func TestWriteTicketFileError(t *testing.T) {
 	assert.NotNil(t, errWriteTicketFile, "Error creating the File")
 }
 
-func TestCreateFolder(t *testing.T) {
-
-	// Test folders
-	const ticketsFolder = "testFolder/tests"
-
-	// Create the given folders
-	errCreateFolder := CreateFolders(ticketsFolder)
-
-	// Check that there was no error
-	assert.Nil(t, errCreateFolder, "Error creating the folder(s)")
-
-	// Check that the created directory exists
-	assert.DirExists(t, ticketsFolder, "ticketsFolder/tests should exist now")
-
-	// Remove them
-	errRemove := os.RemoveAll("testFolder/")
-
-	assert.Nil(t, errRemove, "Unexpected error while removing test directory")
-}
-
 // TestReadTicketFiles checks if the ticket files are read correctly and if errors are returned when expected
 func TestReadTicketFiles(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
 	var tickets = make(map[string]structs.Ticket)
 
@@ -198,21 +255,21 @@ func TestReadTicketFiles(t *testing.T) {
 	assert.NotNil(t, errReadTicketFiles, "No error was returned, although the path does not exist")
 
 	// Create folder for temporary test tickets
-	const testTicketPath = "../../files/testtickets"
+	const testTicketPath = defaults.TestTickets
 	errCreate := CreateFolders(testTicketPath)
 	assert.NoError(t, errCreate, "Unexpected error while creating folders")
 
 	// Write invalid JSON into file with .json extension
-	const invalidJsonFile = testTicketPath + "/invalid.json"
-	errWrite := ioutil.WriteFile(invalidJsonFile, []byte("{"), 0644)
+	const invalidJSONFile = testTicketPath + "/invalid.json"
+	errWrite := ioutil.WriteFile(invalidJSONFile, []byte("{"), defaults.FileModeRegular)
 	assert.NoError(t, errWrite, "Unexpected error while writing ticket file")
 
 	// Read invalid json file from test directory
 	errReadTicketFiles2 := ReadTicketFiles(testTicketPath, &tickets)
-	assert.NotNil(t, errReadTicketFiles2, "No error was returned, although the ticket file contains invalid json")
+	assert.Error(t, errReadTicketFiles2, "No error was returned, although the ticket file contains invalid json")
 
 	// Remove invalid json file for next tests
-	errRemove := os.Remove(invalidJsonFile)
+	errRemove := os.Remove(invalidJSONFile)
 	assert.NoError(t, errRemove, "Unexpected error while removing ticket file")
 
 	ticket := mockTicket()
@@ -227,91 +284,108 @@ func TestReadTicketFiles(t *testing.T) {
 	assert.NoError(t, errRemove, "Unexpected error while removing test directory")
 }
 
-// mockTicket is a helper function to create a dummy ticket for the tests
-func mockTicket() structs.Ticket {
+func TestReadTicketFilesReadErrorPermissionDenied(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
-	e1 := structs.Entry{
-		Date: time.Now(),
-		User: "customer@example.com",
-		Text: "bla bla",
-	}
+	const testTicketDirectory = defaults.TestTickets
 
-	e2 := structs.Entry{
-		Date: time.Now(),
-		User: "max.mustermann@example.com",
-		Text: "ok ok",
-	}
+	createErr := CreateFolders(testTicketDirectory)
+	assert.NoError(t, createErr, "Creating test ticket directory should not return an error")
 
-	entries := []structs.Entry{e1, e2}
+	const readPermissionDenied = 0200
 
-	user := structs.User{
-		Id:          "12",
-		Name:        "Max Mustermann",
-		Mail:        "max.mustermann@example.com",
-		Hash:        "$2a$12$n5kluCvuG3wpj18rl46bBexvTX6l0QkD7EQCkgvk1BNby5cNZPLZa",
-		IsOnHoliday: false,
-	}
+	writeErr := ioutil.WriteFile(testTicketDirectory+"/noReadPermission.json", []byte("{}"), readPermissionDenied)
+	assert.NoError(t, writeErr, "Writing the file with no read permission should not be an error")
 
-	return structs.Ticket{
-		Id:       "test123",
-		Subject:  "Help",
-		Status:   0,
-		User:     user,
-		Customer: "customer@example.com",
-		Entries:  entries,
-	}
+	tickets := make(map[string]structs.Ticket)
+
+	readErr := ReadTicketFiles(testTicketDirectory, &tickets)
+	assert.Error(t, readErr, "Reading file with no read permission should return an error")
+
+	removeErr := os.RemoveAll(testTicketDirectory)
+	assert.NoError(t, removeErr, "Removing test ticket directory should not be an error")
 }
 
-func TestFileExists(t *testing.T) {
-	t.Run("existingFile", func(t *testing.T) {
-		const existingFile = "../../files/users/users.json"
+func TestReadMailFilesInvalidDirectory(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
-		assert.True(t, FileExists(existingFile), "users.json file should always exist")
+	// Try to read mails from not existing directory
+	const notExistingMailDirectory = defaults.TestMails
+
+	mails := make(map[string]structs.Mail)
+
+	readErr := ReadMailFiles(notExistingMailDirectory, &mails)
+
+	t.Run("readError", func(t *testing.T) {
+		assert.Error(t, readErr, "reading from not existent directory should be an error")
 	})
 
-	t.Run("notExistingFile", func(t *testing.T) {
-		const notExistingFile = "../../files/users/passwords.json"
-
-		assert.False(t, FileExists(notExistingFile), "nobody would store passwords in a JSON-file, so why should it exist?")
+	t.Run("emptyMailMap", func(t *testing.T) {
+		assert.Equal(t, 0, len(mails), "mail map should not contain any entries")
 	})
 }
 
-func TestDirectoryExists(t *testing.T) {
-	t.Run("existingDirectory", func(t *testing.T) {
-		const existingDirectory = "../../files/tickets"
+func TestReadMailFilesInvalidJson(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
-		assert.True(t, DirectoryExists(existingDirectory), "tickets directory should exist")
+	const mailDirectory = defaults.TestMails
+
+	createErr := CreateFolders(mailDirectory)
+	t.Run("noCreateError", func(t *testing.T) {
+		assert.NoError(t, createErr, "creating mail directory should not return an error")
 	})
 
-	t.Run("notExistingDirectory", func(t *testing.T) {
-		const notExistingDirectory = "../../files/secret_keys"
+	const invalidJSONFile = mailDirectory + "/invalid.json"
 
-		assert.False(t, DirectoryExists(notExistingDirectory), "again, secret keys should not be stored here")
+	writeErr := ioutil.WriteFile(invalidJSONFile, []byte("{"), defaults.FileModeRegular)
+	t.Run("noWriteError", func(t *testing.T) {
+		assert.NoError(t, writeErr, "writing json file should not be an error")
+	})
+
+	mails := make(map[string]structs.Mail)
+
+	readErr := ReadMailFiles(mailDirectory, &mails)
+	t.Run("readError", func(t *testing.T) {
+		assert.Error(t, readErr, "reading invalid.json with invalid json content should be a decoding error")
+	})
+
+	removeErr := os.RemoveAll(mailDirectory)
+	t.Run("noRemoveError", func(t *testing.T) {
+		assert.NoError(t, removeErr, "removing existing mail directory should not be an error")
 	})
 }
 
-func TestHasJsonExtension(t *testing.T) {
-	t.Run("jsonExtension", func(t *testing.T) {
-		assert.True(t, hasJsonExtension("ticket.json"), "should be true because file has a .json file extension")
-	})
+func TestReadMailFilesReadErrorPermissionDenied(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
 
-	t.Run("noJsonExtension", func(t *testing.T) {
-		assert.False(t, hasJsonExtension("ticket.xml"), "should be false because file has .xml file extension instead of .json")
-	})
-}
+	const testMailDirectory = defaults.TestMails
 
-func mockMail() structs.Mail {
-	return structs.Mail{
-		Id:      random.CreateRandomId(10),
-		From:    "no-reply@trivial-tickets.com",
-		To:      "customer@mail.com",
-		Subject: "[trivial-tickets] My screen is always black",
-		Message: "I cannot see anything on my screen.",
-	}
+	createErr := CreateFolders(testMailDirectory)
+	assert.NoError(t, createErr, "Creating test mail directory should not return an error")
+
+	const readPermissionDenied = 0200
+
+	writeErr := ioutil.WriteFile(testMailDirectory+"/noReadPermission.json", []byte("{}"), readPermissionDenied)
+	assert.NoError(t, writeErr, "Writing the file with no read permission should not be an error")
+
+	mails := make(map[string]structs.Mail)
+
+	readErr := ReadMailFiles(testMailDirectory, &mails)
+	assert.Error(t, readErr, "Reading file with no read permission should return an error")
+
+	removeErr := os.RemoveAll(testMailDirectory)
+	assert.NoError(t, removeErr, "Removing test mail directory should not be an error")
 }
 
 func TestWriteReadMailFile(t *testing.T) {
-	const mailDirectory = "../../files/testmails"
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
+	const mailDirectory = defaults.TestMails
 
 	testMail := mockMail()
 
@@ -348,8 +422,8 @@ func TestWriteReadMailFile(t *testing.T) {
 		})
 
 		t.Run("identicalMailId", func(t *testing.T) {
-			readMail, mailIdDefined := mails[testMail.Id]
-			assert.True(t, mailIdDefined, "test mail id should be defined in read mail map")
+			readMail, mailIDDefined := mails[testMail.ID]
+			assert.True(t, mailIDDefined, "test mail id should be defined in read mail map")
 			assert.NotNil(t, readMail, "read mail should be non-nil")
 		})
 	})
@@ -359,6 +433,9 @@ func TestWriteReadMailFile(t *testing.T) {
 }
 
 func TestWriteMailFileInvalidDirectory(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	const mailDirectory = ""
 
 	testMail := mockMail()
@@ -368,52 +445,11 @@ func TestWriteMailFileInvalidDirectory(t *testing.T) {
 	assert.Error(t, writeErr, "writing a mail in an empty directory name should return an error")
 }
 
-func TestReadMailFilesInvalidDirectory(t *testing.T) {
-	// Try to read mails from not existing directory
-	const notExistingMailDirectory = "../../files/testmails"
-
-	mails := make(map[string]structs.Mail)
-
-	readErr := ReadMailFiles(notExistingMailDirectory, &mails)
-
-	t.Run("readError", func(t *testing.T) {
-		assert.Error(t, readErr, "reading from not existent directory should be an error")
-	})
-
-	t.Run("emptyMailMap", func(t *testing.T) {
-		assert.Equal(t, 0, len(mails), "mail map should not contain any entries")
-	})
-}
-
-func TestReadMailFilesInvalidJson(t *testing.T) {
-	const mailDirectory = "../../files/testmails"
-
-	createErr := CreateFolders(mailDirectory)
-	t.Run("noCreateError", func(t *testing.T) {
-		assert.NoError(t, createErr, "creating mail directory should not return an error")
-	})
-
-	const invalidJsonFile = mailDirectory + "/invalid.json"
-	writeErr := ioutil.WriteFile(invalidJsonFile, []byte("{"), 0644)
-	t.Run("noWriteError", func(t *testing.T) {
-		assert.NoError(t, writeErr, "writing json file should not be an error")
-	})
-
-	mails := make(map[string]structs.Mail)
-
-	readErr := ReadMailFiles(mailDirectory, &mails)
-	t.Run("readError", func(t *testing.T) {
-		assert.Error(t, readErr, "reading invalid.json with invalid json content should be a decoding error")
-	})
-
-	removeErr := os.RemoveAll(mailDirectory)
-	t.Run("noRemoveError", func(t *testing.T) {
-		assert.NoError(t, removeErr, "removing existing mail directory should not be an error")
-	})
-}
-
 func TestRemoveMailFile(t *testing.T) {
-	const mailDirectory = "../../files/testmails"
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
+	const mailDirectory = defaults.TestMails
 
 	t.Run("existingMail", func(t *testing.T) {
 		// Create test ticket to be removed
@@ -424,7 +460,7 @@ func TestRemoveMailFile(t *testing.T) {
 			assert.NoError(t, errWrite, "writing mail file should not return an error")
 		})
 
-		removeErr := RemoveMailFile(mailDirectory, testMail.Id)
+		removeErr := RemoveMailFile(mailDirectory, testMail.ID)
 
 		t.Run("noRemoveError", func(t *testing.T) {
 			assert.NoError(t, removeErr, "removing mail file should not return error since the file exists")
@@ -432,9 +468,9 @@ func TestRemoveMailFile(t *testing.T) {
 	})
 
 	t.Run("notExistingMail", func(t *testing.T) {
-		notExistingMailId := "mail-id"
+		notExistingMailID := "mail-id"
 
-		removeErr := RemoveMailFile(mailDirectory, notExistingMailId)
+		removeErr := RemoveMailFile(mailDirectory, notExistingMailID)
 
 		assert.Error(t, removeErr, "remove error should be non-nil because mail file does not exist")
 	})
@@ -443,7 +479,79 @@ func TestRemoveMailFile(t *testing.T) {
 	assert.NoError(t, removeErr, "removing mail directory should not return an error because the directory exists")
 }
 
+func TestFileExists(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
+	t.Run("existingFile", func(t *testing.T) {
+		const existingFile = "../../files/users/users.json"
+
+		assert.True(t, FileExists(existingFile), "users.json file should always exist")
+	})
+
+	t.Run("notExistingFile", func(t *testing.T) {
+		const notExistingFile = "../../files/users/passwords.json"
+
+		assert.False(t, FileExists(notExistingFile), "nobody would store passwords in a JSON-file, so why should it exist?")
+	})
+}
+
+func TestDirectoryExists(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
+	t.Run("existingDirectory", func(t *testing.T) {
+		const existingDirectory = "../../files/tickets"
+
+		assert.True(t, DirectoryExists(existingDirectory), "tickets directory should exist")
+	})
+
+	t.Run("notExistingDirectory", func(t *testing.T) {
+		const notExistingDirectory = "../../files/secret_keys"
+
+		assert.False(t, DirectoryExists(notExistingDirectory), "again, secret keys should not be stored here")
+	})
+}
+
+func TestHasJsonExtension(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
+	t.Run("jsonExtension", func(t *testing.T) {
+		assert.True(t, hasJSONExtension("ticket.json"), "should be true because file has a .json file extension")
+	})
+
+	t.Run("noJsonExtension", func(t *testing.T) {
+		assert.False(t, hasJSONExtension("ticket.xml"), "should be false because file has .xml file extension instead of .json")
+	})
+}
+
+func TestCreateFolders(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
+	// Test folders
+	const ticketsFolder = "testFolder/tests"
+
+	// Create the given folders
+	errCreateFolder := CreateFolders(ticketsFolder)
+
+	// Check that there was no error
+	assert.Nil(t, errCreateFolder, "Error creating the folder(s)")
+
+	// Check that the created directory exists
+	assert.DirExists(t, ticketsFolder, "ticketsFolder/tests should exist now")
+
+	// Remove them
+	errRemove := os.RemoveAll("testFolder/")
+
+	assert.Nil(t, errRemove, "Unexpected error while removing test directory")
+}
+
 func TestWrapAndLogError(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	readErr := errors.New("open ../../files/testmails/mail.json: no such file or directory")
 	expectedErr := errors.Wrap(readErr, "could not read mail file")
 
@@ -459,6 +567,9 @@ func TestWrapAndLogError(t *testing.T) {
 }
 
 func TestWrapAndLogErrorf(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	err := errors.New("mkdir: '': no such file or directory")
 	expectedErr := errors.Wrap(err, "could not create mail directory '../../files/testmails'")
 

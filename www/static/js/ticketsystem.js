@@ -1,4 +1,21 @@
 /*
+ * Trivial Tickets Ticketsystem
+ * Copyright (C) 2019 The Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
  * Ticketsystem Trivial Tickets
  *
  * Matriculation numbers: 3040018, 6694964, 3478222
@@ -11,17 +28,18 @@
  */
 
 /**
- * Holders for divs
+ * Holders for <div> elements
  */
 const DASHBOARD = document.querySelector("#dashboard");
 const CREATE_TICKET = document.querySelector("#create_ticket");
 const ALL_TICKETS = document.querySelector("#all_tickets");
 
 /**
- * toggle sets the desired html div visible, while disabling the visibility of the others
- * @param {a} ALL_TICKETS The given a element from the navigation
+ * toggleVisibility sets the desired html <div> visible, while disabling the visibility
+ * of the others.
+ * @param {HTMLLinkElement} a The given <a> element from the navigation
  */
-function toggle(a) {
+function toggleVisibility(a) {
 
     let ticket = document.querySelector("#ticket");
 
@@ -29,7 +47,6 @@ function toggle(a) {
         ticket.style.display = "none";
         window.history.replaceState({}, document.title, "/" + "");
     }
-
 
     switch (document.querySelector(a.href.substring(a.href.indexOf('#')))) {
 
@@ -54,8 +71,8 @@ function toggle(a) {
 }
 
 /**
- * unassignTicket removes the ticket from a user
- * @param {*} btn Specific button tied to a ticket
+ * unassignTicket releases the specific ticket from a user.
+ * @param {String} btn The specific button id tied to a ticket
  */
 function unassignTicket(btn) {
 
@@ -75,9 +92,9 @@ function unassignTicket(btn) {
 }
 
 /**
- * assignTicket assigns the ticket in the UI and blocks the ticket it from further manipulation
- * by disabling the button
- * @param {*} btn Given button to specific ticket
+ * assignTicket assigns the ticket in the UI and blocks the ticket from further manipulation
+ * by disabling the button.
+ * @param {String} btn The button id of the specific ticket
  */
 function assignTicket(btn) {
 
@@ -93,15 +110,16 @@ function assignTicket(btn) {
         if (req.readyState === 4 && req.status === 200) {
             document.querySelector("#" + btn.replace("btn_", "td_")).innerHTML = req.responseText;
             document.querySelector("#" + btn).disabled = true;
-            document.querySelector("#" + btn).style.opacity = 0.25;
-            document.querySelector("#" + btn.replace("btn_", "td_status_")).innerHTML = "In Bearbeitung";
+            document.querySelector("#" + btn).style.opacity = "0.25";
+            document.querySelector("#" + btn.replace("btn_", "td_status_")).innerHTML = "In Progress";
         }
     };
     req.send(null);
 }
 
 /**
- * Create ajax object, supporting Internet Explorer as well
+ * Create an Ajax object, supporting Internet Explorer as well.
+ * @return {XMLHttpRequest|ActiveXObject} the created Ajax object
  */
 function ajaxObject() {
 
@@ -115,14 +133,13 @@ function ajaxObject() {
                 return new ActiveXObjext(mode);
             }
             catch (error) {
-                console.log(error)
+                console.error(error);
             }
         }
     }
     else if (window.XMLHttpRequest) {
         return new XMLHttpRequest();
     }
-    else {
-        return false;
-    }
+
+    return null;
 }

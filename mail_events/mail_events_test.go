@@ -1,17 +1,36 @@
-// Mail message construction using templating
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package mail_events provides facilities to create
+// standard mail messages for different actions using
+// predefined templates.
 package mail_events
 
 import (
 	"fmt"
 	"html/template"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mortenterhart/trivial-tickets/globals"
+	"github.com/mortenterhart/trivial-tickets/logger/testlogger"
 	"github.com/mortenterhart/trivial-tickets/structs"
+	"github.com/mortenterhart/trivial-tickets/structs/defaults"
 	"github.com/mortenterhart/trivial-tickets/ticket"
 	"github.com/mortenterhart/trivial-tickets/util/random"
 )
@@ -36,7 +55,7 @@ func mockTicketWithEntry() structs.Ticket {
 
 func mockTicketWithUser() structs.Ticket {
 	return structs.Ticket{
-		Id:       random.CreateRandomId(10),
+		ID:       random.CreateRandomID(10),
 		Subject:  "Something was wrong",
 		Status:   structs.CLOSED,
 		User:     mockUser(),
@@ -48,7 +67,7 @@ func mockTicketWithUser() structs.Ticket {
 
 func mockUser() structs.User {
 	return structs.User{
-		Id:          "user-id",
+		ID:          "user-id",
 		Name:        "Admin",
 		Username:    "admin",
 		Mail:        "admin@example.com",
@@ -57,23 +76,23 @@ func mockUser() structs.User {
 	}
 }
 
-func testConfig() structs.Config {
-	return structs.Config{
-		Port:    8443,
-		Tickets: "../../files/testtickets",
-		Users:   "../../files/users/users.json",
-		Mails:   "../../files/testmails",
-		Cert:    "../../ssl/server.cert",
-		Key:     "../../ssl/server.key",
-		Web:     "../../www",
+func testConfig() structs.ServerConfig {
+	return structs.ServerConfig{
+		Port:    defaults.TestPort,
+		Tickets: defaults.TestTickets,
+		Users:   defaults.TestUsers,
+		Mails:   defaults.TestMails,
+		Cert:    defaults.TestCertificate,
+		Key:     defaults.TestKey,
+		Web:     defaults.TestWeb,
 	}
 }
 
 func testLogConfig() structs.LogConfig {
 	return structs.LogConfig{
-		LogLevel:   structs.LevelInfo,
-		VerboseLog: false,
-		FullPaths:  false,
+		LogLevel:  structs.AsLogLevel(defaults.LogLevelString),
+		Verbose:   defaults.LogVerbose,
+		FullPaths: defaults.LogFullPaths,
 	}
 }
 
@@ -93,18 +112,21 @@ func TestMain(m *testing.M) {
 }
 
 func TestNewMailBodyNewTicket(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	t.Run("withEntrySet", func(t *testing.T) {
 		testTicket := mockTicketWithEntry()
 
 		mailBody := NewMailBody(NewTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("Ihr Ticket '%s' ist erfolgreich erstellt worden",
-				template.HTMLEscapeString(testTicket.Id))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("Your Ticket '%s' was created successfully",
+				template.HTMLEscapeString(testTicket.ID)), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsEntry", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text)),
+			assert.Contains(t, mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text),
 				"mail body should contain first written message")
 		})
 	})
@@ -115,30 +137,33 @@ func TestNewMailBodyNewTicket(t *testing.T) {
 		mailBody := NewMailBody(NewTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("Ihr Ticket '%s' ist erfolgreich erstellt worden",
-				template.HTMLEscapeString(testTicket.Id))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("Your Ticket '%s' was created successfully",
+				template.HTMLEscapeString(testTicket.ID)), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsAssignedUser", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
-				template.HTMLEscapeString(testTicket.User.Mail))), "mail body should contain the name and email of the assigned user")
+			assert.Contains(t, mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
+				template.HTMLEscapeString(testTicket.User.Mail)), "mail body should contain the name and email of the assigned user")
 		})
 	})
 }
 
 func TestNewMailBodyNewAnswer(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	t.Run("withEntrySet", func(t *testing.T) {
 		testTicket := mockTicketWithEntry()
 
 		mailBody := NewMailBody(NewAnswer, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("der Benutzer '%s' hat einen neuen Kommentar geschrieben",
-				template.HTMLEscapeString(testTicket.Entries[0].User))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("the user '%s' wrote a new comment to your ticket",
+				template.HTMLEscapeString(testTicket.Entries[0].User)), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsEntry", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text)),
+			assert.Contains(t, mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text),
 				"mail body should contain first written message")
 		})
 	})
@@ -149,30 +174,33 @@ func TestNewMailBodyNewAnswer(t *testing.T) {
 		mailBody := NewMailBody(NewAnswer, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, "der Benutzer '' hat einen neuen Kommentar geschrieben"),
-				"mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("the user '%s' wrote a new comment to your ticket",
+				template.HTMLEscapeString("<no user>")), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsAssignedUser", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
-				template.HTMLEscapeString(testTicket.User.Mail))), "mail body should contain the name and email of the assigned user")
+			assert.Contains(t, mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
+				template.HTMLEscapeString(testTicket.User.Mail)), "mail body should contain the name and email of the assigned user")
 		})
 	})
 }
 
 func TestNewMailBodyUpdatedTicket(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	t.Run("withEntrySet", func(t *testing.T) {
 		testTicket := mockTicketWithEntry()
 
 		mailBody := NewMailBody(UpdatedTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("Ihr Ticket '%s' wurde mit folgenden Informationen aktualisiert",
-				template.HTMLEscapeString(testTicket.Id))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("Your Ticket '%s' was updated with the following information",
+				template.HTMLEscapeString(testTicket.ID)), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsEntry", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text)),
+			assert.Contains(t, mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text),
 				"mail body should contain first written message")
 		})
 	})
@@ -183,30 +211,33 @@ func TestNewMailBodyUpdatedTicket(t *testing.T) {
 		mailBody := NewMailBody(UpdatedTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("Ihr Ticket '%s' wurde mit folgenden Informationen aktualisiert",
-				template.HTMLEscapeString(testTicket.Id))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("Your Ticket '%s' was updated with the following information",
+				template.HTMLEscapeString(testTicket.ID)), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsAssignedUser", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
-				template.HTMLEscapeString(testTicket.User.Mail))), "mail body should contain the name and email of the assigned user")
+			assert.Contains(t, mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
+				template.HTMLEscapeString(testTicket.User.Mail)), "mail body should contain the name and email of the assigned user")
 		})
 	})
 }
 
 func TestNewMailBodyAssignedTicket(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	t.Run("withEntrySet", func(t *testing.T) {
 		testTicket := mockTicketWithEntry()
 
 		mailBody := NewMailBody(AssignedTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("unser Mitarbeiter '%s' bearbeitet nun Ihr Ticket",
-				template.HTMLEscapeString("<nicht zugewiesen>"))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("the editor '%s' works on Your Ticket now",
+				template.HTMLEscapeString("<not assigned>")), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsEntry", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text)),
+			assert.Contains(t, mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text),
 				"mail body should contain first written message")
 		})
 	})
@@ -217,30 +248,33 @@ func TestNewMailBodyAssignedTicket(t *testing.T) {
 		mailBody := NewMailBody(AssignedTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("unser Mitarbeiter '%s' bearbeitet nun Ihr Ticket",
-				template.HTMLEscapeString(testTicket.User.Name))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("the editor '%s' works on Your Ticket now",
+				template.HTMLEscapeString(testTicket.User.Name)), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsAssignedUser", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
-				template.HTMLEscapeString(testTicket.User.Mail))), "mail body should contain the name and email of the assigned user")
+			assert.Contains(t, mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
+				template.HTMLEscapeString(testTicket.User.Mail)), "mail body should contain the name and email of the assigned user")
 		})
 	})
 }
 
 func TestNewMailBodyUnassignedTicket(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	t.Run("withEntrySet", func(t *testing.T) {
 		testTicket := mockTicketWithEntry()
 
 		mailBody := NewMailBody(UnassignedTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("der Bearbeiter '%s' hat das Ticket wieder freigegeben",
-				template.HTMLEscapeString("<nicht zugewiesen>"))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("the editor '%s' has released Your Ticket again",
+				template.HTMLEscapeString("<not assigned>")), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsEntry", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text)),
+			assert.Contains(t, mailBody, template.HTMLEscapeString(testTicket.Entries[0].Text),
 				"mail body should contain first written message")
 		})
 	})
@@ -251,18 +285,21 @@ func TestNewMailBodyUnassignedTicket(t *testing.T) {
 		mailBody := NewMailBody(UnassignedTicket, testTicket)
 
 		t.Run("containsMailEvent", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("der Bearbeiter '%s' hat das Ticket wieder freigegeben",
-				template.HTMLEscapeString(testTicket.User.Name))), "mail body should contain a description of the happened event")
+			assert.Contains(t, mailBody, fmt.Sprintf("the editor '%s' has released Your Ticket again",
+				template.HTMLEscapeString(testTicket.User.Name)), "mail body should contain a description of the happened event")
 		})
 
 		t.Run("containsAssignedUser", func(t *testing.T) {
-			assert.True(t, strings.Contains(mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
-				template.HTMLEscapeString(testTicket.User.Mail))), "mail body should contain the name and email of the assigned user")
+			assert.Contains(t, mailBody, fmt.Sprintf("%s (%s)", template.HTMLEscapeString(testTicket.User.Name),
+				template.HTMLEscapeString(testTicket.User.Mail)), "mail body should contain the name and email of the assigned user")
 		})
 	})
 }
 
 func TestEvent_String(t *testing.T) {
+	testlogger.BeginTest()
+	defer testlogger.EndTest()
+
 	t.Run("newTicket", func(t *testing.T) {
 		assert.Equal(t, "new ticket", NewTicket.String())
 	})

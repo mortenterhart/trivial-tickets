@@ -1,31 +1,132 @@
-#
-# Ticketsystem Trivial Tickets
-#
-# Matriculation numbers: 3040018, 6694964, 3478222
-# Lecture:               Programmieren II, INF16B
-# Lecturer:              Herr Prof. Dr. Helmut Neemann
-# Institute:             Duale Hochschule Baden-Württemberg Mosbach
-#
-# ---------------
-# Travis build configuration
-#
+## Trivial Tickets Ticketsystem
+## Copyright (C) 2019 The Contributors
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program.  If not, see <http://www.gnu.org/licenses/>.
+##
+##
+## Ticketsystem Trivial Tickets
+##
+## Matriculation numbers: 3040018, 6694964, 3478222
+## Lecture:               Programmieren II, INF16B
+## Lecturer:              Herr Prof. Dr. Helmut Neemann
+## Institute:             Duale Hochschule Baden-Württemberg Mosbach
+##
+## ---------------
+## Travis Build Configuration
+##
+## See https://travis-ci.com/mortenterhart/trivial-tickets
+## for the current build status.
+##
+
+---
 
 language: go
 
-go:
-  - "1.11"
+sudo: false
 
+go:
+  - 1.10.x
+  - 1.11.x
+
+# Test on Mac OS X, Linux and Windows.
 os:
   - osx
   - linux
   - windows
 
+# Add the GOPATH/bin directory to the PATH
+# variable so that the installed 'revive'
+# executable can be found.
+env:
+  global:
+    - PATH="${GOPATH}/bin:${PATH}"
+
+# Check the validity of the SSL Certificate
+# and private and public Key files.
 before_install:
-  - go get -t -v ./...
+  # Check environment variables and program
+  # versions
+  - echo "GOPATH: ${GOPATH}"
+  - echo "PATH: ${PATH}"
+  - shellcheck --version
+  - openssl version
 
+  # Check the information in the SSL Certificate
+  - echo "Verifying SSL Certificate (CERT)"
+  - openssl x509 -text -noout -in ssl/server.cert
+
+  # Check the Certificate Signing Request (CSR)
+  - echo "Verify SSL Certificate Signing Request (CSR)"
+  - openssl req -text -noout -verify -in ssl/server.csr
+
+  # Check the SSL Private Key
+  - echo "Verifying SSL Private Key (KEY)"
+  - openssl rsa -check -noout -in ssl/server.key
+
+  # Check the SSL Public Key
+  - echo "Verifiying SSL Public Key (PUB.KEY)"
+  - openssl pkey -inform PEM -pubin -in ssl/server.pub.key -text -noout
+
+  # Calculate the Certificate and Private Key moduli
+  # and save them in environment variables
+  - export CERT_MODULUS="$(openssl x509 -noout -modulus
+      -in ssl/server.cert | openssl md5)"
+  - export KEY_MODULUS="$(openssl rsa -noout -modulus
+      -in ssl/server.key | openssl md5)"
+
+  # Compare the Certificate and Private Key moduli
+  # and verify their equality
+  - >
+      [ "${CERT_MODULUS}" == "${KEY_MODULUS}" ] &&
+        echo "OK: Certificate and Key Moduli are equal" ||
+        echo "FAIL: Certificate and Key Moduli not matching"
+
+# Install all project and test dependencies and
+# a code style checker.
+install:
+  - go get -d -t -v ./...
+  - go get -u -v github.com/mgechev/revive
+
+# Examine the Go and Shell script code with static
+# analysis tools and report code correctness and
+# code style warnings and errors.
+before_script:
+  - go vet -all ./...
+  - revive -config .revive.toml -formatter stylish ./...
+  - shellcheck --format=tty --color=auto -- *.sh ||
+      echo "Detected some code style issues in Shell scripts"
+
+# Execute the tests with coverage.
 script:
-  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+  # The following script executes all tests
+  # of all packages and creates a coverage
+  # report out of the results. The report is
+  # written to report.txt. Read more about
+  # this script and its options on
+  # https://github.com/mortenterhart/trivial-tickets/wiki/Generating-a-Coverage-Report.
+  - ./coverage_report.sh
+      --verbose
+      --race
+      --checks=all
+      --coverage-profile=coverage.txt
+      --coverage-mode=atomic
+      --functions
+      --output-file=report.txt
+      --preserve-profile
 
+# Output the function coverage report and
+# deploy the coverage profile to Codecov.io.
 after_success:
+  - cat report.txt
   - bash <(curl -s https://codecov.io/bash)
-

@@ -1,7 +1,26 @@
-// Project-wide needed structures for data elements
+// Trivial Tickets Ticketsystem
+// Copyright (C) 2019 The Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+// Package structs supplies project-wide needed data
+// structures, types and constants for the server and
+// the command-line tool.
 package structs
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -19,8 +38,9 @@ import (
  * Project-wide needed structures for data elements
  */
 
-// Config is a struct to hold the config parameters provided on startup
-type Config struct {
+// ServerConfig is a struct to hold the config parameters
+// provided on startup
+type ServerConfig struct {
 	Port    uint16
 	Tickets string
 	Users   string
@@ -30,28 +50,52 @@ type Config struct {
 	Web     string
 }
 
-// CLIConfig is a struct to hold the CLIs config parameters provided on startup
+// CLIConfig is a struct to hold the CLI config
+// parameters provided on startup
 type CLIConfig struct {
-	IPAddr string
-	Port   uint16
-	Cert   string
+	Host string
+	Port uint16
+	Cert string
 }
 
+// LogConfig defines the logging configuration for
+// the server provided by the startup configuration
+// flags
 type LogConfig struct {
-	LogLevel   LogLevel
-	VerboseLog bool
-	FullPaths  bool
+	LogLevel  LogLevel
+	Verbose   bool
+	FullPaths bool
 }
 
+// LogLevel is a type that defines the level of logging.
+// A high log level such as INFO means that more
+// information and actions are logged to the console.
+// A low log level suppresses the output of messages of
+// a higher log level.
 type LogLevel int
 
 const (
+	// LevelInfo is the default log level (all messages
+	// are logged)
 	LevelInfo LogLevel = iota
+
+	// LevelWarning logs warnings, errors and fatal errors
 	LevelWarning
+
+	// LevelError only logs errors and fatal errors
 	LevelError
+
+	// LevelFatal only logs fatal errors (not recommended).
+	// Fatal errors are always logged.
 	LevelFatal
+
+	// LevelTestDebug is an additional log level used only
+	// for debugging inside tests (not configurable)
+	LevelTestDebug
 )
 
+// String converts a log level to its corresponding
+// output string used in the log.
 func (level LogLevel) String() string {
 	switch level {
 	case LevelInfo:
@@ -65,44 +109,72 @@ func (level LogLevel) String() string {
 
 	case LevelFatal:
 		return "[FATAL ERROR]"
+
+	case LevelTestDebug:
+		return "[TEST DEBUG]"
 	}
 
 	return "undefined"
 }
 
-// Session is a struct that holds session variables for a certain user
+// AsLogLevel converts a given log level string to
+// a log level. If the log level string is not
+// defined, the return value is -1.
+func AsLogLevel(logLevelString string) LogLevel {
+	switch logLevelString {
+	case "info":
+		return LevelInfo
+
+	case "warning":
+		return LevelWarning
+
+	case "error":
+		return LevelError
+
+	case "fatal":
+		return LevelFatal
+	}
+
+	return LogLevel(-1)
+}
+
+// Session is a struct that holds session variables
+// for a certain user.
 type Session struct {
+	ID         string
 	User       User
 	CreateTime time.Time
 	IsLoggedIn bool
-	Id         string
 }
 
-// SessionManager holds a session and operates on it
+// SessionManager holds a session and operates on a
+// it.
 type SessionManager struct {
 	Name    string
 	Session Session
 	TTL     int64
 }
 
-// User is the model for a user that works on tickets
+// User is the model for a user that works on tickets.
 type User struct {
-	Id          string `json:"Id"`
-	Name        string `json:"Name"`
-	Username    string `json:"Username"`
-	Mail        string `json:"Mail"`
-	Hash        string `json:"Hash"`
-	IsOnHoliday bool   `json:"IsOnHoliday"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Username    string `json:"username"`
+	Mail        string `json:"mail"`
+	Hash        string `json:"hash"`
+	IsOnHoliday bool   `json:"isOnHoliday"`
 }
 
-// Data holds session and ticket data to parse to the web templates
+// Data holds session and ticket data to parse
+// to the web templates.
 type Data struct {
 	Session Session
 	Tickets map[string]Ticket
 	Users   map[string]User
 }
 
-// DataSingleTicket holds the session and ticket data for a call to a single ticket
+// DataSingleTicket holds the session and ticket
+// data for a call to a single ticket.
 type DataSingleTicket struct {
 	Session Session
 	Ticket  Ticket
@@ -110,45 +182,56 @@ type DataSingleTicket struct {
 	Users   map[string]User
 }
 
-// Ticket represents a ticket
+// Ticket represents a ticket.
 type Ticket struct {
-	Id       string  `json:"Id"`
-	Subject  string  `json:"Subject"`
-	Status   Status  `json:"Status"`
-	User     User    `json:"User"`
-	Customer string  `json:"Customer"`
-	Entries  []Entry `json:"Entries"`
-	MergeTo  string  `json:"MergeTo"`
+	ID       string  `json:"id"`
+	Subject  string  `json:"subject"`
+	Status   Status  `json:"status"`
+	User     User    `json:"user"`
+	Customer string  `json:"customer"`
+	Entries  []Entry `json:"entries"`
+	MergeTo  string  `json:"mergeTo"`
 }
 
-// Entry describes a single reply within a ticket
+// Entry describes a single reply within a ticket.
 type Entry struct {
-	Date          time.Time
-	FormattedDate string
-	User          string
-	Text          string
-	Reply_Type    string
+	Date          time.Time `json:"id"`
+	FormattedDate string    `json:"formattedDate"`
+	User          string    `json:"user"`
+	Text          string    `json:"text"`
+	ReplyType     string    `json:"replyType"`
 }
 
-// Status is an enum to represent the current status of a ticket
+// Status is an enum to represent the current
+// status of a ticket.
 type Status int
 
 const (
+	// OPEN means the ticket is opened and has
+	// no assignee.
 	OPEN Status = iota
+
+	// PROCESSING means the ticket is being
+	// processed by an assignee.
 	PROCESSING
+
+	// CLOSED means the ticket has been closed.
 	CLOSED
 )
 
+// String converts a ticket status to its
+// corresponding description used in the
+// outgoing mails.
 func (status Status) String() string {
 	switch status {
 	case OPEN:
-		return "Geöffnet"
+		return "Open"
 
 	case PROCESSING:
-		return "In Bearbeitung"
+		return "In Progress"
 
 	case CLOSED:
-		return "Geschlossen"
+		return "Closed"
 	}
 
 	return "undefined status"
@@ -157,19 +240,38 @@ func (status Status) String() string {
 // Mail struct holds the information for a received email in order
 // to create new tickets or answers
 type Mail struct {
-	Id      string `json:"id"`
+	ID      string `json:"id"`
 	From    string `json:"from"`
 	To      string `json:"to"`
 	Subject string `json:"subject"`
 	Message string `json:"message"`
 }
 
-type JsonMap map[string]interface{}
+// JSONMap is a type for mapping JSON keys to
+// JSON values. It is mostly used inside the
+// Mail API.
+type JSONMap map[string]interface{}
 
+// Command represents a command-line interface
+// command. This can be either Fetch, Submit
+// or Exit.
 type Command int
 
 const (
+	// FETCH is the CLI command to fetch emails
+	// from the server.
 	FETCH Command = iota
+
+	// SUBMIT is the CLI command to submit an
+	// email to the server.
 	SUBMIT
+
+	// EXIT is the CLI command to exit the CLI.
 	EXIT
 )
+
+// String converts a command to its string
+// representation.
+func (c Command) String() string {
+	return strconv.Itoa(int(c))
+}
