@@ -104,7 +104,7 @@ func initConfig() (structs.Config, error) {
 // otherwise. Since the port numbers only go up to a 16
 // bit integer
 func isPortInBoundaries(port int) bool {
-	return port <= math.MaxInt16
+	return port > 0 && port <= math.MaxInt16
 }
 
 func usageMessage() {
