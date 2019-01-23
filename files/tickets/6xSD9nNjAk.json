@@ -1,0 +1,24 @@
+{
+    "id": "6xSD9nNjAk",
+    "subject": "Test ticket",
+    "status": 1,
+    "user": {
+        "id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
+        "name": "Admin",
+        "username": "admin",
+        "mail": "admin@trivial-tickets.com",
+        "hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
+        "isOnHoliday": false
+    },
+    "customer": "customer@gmail.com",
+    "entries": [
+        {
+            "id": "0001-01-01T00:00:00Z",
+            "formattedDate": "Thu Nov 29 09:54:47 2018",
+            "user": "test@gmail.com",
+            "text": "This is just a test of creating a ticket. Please ignore this ticket.",
+            "replyType": "external"
+        }
+    ],
+    "mergeTo": ""
+}

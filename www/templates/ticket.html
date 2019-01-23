@@ -1,4 +1,39 @@
+<!--
+
+/*
+ * Trivial Tickets Ticketsystem
+ * Copyright (C) 2019 The Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 6694964, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ * ticket template
+ */
+
+-->
+
 {{define "ticket"}}
+    {{$session := .Session}}
+    {{$currentTicket := .Ticket}}
     {{template "header"}}
     <header>
         <div class="headers">
@@ -9,54 +44,105 @@
     <div class="container">
         {{template "navigation" .Session}}
         <div class="content">
-            <div class="ticket">
-                <form method="POST" action="updateTicket">
+            <div class="ticket" id="ticket">
+                <form method="POST" action="/updateTicket">
                     <div>
                         <table>
                             <tr>
-                                <td>Kunde:</td>
+                                <td>Customer:</td>
                                 <td>{{.Ticket.Customer}}</td>
                                 <td>Status:</td>
                                 <td>
-                                    {{if .Session.IsLoggedIn}}   
+                                    {{if .Session.IsLoggedIn}}
                                         {{if eq .Session.User.Id .Ticket.User.Id}}
                                             <select name="status">
-                                                <option value="0" {{if eq .Ticket.Status 0 }} selected {{end}}>Offen</option>
-                                                <option value="1" {{if eq .Ticket.Status 1 }} selected {{end}}>In Bearbeitung</option>
-                                                <option value="2" {{if eq .Ticket.Status 2 }} selected {{end}}>Geschlossen</option>     
+                                                <option value="0" {{if eq .Ticket.Status 0 }} selected {{end}}>Open</option>
+                                                <option value="1" {{if eq .Ticket.Status 1 }} selected {{end}}>In Progress</option>
+                                                <option value="2" {{if eq .Ticket.Status 2 }} selected {{end}}>Closed</option>
                                             </select>
                                         {{else}}
-                                            <input type="text" class="input_label" value="{{if eq .Ticket.Status 0 }}Offen{{end}}{{if eq .Ticket.Status 1 }}In Bearbeitung{{end}}{{if eq .Ticket.Status 2 }}Geschlossen{{end}}">
+                                            <input type="text" class="input_label" readonly disabled value="{{.Ticket.Status.String}}">
+
                                         {{end}}
                                     {{else}}
-                                        <input type="text" class="input_label" value="{{if eq .Ticket.Status 0 }}Offen{{end}}{{if eq .Ticket.Status 1 }}In Bearbeitung{{end}}{{if eq .Ticket.Status 2 }}Geschlossen{{end}}">
+                                        <input type="text" class="input_label" readonly disabled value="{{.Ticket.Status.String}}">
                                     {{end}}
                                 </td>
                             </tr>
                             <tr>
-                                <td>Betreff:</td><td>{{.Ticket.Subject}}</td>
+                                <td>Subject:</td>
+                                <td>{{.Ticket.Subject}}</td>
+                                {{if .Session.IsLoggedIn}}
+                                    <td>Reply Type:</td>
+                                    <td>
+                                        <select name="reply_type" required>
+                                            <option value="" selected></option>
+                                            <option value="internal">Intern</option>
+                                            <option value="external">Extern</option>
+                                        </select>
+                                    </td>
+                                {{end}}
                             </tr>
                             <tr>
-                                <td>Ticketnummer:</td>
-                                <td><input name="ticket" class="input_label" type="text" value="{{.Ticket.Id}}"></td>
+                                <td>Ticket Number:</td>
+                                <td><input name="ticket" class="input_label" type="text" readonly
+                                           value="{{.Ticket.Id}}"></td>
+                                {{if .Session.IsLoggedIn}}
+                                    <td>Merge Ticket with:</td>
+                                    <td>
+                                        <select name="merge">
+                                            <option value="" selected></option>
+                                            {{range $index, $element := .Tickets}}
+                                                {{if and (eq $session.User.Id $element.User.Id) (ne $element.Id $currentTicket.Id) (eq $element.MergeTo "")}}
+                                                    <option value="{{$element.Id}}">{{$element.Id}}
+                                                        - {{$element.Subject}}</option>
+                                                {{end}}
+                                            {{end}}
+                                        </select>
+                                    </td>
+                                {{end}}
                             </tr>
                         </table>
                     </div>
                     <br>
-                    <p>Nachrichtenverlauf:</p>
+                    <p>Messages:</p>
                     {{range $replies := .Ticket.Entries}}
-                        <div class="reply">
-                            <p>{{$replies.FormattedDate}} {{$replies.User}}:</p>
-                            <textarea class="ticket_text" cols="60" rows="5" readonly>{{$replies.Text}}</textarea>
-                        </div>
+                        {{if $session.IsLoggedIn}}
+                            <div class="reply {{$replies.ReplyType}}">
+                                <p>{{$replies.User}} wrote at {{$replies.FormattedDate}}{{if eq $replies.ReplyType "internal"}} (internal comment){{end}}:</p>
+                                <textarea class="ticket_text" cols="60" rows="5" readonly>{{$replies.Text}}</textarea>
+                            </div>
+                        {{else}}
+                            {{if ne $replies.ReplyType "internal"}}
+                                <div class="reply {{$replies.ReplyType}}">
+                                    <p>{{$replies.User}} wrote at {{$replies.FormattedDate}}:</p>
+                                    <textarea class="ticket_text" cols="60" rows="5"
+                                              readonly>{{$replies.Text}}</textarea>
+                                </div>
+                            {{end}}
+                        {{end}}
                     {{end}}
                     <br>
-                    <input type="text" class="ticket_input" name="mail" placeholder="Ihre E-Mail" {{if .Session.IsLoggedIn }} disabled value="{{.Session.User.Mail}}" {{end}}><br>
-                    <textarea class="ticket_text" name="reply" cols="60" rows="10" placeholder="Antworten ..."></textarea><br>
-                    <button type="submit">Speichern</button>
+                    <input type="text" class="ticket_input" name="mail" placeholder="Your E-Mail"
+                           readonly {{if .Session.IsLoggedIn }} value="{{.Session.User.Mail}}" {{else}} value="{{.Ticket.Customer}}" {{end}}
+                           pattern="^[\w.-]+@[\w-]+\.[\w.]+$"><br>
+                    <textarea class="ticket_text" name="reply" cols="60" rows="10"
+                              placeholder="Answer ..."></textarea><br>
+                    <button type="submit">Save</button>
                 </form>
-            </div>     
+            </div>
+            {{if .Session.IsLoggedIn}}
+                <div style="display: none">
+                    {{template "dashboard" .}}
+                </div>
+                {{template "create_ticket" .Session}}
+                {{template "all_tickets" .}}
+            {{else}}
+                <div style="display: none">
+                    {{template "create_ticket" .Session}}
+                </div>
+            {{end}}
         </div>
     </div>
-    {{template "footer" .Session.CreateTime}}
+    {{template "footer"}}
 {{end}}

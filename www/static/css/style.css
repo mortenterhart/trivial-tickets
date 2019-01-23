@@ -1,22 +1,44 @@
 /*
-*
-* Matrikelnummern
-* 3040018
-* 6694964
-* 3478222
+ * Trivial Tickets Ticketsystem
+ * Copyright (C) 2019 The Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 6694964, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ * CSS Stylesheet
  */
 
 html {
-    font-family: 'Futura';
+    font-family: "Arial", sans-serif;
     background-color: #798ba8;
+    color: #000044;
 }
 
-header{
+header {
     width: 100%;
     background-color: #000044;
 }
 
-header > .headers{
+header > .headers {
     display: inline-block;
     margin-left: 10%;
     color: white;
@@ -31,7 +53,6 @@ header > .headers{
 header > .login {
     display: inline-block;
     margin-top: 1.5%;
-    margin-right: 5%;
     color: white;
 }
 
@@ -67,7 +88,7 @@ button:hover {
     bottom: 0;
 }
 
-.container > .sidebar > a{
+.container > .sidebar > a {
     display: block;
     padding-top: 0.5em;
     padding-bottom: 0.5em;
@@ -77,7 +98,7 @@ button:hover {
     color: #a1a1a1;
 }
 
-.container > .sidebar > a:hover{
+.container > .sidebar > a:hover {
     color: #ffffff;
 }
 
@@ -126,8 +147,8 @@ button:hover {
 
 .holiday_mode {
     padding-left: 1%;
-    padding-top:1%;
-    padding-bottom:1%;
+    padding-top: 1%;
+    padding-bottom: 1%;
 }
 
 .my_tickets {
@@ -145,16 +166,25 @@ button:hover {
 }
 
 .input_label {
-    background: rgba(0,0,0,0);
+    background: rgba(0, 0, 0, 0);
+    color: #000000;
     border: none;
 }
 
 .reply {
-    background-color:  #8ba0c1;
+    background-color: #8ba0c1;
     padding-left: 2%;
     padding-right: 2%;
     padding-top: 1%;
     padding-bottom: 1%;
+}
+
+.intern {
+    background-color: #8ba0a0;
+}
+
+.extern {
+    background-color: #8ba0d5;
 }
 
 footer {
@@ -180,7 +210,8 @@ table {
     width: 100%;
 }
 
-th, td {
+th,
+td {
     padding-right: 1%;
     text-align: left;
     padding-bottom: 1%;
