@@ -1,0 +1,66 @@
+#
+# Ticketsystem Trivial Tickets
+#
+# Matriculation numbers: 3040018, 6694964, 3478222
+# Lecture:               Programmieren II, INF16B
+# Lecturer:              Herr Prof. Dr. Helmut Neemann
+# Institute:             Duale Hochschule Baden-Württemberg Mosbach
+#
+# ---------------
+# Codecov.io configuration
+#
+
+codecov:
+  notify:
+    require_ci_to_pass: yes
+
+# Coverage Configuration
+coverage:
+  precision: 2
+  round: down
+  range: "70...90"
+
+  status:
+    project: yes
+    patch: yes
+    changes: no
+
+# Add flags for different parts and modules
+# of the server application
+flags:
+  api:
+    paths:
+      - api/
+      - mail_events/
+
+  commandLine:
+    paths:
+      - cli/
+      - cmd/commandLineTool/
+
+  server:
+    paths:
+      - cmd/ticketsystem/
+      - server/
+      - session/
+      - ticket/
+
+  utilities:
+    paths:
+      - logger/
+      - util/
+
+# Parsers and settings
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+# Comment Settings
+comment:
+  layout: "header, diff"
+  behavior: default
+  require_changes: no
