@@ -25,6 +25,11 @@
 ## ---------------
 ## Ignored files in Git
 
+# Jekyll Output files
+_site
+.sass-cache
+.jekyll-metadata
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -38,7 +43,7 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Coverage Repors
+# Coverage Reports
 coverage.txt
 
 # Ignore generated mails and tickets

@@ -29,6 +29,60 @@
 ## deployed page with this configuration.
 ##
 
+---
+
 # Set the Jekyll theme for the Github
 # Pages site
 theme: jekyll-theme-architect
+
+# Set a title and description for the project
+title: "Trivial Tickets"
+description: "Support ticket system in Go"
+
+# Title for the Wiki pages
+wiki_title: "Trivial Tickets Wiki"
+
+# Set the associated project repository
+repository: mortenterhart/trivial-tickets
+
+# Show the download buttons
+show_downloads: true
+
+# Set the website language and default encoding
+lang: en-US
+encoding: utf-8
+
+# Use kramdown as Markdown engine
+markdown: kramdown
+
+# Generate the sidebar table of contents only
+# for headings between minHeader and maxHeader
+toc:
+  minHeader: 2
+  maxHeader: 3
+
+# Use bundled plugins from the Github Pages
+# gem and the included liquid plugins from
+# the _includes/ folder.
+plugins:
+  - jemoji          # Display emojis in Markdown
+  - jekyll-toc      # Generate a table of contents
+
+# Change the GitHub download URLs to bundle the
+# project from branch master instead of gh-pages
+github:
+  zip_url: "https://github.com/mortenterhart/trivial-tickets/zipball/master"
+  tar_url: "https://github.com/mortenterhart/trivial-tickets/tarball/master"
+
+# Exclude all project and build files
+exclude:
+  - "*.go"
+  - "*.sh"
+  - "*.bat"
+  - "*.json"
+  - "*.yml"
+  - "*.toml"
+  - ssl/
+  - www/
+  - Gemfile
+  - Gemfile.lock

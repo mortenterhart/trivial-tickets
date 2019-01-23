@@ -1,20 +1,25 @@
 # Trivial Tickets Ticketsystem
 
-[![Travis Build Status](https://travis-ci.com/mortenterhart/trivial-tickets.svg?branch=master
+[![Travis Build Status](https://img.shields.io/travis/com/mortenterhart/trivial-tickets/master.svg?logo=travis
   "See the Build Status of branch master")][travis]
 [![Codecov Coverage Status](https://codecov.io/gh/mortenterhart/trivial-tickets/branch/master/graph/badge.svg
   "See the Coverage Report of branch master")][codecov]
-[![See the documentation](https://godoc.org/github.com/mortenterhart/trivial-tickets?status.svg
+[![See the documentation](https://img.shields.io/badge/godoc-up%20to%20date-blue.svg?logoColor=white&logo=go
   "Read the Documentation")][godoc]
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?logo=gnu
   "Read the full Project License")][license-gpl3]
 [![GitHub Releases](https://img.shields.io/github/release/mortenterhart/trivial-tickets.svg?logo=github&style=flat
   "See the newest Release")][github-releases]
-[![Sourcegraph](https://sourcegraph.com/github.com/mortenterhart/trivial-tickets/-/badge.svg?style=flat
+[![Sourcegraph](https://img.shields.io/sourcegraph/rrc/github.com/mortenterhart/trivial-tickets.svg?logo=sourcegraph
   "Browse the source code on Sourcegraph")][sourcegraph]
-[![Star this repository](http://githubbadges.com/star.svg?user=mortenterhart&repo=trivial-tickets&style=flat
+[![Code Style Revive](https://img.shields.io/badge/code%20style-revive-blue.svg?style=flat&logo=data:image/svg+xml;charset=utf8;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUyMi40NjggNTIyLjQ2OSIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTIyLjQ2OCA1MjIuNDY5OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgY2xhc3M9IiI+PGc+PGc+Cgk8Zz4KCQk8cGF0aCBkPSJNMzI1Ljc2Miw3MC41MTNsLTE3LjcwNi00Ljg1NGMtMi4yNzktMC43Ni00LjUyNC0wLjUyMS02LjcwNywwLjcxNWMtMi4xOSwxLjIzNy0zLjY2OSwzLjA5NC00LjQyOSw1LjU2OEwxOTAuNDI2LDQ0MC41MyAgICBjLTAuNzYsMi40NzUtMC41MjIsNC44MDksMC43MTUsNi45OTVjMS4yMzcsMi4xOSwzLjA5LDMuNjY1LDUuNTY4LDQuNDI1bDE3LjcwMSw0Ljg1NmMyLjI4NCwwLjc2Niw0LjUyMSwwLjUyNiw2LjcxLTAuNzEyICAgIGMyLjE5LTEuMjQzLDMuNjY2LTMuMDk0LDQuNDI1LTUuNTY0TDMzMi4wNDIsODEuOTM2YzAuNzU5LTIuNDc0LDAuNTIzLTQuODA4LTAuNzE2LTYuOTk5ICAgIEMzMzAuMDg4LDcyLjc0NywzMjguMjM3LDcxLjI3MiwzMjUuNzYyLDcwLjUxM3oiIGRhdGEtb3JpZ2luYWw9IiMwMDAwMDAiIGNsYXNzPSJhY3RpdmUtcGF0aCIgc3R5bGU9ImZpbGw6I0ZGRkVGRSIgZGF0YS1vbGRfY29sb3I9IiNGQkY1RjUiPjwvcGF0aD4KCQk8cGF0aCBkPSJNMTY2LjE2NywxNDIuNDY1YzAtMi40NzQtMC45NTMtNC42NjUtMi44NTYtNi41NjdsLTE0LjI3Ny0xNC4yNzZjLTEuOTAzLTEuOTAzLTQuMDkzLTIuODU3LTYuNTY3LTIuODU3ICAgIHMtNC42NjUsMC45NTUtNi41NjcsMi44NTdMMi44NTYsMjU0LjY2NkMwLjk1LDI1Ni41NjksMCwyNTguNzU5LDAsMjYxLjIzM2MwLDIuNDc0LDAuOTUzLDQuNjY0LDIuODU2LDYuNTY2bDEzMy4wNDMsMTMzLjA0NCAgICBjMS45MDIsMS45MDYsNC4wODksMi44NTQsNi41NjcsMi44NTRzNC42NjUtMC45NTEsNi41NjctMi44NTRsMTQuMjc3LTE0LjI2OGMxLjkwMy0xLjkwMiwyLjg1Ni00LjA5MywyLjg1Ni02LjU3ICAgIGMwLTIuNDcxLTAuOTUzLTQuNjYxLTIuODU2LTYuNTYzTDUxLjEwNywyNjEuMjMzbDExMi4yMDQtMTEyLjIwMUMxNjUuMjE3LDE0Ny4xMywxNjYuMTY3LDE0NC45MzksMTY2LjE2NywxNDIuNDY1eiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojRkZGRUZFIiBkYXRhLW9sZF9jb2xvcj0iI0ZCRjVGNSI+PC9wYXRoPgoJCTxwYXRoIGQ9Ik01MTkuNjE0LDI1NC42NjNMMzg2LjU2NywxMjEuNjE5Yy0xLjkwMi0xLjkwMi00LjA5My0yLjg1Ny02LjU2My0yLjg1N2MtMi40NzgsMC00LjY2MSwwLjk1NS02LjU3LDIuODU3bC0xNC4yNzEsMTQuMjc1ICAgIGMtMS45MDIsMS45MDMtMi44NTEsNC4wOS0yLjg1MSw2LjU2N3MwLjk0OCw0LjY2NSwyLjg1MSw2LjU2N2wxMTIuMjA2LDExMi4yMDRMMzU5LjE2MywzNzMuNDQyICAgIGMtMS45MDIsMS45MDItMi44NTEsNC4wOTMtMi44NTEsNi41NjNjMCwyLjQ3OCwwLjk0OCw0LjY2OCwyLjg1MSw2LjU3bDE0LjI3MSwxNC4yNjhjMS45MDksMS45MDYsNC4wOTMsMi44NTQsNi41NywyLjg1NCAgICBjMi40NzEsMCw0LjY2MS0wLjk1MSw2LjU2My0yLjg1NEw1MTkuNjE0LDI2Ny44YzEuOTAzLTEuOTAyLDIuODU0LTQuMDk2LDIuODU0LTYuNTcgICAgQzUyMi40NjgsMjU4Ljc1NSw1MjEuNTE3LDI1Ni41NjUsNTE5LjYxNCwyNTQuNjYzeiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojRkZGRUZFIiBkYXRhLW9sZF9jb2xvcj0iI0ZCRjVGNSI+PC9wYXRoPgoJPC9nPgo8L2c+PC9nPiA8L3N2Zz4=
+  "Code Style checked by Revive")][revive]
+
+[![Contributors](https://img.shields.io/github/contributors/mortenterhart/trivial-tickets.svg?color=brightgreen&label=Contributors&logo=github
+  "Contribute to this repository")][github-contributors]
+[![Star this repository](https://img.shields.io/github/stars/mortenterhart/trivial-tickets.svg?style=flat&color=brightgreen&label=Stars&logo=github
   "Star this repository")][github-stargazers]
-[![Fork this repository](http://githubbadges.com/fork.svg?user=mortenterhart&repo=trivial-tickets&style=flat
+[![Fork this repository](https://img.shields.io/github/forks/mortenterhart/trivial-tickets.svg?style=flat&color=brightgreen&label=Fork&logo=github
   "Fork this repository")][github-fork]
 
 ## Table of Contents
@@ -799,11 +804,14 @@ this program. If not, see <http://www.gnu.org/licenses>.
 
 <!-- Labels for external links -->
 [codecov]: https://codecov.io/gh/mortenterhart/trivial-tickets "Codecov Dashboard"
+[git]: https://git-scm.com "Git Homepage"
+[github-contributors]: https://github.com/mortenterhart/trivial-tickets/graphs/contributors "See all Contributors"
 [github-fork]: https://github.com/mortenterhart/trivial-tickets/fork "Fork this Repository"
 [github-releases]: https://github.com/mortenterhart/trivial-tickets/releases "GitHub Releases"
 [github-stargazers]: https://github.com/mortenterhart/trivial-tickets/stargazers "GitHub Stars"
 [godoc]: https://godoc.org/github.com/mortenterhart/trivial-tickets "Project Documentation"
 [license-gpl3]: https://www.gnu.org/licenses/gpl-3.0 "License GNU GPLv3"
+[revive]: https://revive.run "Revive Homepage"
 [sourcegraph]: https://sourcegraph.com/github.com/mortenterhart/trivial-tickets "Sourcegraph Code Browser"
 [travis]: https://travis-ci.com/mortenterhart/trivial-tickets "Travis Build Status"
 

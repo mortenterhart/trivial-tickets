@@ -1,0 +1,53 @@
+/*
+ * Trivial Tickets Ticketsystem
+ * Copyright (C) 2019 The Contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * Ticketsystem Trivial Tickets
+ *
+ * Matriculation numbers: 3040018, 6694964, 3478222
+ * Lecture:               Programmieren II, INF16B
+ * Lecturer:              Herr Prof. Dr. Helmut Neemann
+ * Institute:             Duale Hochschule Baden-Württemberg Mosbach
+ *
+ * ---------------
+ * Style settings for the "back to top" button
+ */
+
+// Save a dark-grey color to use it as hover color for the
+// "back to top" button
+$hover-color: #0f0f0f;
+
+div#back-to-top {
+    display: none;   // Hidden by default
+    position: fixed; // Fixed/sticky position
+    bottom: 20px;    // Place the button at the bottom of the page
+    right: 30px;     // Place the button 30px from the right
+    z-index: 99;     // Make sure it does not overlap
+    color: inherit;  // Inherit text color
+    cursor: pointer; // Add a mouse pointer on hover
+    font-size: 12px; // Increase font size
+}
+
+div#back-to-top:hover {
+    color: $hover-color; // Add a dark-grey background on hover
+}
+
+i#back-to-top-arrow {
+    position: relative; // Move the arrow relatively
+    left: 17px;         // Move the arrow to the right by adding space at the left
+    top: 10px;          // Move the arrow down by adding space at the top
+}
