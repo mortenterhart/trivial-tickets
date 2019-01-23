@@ -1,8 +1,7 @@
 ---
 title: Cleaning untracked Tickets and Mails
 layout: wiki
-permalink: wiki/Cleaning-untracked-Tickets-and-Mails
-
+permalink: /wiki/Cleaning-untracked-Tickets-and-Mails
 ---
 
 # Cleaning untracked Tickets and Mails

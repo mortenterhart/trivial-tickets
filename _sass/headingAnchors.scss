@@ -24,17 +24,26 @@
 // Institute:             Duale Hochschule Baden-Württemberg Mosbach
 //
 // ---------------
-// Custom style settings for header
+// Display heading anchors only when hovering over
+// the heading element. The 'minHeader' and 'maxHeader'
+// configuration variables control which headings
+// should receive visible anchor links.
 //
 
-header h1 {
-    width: 650px; // Make the header h1 line longer to fit the Wiki title
-}
+// minHeader and maxHeader define the range of headings
+// for which an anchor link is displayed next to the text.
+$minHeader: 1;
+$maxHeader: 6;
 
-header a.project_button {
-    top: -20px;   // Move the GitHub project button upwards
-}
+@for $index from $minHeader through $maxHeader {
+    section#main-content h#{$index} a.headingAnchor {
+        visibility: hidden;                             // Anchor links hidden by default
+        opacity: 0;                                     // No opacity
+        transition: visibility 0s, opacity 0.2s linear; // Make the anchor visible with a transition
+    }
 
-header a.wiki_button {
-    top: 70px;    // Move the Wiki button downwards
+    section#main-content h#{$index}:hover a.headingAnchor {
+        visibility: visible;   // On hover the anchor is visible
+        opacity: 1;            // Set opacity to 1 for the transition
+    }
 }

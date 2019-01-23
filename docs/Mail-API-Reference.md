@@ -1,8 +1,7 @@
 ---
 title: Mail API Reference
 layout: wiki
-permalink: wiki/Mail-API-Reference
-
+permalink: /wiki/Mail-API-Reference
 ---
 
 # Mail API Reference

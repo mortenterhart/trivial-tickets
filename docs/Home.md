@@ -1,8 +1,7 @@
 ---
 title: Home
 layout: wiki
-permalink: wiki
-
+permalink: /wiki
 ---
 
 # Home

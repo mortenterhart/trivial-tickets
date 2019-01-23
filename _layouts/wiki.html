@@ -86,7 +86,7 @@
             the HTML content. The anchor link is placed as "#" behind the
             heading and has a title attribute.
           {% endcomment %}
-          {% include anchor_headings.html html=content anchorBody="#" anchorTitle="Go to Heading" %}
+          {% include anchor_headings.html html=content anchorBody="#" anchorClass="headingAnchor" anchorTitle="Go to Heading" %}
 
           <footer>
             {% capture license_footer %}{% include _Footer.md %}{% endcapture %}

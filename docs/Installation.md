@@ -1,8 +1,7 @@
 ---
 title: Installation
 layout: wiki
-permalink: wiki/Installation
-
+permalink: /wiki/Installation
 ---
 
 # Installation
@@ -19,9 +18,9 @@ go get -u -v github.com/mortenterhart/trivial-tickets
 ```
 
 This command requires [git](https://git-scm.com) to be installed.
-It downloads and installs all project and test dependencies. For
-more information on how to set the `GOPATH` environment variable
-accordingly visit [Setting
+It downloads and installs all project dependencies to your setup
+Go workspace. For more information on how to set the `GOPATH`
+environment variable accordingly visit [Setting
 GOPATH](https://github.com/golang/go/wiki/SettingGOPATH) from the
 Go Wiki.
 

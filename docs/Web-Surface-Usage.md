@@ -1,8 +1,7 @@
 ---
 title: Web Surface Usage
 layout: wiki
-permalink: wiki/Web-Surface-Usage
-
+permalink: /wiki/Web-Surface-Usage
 ---
 
 # Web Surface Usage

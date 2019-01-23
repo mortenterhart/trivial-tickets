@@ -1,8 +1,7 @@
 ---
 title: License
 layout: wiki
-permalink: wiki/License
-
+permalink: /wiki/License
 ---
 
 GNU General Public License

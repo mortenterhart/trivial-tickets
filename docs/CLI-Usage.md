@@ -1,8 +1,7 @@
 ---
 title: CLI Usage
 layout: wiki
-permalink: wiki/CLI-Usage
-
+permalink: /wiki/CLI-Usage
 ---
 
 # Command-line Tool (mailing service)
@@ -27,7 +26,7 @@ system.
 The command-line tool can be built in the same way than the server by executing
 
 ```bash
-go build ./cmd/commandLineTool
+go build ./cmd/command_line_tool
 ```
 
 from the project's root directory. A better option is to use the attached start
@@ -46,7 +45,7 @@ list of available options.
 The command-line tool can be run in the following way:
 
 ```bash
-./commandLineTool [options]
+./command_line_tool [options]
 ```
 
 If the command-line tool is started without options, the user is guided by an

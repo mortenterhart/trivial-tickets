@@ -1,8 +1,7 @@
 ---
 title: Server Usage
 layout: wiki
-permalink: wiki/Server-Usage
-
+permalink: /wiki/Server-Usage
 ---
 
 # Server Usage

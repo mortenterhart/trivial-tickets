@@ -1,8 +1,7 @@
 ---
 title: Build and Execution
 layout: wiki
-permalink: wiki/Build-and-Execution
-
+permalink: /wiki/Build-and-Execution
 ---
 
 # Build and Execution

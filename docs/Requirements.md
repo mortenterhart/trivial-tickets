@@ -1,8 +1,7 @@
 ---
 title: Requirements
 layout: wiki
-permalink: wiki/Requirements
-
+permalink: /wiki/Requirements
 ---
 
 # Requirements

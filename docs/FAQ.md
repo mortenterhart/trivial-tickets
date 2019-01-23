@@ -1,8 +1,7 @@
 ---
 title: FAQ
 layout: wiki
-permalink: wiki/FAQ
-
+permalink: /wiki/FAQ
 ---
 
 # Frequently asked Questions

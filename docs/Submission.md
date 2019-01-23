@@ -1,8 +1,7 @@
 ---
 title: Submission
 layout: wiki
-permalink: wiki/Submission
-
+permalink: /wiki/Submission
 ---
 
 # Submission

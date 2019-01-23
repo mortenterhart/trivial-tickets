@@ -1,8 +1,7 @@
 ---
 title: Generating a Coverage Report
 layout: wiki
-permalink: wiki/Generating-a-Coverage-Report
-
+permalink: /wiki/Generating-a-Coverage-Report
 ---
 
 # Generating a Coverage Report
