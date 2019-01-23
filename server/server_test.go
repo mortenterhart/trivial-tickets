@@ -146,7 +146,7 @@ func TestStartServerAllConfigsSet(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	signalErr := killProcess(syscall.SIGTERM)
+	signalErr := killProcess(syscall.SIGKILL)
 
 	assert.NoError(t, signalErr, "sending interrupt signal should not cause an error")
 
@@ -231,7 +231,7 @@ func TestNotifyOnInterruptSignal(t *testing.T) {
 		done <- true
 	})
 
-	signalErr := killProcess(syscall.SIGINT)
+	signalErr := killProcess(syscall.SIGKILL)
 
 	t.Run("signalErrNil", func(t *testing.T) {
 		assert.NoError(t, signalErr, "kill error should be nil")
