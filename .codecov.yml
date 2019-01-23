@@ -21,7 +21,25 @@ coverage:
   range: "70...90"
 
   status:
-    project: yes
+    project:
+      default: off
+
+      api:
+        flags: api
+        target: 90%
+
+      commandLine:
+        flags: commandLine
+        target: 75%
+
+      server:
+        flags: server
+        target: 90%
+
+      utilities:
+        flags: utilities
+        target: 90%
+
     patch: yes
     changes: no
 
