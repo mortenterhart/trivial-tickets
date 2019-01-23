@@ -1,16 +1,16 @@
 {
    "Id": "6xSD9nNjAk",
-   "Subject": "blabla",
+   "Subject": "Test ticket",
    "Status": 1,
    "User": {
       "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
       "Name": "Admin",
       "Username": "admin",
-      "Mail": "admin@example.com",
+      "Mail": "admin@trivial-tickets.com",
       "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
       "IsOnHoliday": false
    },
-   "Customer": "test@gmail.com",
+   "Customer": "customer@gmail.com",
    "Entries": [
       {
          "Date": "2018-11-29T09:54:47.0663853+01:00",
@@ -18,13 +18,6 @@
          "User": "test@gmail.com",
          "Text": "test ticket",
          "Reply_Type": ""
-      },
-      {
-         "Date": "2019-01-17T11:42:32.111076+01:00",
-         "FormattedDate": "Thu Jan 17 11:42:32 2019",
-         "User": "admin@example.com",
-         "Text": "\u0026lt;script\u0026gt;alert(\u0026#34;XSS attack\u0026#34;)\u0026lt;/script\u0026gt;",
-         "Reply_Type": "extern"
       }
    ],
    "MergeTo": ""

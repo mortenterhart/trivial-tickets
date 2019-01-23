@@ -3,7 +3,7 @@
       "Id": "iuxLXN6ACBCZLmKqsDy03wTYRuz3scntN_kvNm_MTZM=",
       "Name": "Admin",
       "Username": "admin",
-      "Mail": "admin@example.com",
+      "Mail": "admin@trivial-tickets.com",
       "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
       "IsOnHoliday": false
    },
@@ -11,7 +11,7 @@
       "Id": "1lefJPUAZgd58hTuZrN16GbUjDOgCA0xShaUCD2spPY=",
       "Name": "Max Mustermann",
       "Username": "max4711",
-      "Mail": "max.mustermann@example.com",
+      "Mail": "max.mustermann@trivial-tickets.com",
       "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
       "IsOnHoliday": false
    },
@@ -19,7 +19,7 @@
       "Id": "CLwt_Y27ktggbjaNzn5U2fpCM6Az1ktAKo46n0mLP6A=",
       "Name": "Boris Floricic",
       "Username": "tron",
-      "Mail": "boris.floricic@example.com",
+      "Mail": "boris.floricic@trivial-tickets.com",
       "Hash": "$2a$12$fdohkh9gw4M1GJ5KKgzbwu0btXSPNAT2Y.FPmnTQ.zBCzjvWFGH02",
       "IsOnHoliday": false
    }
