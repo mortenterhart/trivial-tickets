@@ -47,13 +47,16 @@ branches:
   only:
     - gh-pages
 
-# Install the required gems from the Gemfile and
-# verify that Jekyll was installed correctly
+# Upgrade the managed bundler version to 2.0.1
+# and install the required gems from the Gemfile
+# and verify that Jekyll was installed correctly.
 install:
+  - gem uninstall bundler
+  - gem install bundler --version "2.0.1"
   - bundle install --jobs=3 --retry=3 --deployment
   - bundle exec jekyll --version
 
-# Check the sass files for syntax validity
+# Check the sass files for syntax validity.
 before_script:
   - bundle exec sass --check --trace --sourcemap=none --scss _sass/*.scss assets/css/*.scss &&
       echo "Sass is alright."
