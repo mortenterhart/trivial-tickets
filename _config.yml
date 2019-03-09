@@ -84,5 +84,6 @@ exclude:
   - "*.toml"
   - ssl/
   - www/
+  - vendor/bundle    # Bundler directory for installed Gems
   - Gemfile
   - Gemfile.lock
