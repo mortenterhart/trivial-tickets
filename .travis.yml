@@ -42,6 +42,11 @@ sudo: false
 rvm:
   - 2.6.x
 
+# Include the gh-pages branch to the Travis build
+branches:
+  only:
+    - gh-pages
+
 # Install the required gems from the Gemfile and
 # verify that Jekyll was installed correctly
 install:
