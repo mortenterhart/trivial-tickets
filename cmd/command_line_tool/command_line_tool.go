@@ -226,7 +226,7 @@ func usageMessage() {
 	fmt.Fprintln(w, "                 or IP address.")
 	fmt.Fprintf (w, "                 (Default: \"%s\")\n", defaults.CliHost)
 	fmt.Fprintln(w, "  -port <PORT>   The port the server listens to. PORT has to be a")
-	fmt.Fprintf (w, "                 16 bit unsigned integer (0 < PORT <= %d) and", math.MaxUint16)
+	fmt.Fprintf (w, "                 16 bit unsigned integer (0 < PORT <= %d) and\n", math.MaxUint16)
 	fmt.Fprintln(w, "                 must be the port used by the server process.")
 	fmt.Fprintf (w, "                 (Default: %d)\n", defaults.CliPort)
 	fmt.Fprintln(w, "  -cert <FILE>   The path to the ssl certificate file. FILE has to")
