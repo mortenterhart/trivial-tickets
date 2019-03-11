@@ -252,8 +252,7 @@ to generate a coverage report of all sub-packages with default options. The
 report will be rendered as HTML and opens in your default web browser.
 
 Try `./coverage_report.sh --help` for a complete list of options or
-alternatively consult this :book:
-[Wiki page]().
+alternatively consult this :book: [Wiki page][wiki-coverage-report].
 
 ### Cleaning untracked tickets and mails
 
@@ -803,7 +802,6 @@ this program. If not, see <http://www.gnu.org/licenses>.
 * [Source Code Browser][sourcegraph] on sourcegraph.com
 * [License GNU GPL Version 3][license-gpl3] on gnu.org
 
-
 <!-- Labels for external links -->
 [codecov]: https://codecov.io/gh/mortenterhart/trivial-tickets "Codecov Dashboard"
 [git]: https://git-scm.com "Git Homepage"
@@ -821,15 +819,12 @@ this program. If not, see <http://www.gnu.org/licenses>.
 [user-manual-de]: https://mortenterhart.github.io/trivial-tickets/docs/Ticketsystem_User_Manual_DE.pdf "Ticketsystem User Manual (German)"
 
 <!-- Labels for Wiki links -->
-[wiki-cleaning-tickets]: https://mortenterhart.github.io/trivial-tickets/wiki/Cleaning-untracked-Tickets-and-Mails
-  "Cleaning untracked Tickets and Mails"
+[wiki-cleaning-tickets]: https://mortenterhart.github.io/trivial-tickets/wiki/Cleaning-untracked-Tickets-and-Mails "Cleaning untracked Tickets and Mails"
 [wiki-cli-usage]: https://mortenterhart.github.io/trivial-tickets/wiki/CLI-Usage "CLI Usage"
-[wiki-coverage-report]: https://mortenterhart.github.io/trivial-tickets/wiki/Generating-a-Coverage-Report
-  "Generating a Coverage Report"
+[wiki-coverage-report]: https://mortenterhart.github.io/trivial-tickets/wiki/Generating-a-Coverage-Report "Generating a Coverage Report"
 [wiki-faq]: https://mortenterhart.github.io/trivial-tickets/wiki/FAQ "Frequently Asked Questions"
 [wiki-home]: https://mortenterhart.github.io/trivial-tickets/wiki "Wiki Home"
 [wiki-license]: https://mortenterhart.github.io/trivial-tickets/wiki/License "License Page"
-[wiki-mail-api-reference]: https://mortenterhart.github.io/trivial-tickets/wiki/Mail-API-Reference
-  "Mail API Reference"
+[wiki-mail-api-reference]: https://mortenterhart.github.io/trivial-tickets/wiki/Mail-API-Reference "Mail API Reference"
 [wiki-requirements]: https://mortenterhart.github.io/trivial-tickets/wiki/Requirements "Requirements"
 [wiki-server-usage]: https://mortenterhart.github.io/trivial-tickets/wiki/Server-Usage "Server Usage"
